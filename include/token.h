@@ -1,0 +1,46 @@
+#ifndef JAVIER_TOKEN_H
+#define JAVIER_TOKEN_H
+
+#include <stddef.h>
+
+typedef enum {
+    TOKEN_EOF, TOKEN_ERROR,
+    TOKEN_IDENTIFIER, TOKEN_INTEGER, TOKEN_STRING, TOKEN_CHARACTER,
+    TOKEN_MAIN, TOKEN_DECLARE_CONST, TOKEN_CREATE_FUNK, TOKEN_GIVE,
+    TOKEN_WHETHER, TOKEN_ALIF, TOKEN_ALSO, TOKEN_WHALE, TOKEN_STOP,
+    TOKEN_CYCLE, TOKEN_LET, TOKEN_UNTIL, TOKEN_ENDGAME, TOKEN_STEP,
+    TOKEN_BRING, TOKEN_AKA, TOKEN_SEEK, TOKEN_SEIZE, TOKEN_SHOW,
+    TOKEN_DECLARE_LIST, TOKEN_ADD, TOKEN_REMOVE, TOKEN_SIZE,
+    TOKEN_DECLARE_INT, TOKEN_DECLARE_BOOLEAN, TOKEN_DECLARE_TEXT,
+    TOKEN_DECLARE_CHAR, TOKEN_DECLARE_INFINITE_VOID,
+    TOKEN_DECLARE_FALSE, TOKEN_DECLARE_TRUE,
+    TOKEN_GAUSS, TOKEN_NEUMANN, TOKEN_PITAGORAS, TOKEN_EUCLIDES,
+    TOKEN_EULER, TOKEN_DESCARTES,
+    TOKEN_EQUAL, TOKEN_NOT_EQUAL, TOKEN_LESS, TOKEN_GREATER,
+    TOKEN_LESS_EQUAL, TOKEN_GREATER_EQUAL,
+    TOKEN_AND, TOKEN_OR, TOKEN_NOT, TOKEN_XOR,
+    TOKEN_ASSIGN, TOKEN_DOT, TOKEN_LPAREN, TOKEN_RPAREN,
+    TOKEN_LBRACKET, TOKEN_RBRACKET, TOKEN_LBRACE, TOKEN_RBRACE,
+    TOKEN_COMMA, TOKEN_SEMICOLON, TOKEN_STAR, TOKEN_HASH
+} TokenType;
+
+typedef enum {
+    TOKEN_NO_ERROR, TOKEN_INVALID_CHARACTER, TOKEN_UNTERMINATED_STRING,
+    TOKEN_UNTERMINATED_CHARACTER, TOKEN_INVALID_CHARACTER_LITERAL,
+    TOKEN_UNTERMINATED_COMMENT, TOKEN_INVALID_NUMBER, TOKEN_OUT_OF_MEMORY
+} TokenError;
+
+typedef struct {
+    TokenType type;
+    TokenError error;
+    char *lexeme;              /* Owned by the caller; NULL only on allocation failure. */
+    size_t length;             /* Byte length, excluding terminating NUL. */
+    size_t line;               /* 1-based start position. */
+    size_t column;             /* 1-based Unicode character column. */
+} Token;
+
+const char *token_type_name(TokenType type);
+const char *token_error_message(TokenError error);
+void token_dispose(Token *token);
+
+#endif
