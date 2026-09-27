@@ -1,4 +1,4 @@
-/* Primera etapa: declaraciones, asignaciones y expresiones aritmeticas.
+/* Primera etapa: declaraciones, asignaciones, aritmetica y comparaciones.
  * Todavia no incluye funciones, bloques ni construccion del AST.
  * Los nombres de Bison se mapearan a TOKEN_* mediante un adaptador yylex.
  */
@@ -10,11 +10,18 @@
 %token STAR ASSIGN SEMICOLON
 %token GAUSS NEUMANN PITAGORAS EUCLIDES
 %token LPAREN RPAREN
+%token EQUAL NOT_EQUAL LESS GREATER LESS_EQUAL GREATER_EQUAL
 
 /* Precedencia propuesta, de menor a mayor. %left asocia a la izquierda.
  * GAUSS: suma; NEUMANN: resta; PITAGORAS: multiplicacion; EUCLIDES: division.
  * NEGATIVO es una marca interna de precedencia, no un token del lexer.
  */
+/* Comparaciones: menor prioridad que la aritmetica.
+ * %nonassoc rechaza cadenas sin parentesis como a < b < c.
+ * EQUAL: ==; NOT_EQUAL: =/=; LESS: <; GREATER: >;
+ * LESS_EQUAL: <=; GREATER_EQUAL: >=.
+ */
+%nonassoc EQUAL NOT_EQUAL LESS GREATER LESS_EQUAL GREATER_EQUAL
 %left GAUSS NEUMANN
 %left PITAGORAS EUCLIDES
 %precedence NEGATIVO
@@ -56,7 +63,7 @@ tipo:
   | DECLARE_CHAR
 ;
 
-/* Valores, variables, operaciones y agrupacion con parentesis.
+/* Valores, variables, operaciones, comparaciones y parentesis.
  * La compatibilidad de tipos se verifica en el analisis semantico.
  */
 expresion:
@@ -66,6 +73,12 @@ expresion:
   | DECLARE_TRUE
   | DECLARE_FALSE
   | IDENTIFIER
+  | expresion EQUAL expresion
+  | expresion NOT_EQUAL expresion
+  | expresion LESS expresion
+  | expresion GREATER expresion
+  | expresion LESS_EQUAL expresion
+  | expresion GREATER_EQUAL expresion
   | expresion GAUSS expresion
   | expresion NEUMANN expresion
   | expresion PITAGORAS expresion
@@ -81,4 +94,6 @@ expresion:
  * Ejemplo de entrada cuando se conecte el lexer:
  * resultado * declare_int : 0;
  * resultado : 2 gauss 3 pitagoras 4;
+ * cumple * declare_boolean : n <= 1;
+ * cumple : i gauss 1 <= n;
  */
