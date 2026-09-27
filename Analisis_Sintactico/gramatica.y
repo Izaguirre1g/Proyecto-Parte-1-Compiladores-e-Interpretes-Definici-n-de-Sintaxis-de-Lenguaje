@@ -1,5 +1,5 @@
 /* Primera etapa: declaraciones, asignaciones, expresiones, bloques, condicionales y ciclos.
- * Todavia no incluye funciones ni construccion del AST.
+ * Incluye funciones sin parametros. Pendientes: parametros, llamadas, give y AST.
  * Los nombres de Bison se mapearan a TOKEN_* mediante un adaptador yylex.
  */
 
@@ -12,6 +12,7 @@
 %token LPAREN RPAREN
 %token LBRACE RBRACE WHETHER ALSO
 %token WHALE STOP
+%token CREATE_FUNK HASH MAIN DECLARE_INFINITE_VOID
 %token EQUAL NOT_EQUAL LESS GREATER LESS_EQUAL GREATER_EQUAL
 
 /* Precedencia propuesta, de menor a mayor. %left asocia a la izquierda.
@@ -28,11 +29,37 @@
 %left PITAGORAS EUCLIDES
 %precedence NEGATIVO
 
-/* Entrada provisional: una o mas sentencias, no un programa completo. */
-%start sentencias
+/* Primera forma de programa: una o mas funciones sin parametros.
+ * Las sentencias quedan dentro de los cuerpos de las funciones.
+ */
+%start programa
 
 /* Reglas de gramatica entre separadores %% */
 %%
+
+/* Las funciones se declaran al nivel del programa, no dentro de sentencias.
+ * La existencia y unicidad de main se verificaran en la etapa semantica.
+ */
+programa:
+    funcion
+  | programa funcion
+;
+
+/* Ejemplo: create_funk #declare_infinite_void# main() { ... } */
+funcion:
+    CREATE_FUNK HASH tipo_retorno HASH nombre_funcion LPAREN RPAREN bloque
+;
+
+tipo_retorno:
+    tipo
+  | DECLARE_INFINITE_VOID
+;
+
+/* main tiene su propio token en el lexer; no es un IDENTIFIER. */
+nombre_funcion:
+    MAIN
+  | IDENTIFIER
+;
 
 /* Una sentencia, o una lista seguida por otra sentencia. */
 sentencias:
@@ -128,8 +155,9 @@ expresion:
 /* Pendiente: conectar yylex y yyerror con el proyecto existente.
  * Despues de este segundo separador solo va codigo C, no reglas.
  * Ejemplo de entrada cuando se conecte el lexer:
- * resultado * declare_int : 0;
- * resultado : 2 gauss 3 pitagoras 4;
- * cumple * declare_boolean : n <= 1;
- * cumple : i gauss 1 <= n;
+ * create_funk #declare_infinite_void# main() {
+ *     resultado * declare_int : 0;
+ *     resultado : 2 gauss 3 pitagoras 4;
+ *     cumple * declare_boolean : resultado <= 14;
+ * }
  */

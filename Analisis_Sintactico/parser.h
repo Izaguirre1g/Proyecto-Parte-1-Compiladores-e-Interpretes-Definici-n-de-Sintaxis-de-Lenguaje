@@ -79,13 +79,17 @@ extern int yydebug;
     ALSO = 280,                    /* ALSO  */
     WHALE = 281,                   /* WHALE  */
     STOP = 282,                    /* STOP  */
-    EQUAL = 283,                   /* EQUAL  */
-    NOT_EQUAL = 284,               /* NOT_EQUAL  */
-    LESS = 285,                    /* LESS  */
-    GREATER = 286,                 /* GREATER  */
-    LESS_EQUAL = 287,              /* LESS_EQUAL  */
-    GREATER_EQUAL = 288,           /* GREATER_EQUAL  */
-    NEGATIVO = 289                 /* NEGATIVO  */
+    CREATE_FUNK = 283,             /* CREATE_FUNK  */
+    HASH = 284,                    /* HASH  */
+    MAIN = 285,                    /* MAIN  */
+    DECLARE_INFINITE_VOID = 286,   /* DECLARE_INFINITE_VOID  */
+    EQUAL = 287,                   /* EQUAL  */
+    NOT_EQUAL = 288,               /* NOT_EQUAL  */
+    LESS = 289,                    /* LESS  */
+    GREATER = 290,                 /* GREATER  */
+    LESS_EQUAL = 291,              /* LESS_EQUAL  */
+    GREATER_EQUAL = 292,           /* GREATER_EQUAL  */
+    NEGATIVO = 293                 /* NEGATIVO  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
