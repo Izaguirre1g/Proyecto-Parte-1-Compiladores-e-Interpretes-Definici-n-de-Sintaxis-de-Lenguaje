@@ -44,10 +44,10 @@ nuevo recorrido del fuente para validar sintaxis. Sin `-t`, se mantiene el
 modo léxico de Javier. Resultado: 0 éxito, 1 error léxico/sintáctico, 2 fallo
 de lectura, invocación o memoria.
 
-La gramática admite funciones sin parámetros, declaraciones inicializadas,
+La gramática admite funciones con parámetros opcionales, declaraciones inicializadas,
 asignaciones, aritmética básica, comparaciones, bloques, whether/also y whale
 con cierre `stop;`. Permite bloques vacíos y estructuras anidadas. Todavía no
-admite parámetros, llamadas, give, alif, operadores lógicos, listas ni módulos.
+admite llamadas, give, alif, operadores lógicos, listas ni módulos.
 No verifica tipos, declaración de variables, existencia/unicidad de main ni
 retornos obligatorios. No ejecuta el factorial ni calcula su resultado.
 
@@ -55,3 +55,22 @@ Las pruebas en `tests/test_parser.py` pasan archivos reales por la CLI:
 factorial, funciones y estructuras anidadas, operadores, errores de cierre,
 comparaciones encadenadas, tokens pendientes y errores léxicos (incluido UTF-8).
 Los casos válidos verifican aceptación, no construcción de AST ni evaluación.
+
+## Parámetros de funciones
+
+La sintaxis adoptada para este paso es `nombre * tipo`, separada por comas:
+
+```text
+create_funk #declare_infinite_void# procesar(n * declare_int, activo * declare_boolean) {
+    whether (activo) { n : n gauss 1; }
+}
+
+create_funk #declare_infinite_void# main() {}
+```
+
+Se permiten cero, uno o varios parámetros. Cada uno requiere identificador,
+`*` y un tipo de variable (`declare_int`, `declare_boolean`, `declare_text`
+o `declare_char`). No admite valores iniciales, tipo void ni comas al inicio
+o al final. Las llamadas y `give` quedan para el siguiente paso.
+La verificación de nombres duplicados, ámbitos y firma de main corresponde
+al análisis semántico; aquí solo se valida la forma de la declaración.
