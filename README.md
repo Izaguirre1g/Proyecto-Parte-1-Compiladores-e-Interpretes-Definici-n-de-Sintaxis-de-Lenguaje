@@ -3,8 +3,8 @@
 El contenido de este directorio se coloca directamente en la raíz del repositorio:
 `src/`, `include/`, `tests/`, `examples/`, `docs/`, `Makefile` y este README.
 Todos los comandos de abajo se ejecutan desde esa raíz. Se necesita GCC para C11
-y Bison (probado con 3.8.2). El Makefile usa GNU Make 4.3 o posterior;
-las pruebas del parser requieren Python 3. También se puede compilar sin make.
+y Bison (probado con 3.8.2). El Makefile usa GNU Make 4.3 o posterior. Las pruebas del parser están en C
+y usan funciones POSIX disponibles en Ubuntu/WSL. También se puede compilar sin make.
 
 ## Opción 1: WSL
 
@@ -40,7 +40,12 @@ make test
 
 `make test` ejecuta las pruebas de ambos analizadores y muestra los tokens del
 factorial. Sin make, los comandos de la opción WSL funcionan igual en Ubuntu;
-las pruebas del parser se ejecutan con `python3 tests/test_parser.py`.
+las pruebas del parser se compilan y ejecutan así (con `micomp` ya compilado):
+
+```bash
+gcc -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 tests/test_parser.c -o tests/test_parser
+./tests/test_parser
+```
 
 ## Resultado esperado
 

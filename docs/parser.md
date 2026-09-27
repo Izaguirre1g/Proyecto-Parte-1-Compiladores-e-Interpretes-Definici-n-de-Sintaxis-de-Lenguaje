@@ -51,7 +51,7 @@ admite llamadas, give, alif, operadores lógicos, listas ni módulos.
 No verifica tipos, declaración de variables, existencia/unicidad de main ni
 retornos obligatorios. No ejecuta el factorial ni calcula su resultado.
 
-Las pruebas en `tests/test_parser.py` pasan archivos reales por la CLI:
+Las pruebas en `tests/test_parser.c` pasan archivos reales por la CLI:
 factorial, funciones y estructuras anidadas, operadores, errores de cierre,
 comparaciones encadenadas, tokens pendientes y errores léxicos (incluido UTF-8).
 Los casos válidos verifican aceptación, no construcción de AST ni evaluación.
@@ -74,3 +74,11 @@ o `declare_char`). No admite valores iniciales, tipo void ni comas al inicio
 o al final. Las llamadas y `give` quedan para el siguiente paso.
 La verificación de nombres duplicados, ámbitos y firma de main corresponde
 al análisis semántico; aquí solo se valida la forma de la declaración.
+
+Las pruebas están escritas en C y se ejecutan con `make test-parser`.
+Usan `fork`/`execv` y archivos temporales POSIX para ejecutar el binario real
+y capturar salida, errores y código de retorno. No requieren Python.
+
+`make test-parser` muestra cada caso con su código fuente, el resultado esperado,
+el obtenido y los diagnósticos. Los rechazos esperados se marcan como pruebas
+correctas. Al final se muestra el resumen de la batería.
