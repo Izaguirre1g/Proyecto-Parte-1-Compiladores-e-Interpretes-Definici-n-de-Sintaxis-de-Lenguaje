@@ -73,29 +73,30 @@ extern int yydebug;
     STAR = 268,                    /* STAR  */
     ASSIGN = 269,                  /* ASSIGN  */
     SEMICOLON = 270,               /* SEMICOLON  */
-    GAUSS = 271,                   /* GAUSS  */
-    NEUMANN = 272,                 /* NEUMANN  */
-    PITAGORAS = 273,               /* PITAGORAS  */
-    EUCLIDES = 274,                /* EUCLIDES  */
-    LPAREN = 275,                  /* LPAREN  */
-    RPAREN = 276,                  /* RPAREN  */
-    LBRACE = 277,                  /* LBRACE  */
-    RBRACE = 278,                  /* RBRACE  */
-    WHETHER = 279,                 /* WHETHER  */
-    ALSO = 280,                    /* ALSO  */
-    WHALE = 281,                   /* WHALE  */
-    STOP = 282,                    /* STOP  */
-    CREATE_FUNK = 283,             /* CREATE_FUNK  */
-    HASH = 284,                    /* HASH  */
-    MAIN = 285,                    /* MAIN  */
-    DECLARE_INFINITE_VOID = 286,   /* DECLARE_INFINITE_VOID  */
-    EQUAL = 287,                   /* EQUAL  */
-    NOT_EQUAL = 288,               /* NOT_EQUAL  */
-    LESS = 289,                    /* LESS  */
-    GREATER = 290,                 /* GREATER  */
-    LESS_EQUAL = 291,              /* LESS_EQUAL  */
-    GREATER_EQUAL = 292,           /* GREATER_EQUAL  */
-    NEGATIVO = 293                 /* NEGATIVO  */
+    COMMA = 271,                   /* COMMA  */
+    GAUSS = 272,                   /* GAUSS  */
+    NEUMANN = 273,                 /* NEUMANN  */
+    PITAGORAS = 274,               /* PITAGORAS  */
+    EUCLIDES = 275,                /* EUCLIDES  */
+    LPAREN = 276,                  /* LPAREN  */
+    RPAREN = 277,                  /* RPAREN  */
+    LBRACE = 278,                  /* LBRACE  */
+    RBRACE = 279,                  /* RBRACE  */
+    WHETHER = 280,                 /* WHETHER  */
+    ALSO = 281,                    /* ALSO  */
+    WHALE = 282,                   /* WHALE  */
+    STOP = 283,                    /* STOP  */
+    CREATE_FUNK = 284,             /* CREATE_FUNK  */
+    HASH = 285,                    /* HASH  */
+    MAIN = 286,                    /* MAIN  */
+    DECLARE_INFINITE_VOID = 287,   /* DECLARE_INFINITE_VOID  */
+    EQUAL = 288,                   /* EQUAL  */
+    NOT_EQUAL = 289,               /* NOT_EQUAL  */
+    LESS = 290,                    /* LESS  */
+    GREATER = 291,                 /* GREATER  */
+    LESS_EQUAL = 292,              /* LESS_EQUAL  */
+    GREATER_EQUAL = 293,           /* GREATER_EQUAL  */
+    NEGATIVO = 294                 /* NEGATIVO  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -118,6 +119,6 @@ int yyparse (ContextoSintactico *ctx);
 int yylex(YYSTYPE *valor, ContextoSintactico *ctx);
 void yyerror(ContextoSintactico *ctx, const char *mensaje);
 
-#line 122 "Analisis_Sintactico/parser.h"
+#line 123 "Analisis_Sintactico/parser.h"
 
 #endif /* !YY_YY_ANALISIS_SINTACTICO_PARSER_H_INCLUDED  */

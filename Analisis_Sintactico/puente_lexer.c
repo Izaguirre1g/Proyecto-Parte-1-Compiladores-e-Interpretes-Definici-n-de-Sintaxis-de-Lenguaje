@@ -17,6 +17,7 @@ static int token_bison(TokenType tipo) {
         case TOKEN_STAR: return STAR;
         case TOKEN_ASSIGN: return ASSIGN;
         case TOKEN_SEMICOLON: return SEMICOLON;
+        case TOKEN_COMMA: return COMMA;
         case TOKEN_GAUSS: return GAUSS;
         case TOKEN_NEUMANN: return NEUMANN;
         case TOKEN_PITAGORAS: return PITAGORAS;

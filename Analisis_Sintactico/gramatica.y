@@ -1,5 +1,5 @@
 /* Primera etapa: declaraciones, asignaciones, expresiones, bloques, condicionales y ciclos.
- * Incluye funciones sin parametros. Pendientes: parametros, llamadas, give y AST.
+ * Incluye funciones con parametros opcionales. Pendientes: llamadas, give y AST.
  * puente_lexer.c traduce TOKEN_* a los tokens de Bison mediante yylex.
  */
 
@@ -23,7 +23,7 @@ void yyerror(ContextoSintactico *ctx, const char *mensaje);
 %token IDENTIFIER INTEGER STRING CHARACTER
 %token DECLARE_INT DECLARE_BOOLEAN DECLARE_TEXT DECLARE_CHAR
 %token DECLARE_TRUE DECLARE_FALSE
-%token STAR ASSIGN SEMICOLON
+%token STAR ASSIGN SEMICOLON COMMA
 %token GAUSS NEUMANN PITAGORAS EUCLIDES
 %token LPAREN RPAREN
 %token LBRACE RBRACE WHETHER ALSO
@@ -45,7 +45,7 @@ void yyerror(ContextoSintactico *ctx, const char *mensaje);
 %left PITAGORAS EUCLIDES
 %precedence NEGATIVO
 
-/* Primera forma de programa: una o mas funciones sin parametros.
+/* Primera forma de programa: una o mas funciones con parametros opcionales.
  * Las sentencias quedan dentro de los cuerpos de las funciones.
  */
 %start programa
@@ -63,7 +63,25 @@ programa:
 
 /* Ejemplo: create_funk #declare_infinite_void# main() { ... } */
 funcion:
-    CREATE_FUNK HASH tipo_retorno HASH nombre_funcion LPAREN RPAREN bloque
+    CREATE_FUNK HASH tipo_retorno HASH nombre_funcion LPAREN parametros_opcionales RPAREN bloque
+;
+
+/* Los parentesis pueden estar vacios o contener parametros separados por comas. */
+parametros_opcionales:
+    %empty
+  | parametros
+;
+
+parametros:
+    parametro
+  | parametros COMMA parametro
+;
+
+/* Sintaxis adoptada: nombre * tipo, sin valor inicial ni punto y coma.
+ * Ejemplo: a * declare_int, b * declare_int
+ */
+parametro:
+    IDENTIFIER STAR tipo
 ;
 
 tipo_retorno:
