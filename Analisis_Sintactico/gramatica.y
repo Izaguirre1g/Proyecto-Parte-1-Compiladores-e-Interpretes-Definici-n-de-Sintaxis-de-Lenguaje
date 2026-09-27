@@ -1,18 +1,28 @@
-/* Primera etapa: declaraciones con valor inicial y asignaciones.
- * Basada en los tokens del lexer de Javier y en examples/factorial.bal.
- * Todavia no incluye funciones, operaciones, bloques ni construccion del AST.
+/* Primera etapa: declaraciones, asignaciones y expresiones aritmeticas.
+ * Todavia no incluye funciones, bloques ni construccion del AST.
  * Los nombres de Bison se mapearan a TOKEN_* mediante un adaptador yylex.
  */
 
-/* Tokens: elementos que entrega el analizador lexico. */
+/* Tokens: las piezas que recibe el parser desde el lexer de Javier. */
 %token IDENTIFIER INTEGER STRING CHARACTER
 %token DECLARE_INT DECLARE_BOOLEAN DECLARE_TEXT DECLARE_CHAR
 %token DECLARE_TRUE DECLARE_FALSE
 %token STAR ASSIGN SEMICOLON
+%token GAUSS NEUMANN PITAGORAS EUCLIDES
+%token LPAREN RPAREN
+
+/* Precedencia propuesta, de menor a mayor. %left asocia a la izquierda.
+ * GAUSS: suma; NEUMANN: resta; PITAGORAS: multiplicacion; EUCLIDES: division.
+ * NEGATIVO es una marca interna de precedencia, no un token del lexer.
+ */
+%left GAUSS NEUMANN
+%left PITAGORAS EUCLIDES
+%precedence NEGATIVO
 
 /* Entrada provisional: una o mas sentencias, no un programa completo. */
 %start sentencias
 
+/* Reglas de gramatica entre separadores %% */
 %%
 
 /* Una sentencia, o una lista seguida por otra sentencia. */
@@ -21,18 +31,20 @@ sentencias:
   | sentencias sentencia
 ;
 
-/* Permite mezclar declaraciones y asignaciones. */
+/* Cada sentencia puede ser una declaracion o una asignacion. */
 sentencia:
     declaracion
   | asignacion
 ;
 
-/* Ejemplo: n * declare_int : 5; */
+/* Regla principal. Ejemplo: n * declare_int : 5; */
 declaracion:
     IDENTIFIER STAR tipo ASSIGN expresion SEMICOLON
 ;
 
-/* Ejemplo: resultado : 1; */
+/* Regla para asignar valores a variables; Dylan verificara su declaracion.
+ * Ejemplo: resultado : 1;
+ */
 asignacion:
     IDENTIFIER ASSIGN expresion SEMICOLON
 ;
@@ -44,7 +56,9 @@ tipo:
   | DECLARE_CHAR
 ;
 
-/* Por ahora, solo valores simples o referencias a variables. */
+/* Valores, variables, operaciones y agrupacion con parentesis.
+ * La compatibilidad de tipos se verifica en el analisis semantico.
+ */
 expresion:
     INTEGER
   | STRING
@@ -52,8 +66,19 @@ expresion:
   | DECLARE_TRUE
   | DECLARE_FALSE
   | IDENTIFIER
+  | expresion GAUSS expresion
+  | expresion NEUMANN expresion
+  | expresion PITAGORAS expresion
+  | expresion EUCLIDES expresion
+  | NEUMANN expresion %prec NEGATIVO
+  | LPAREN expresion RPAREN
 ;
 
 %%
 
-/* Pendiente: conectar yylex y yyerror con el proyecto existente. */
+/* Pendiente: conectar yylex y yyerror con el proyecto existente.
+ * Despues de este segundo separador solo va codigo C, no reglas.
+ * Ejemplo de entrada cuando se conecte el lexer:
+ * resultado * declare_int : 0;
+ * resultado : 2 gauss 3 pitagoras 4;
+ */
