@@ -1,5 +1,5 @@
-/* Primera etapa: declaraciones, asignaciones, aritmetica y comparaciones.
- * Todavia no incluye funciones, bloques ni construccion del AST.
+/* Primera etapa: declaraciones, asignaciones, expresiones, bloques y condicionales.
+ * Todavia no incluye funciones, ciclos ni construccion del AST.
  * Los nombres de Bison se mapearan a TOKEN_* mediante un adaptador yylex.
  */
 
@@ -10,6 +10,7 @@
 %token STAR ASSIGN SEMICOLON
 %token GAUSS NEUMANN PITAGORAS EUCLIDES
 %token LPAREN RPAREN
+%token LBRACE RBRACE WHETHER ALSO
 %token EQUAL NOT_EQUAL LESS GREATER LESS_EQUAL GREATER_EQUAL
 
 /* Precedencia propuesta, de menor a mayor. %left asocia a la izquierda.
@@ -38,10 +39,35 @@ sentencias:
   | sentencias sentencia
 ;
 
-/* Cada sentencia puede ser una declaracion o una asignacion. */
+/* Los bloques y condicionales tambien son sentencias: pueden anidarse. */
 sentencia:
     declaracion
   | asignacion
+  | bloque
+  | condicional
+;
+
+/* Un bloque tiene llaves obligatorias y puede estar vacio. */
+bloque:
+    LBRACE contenido_bloque RBRACE
+;
+
+contenido_bloque:
+    %empty
+  | sentencias
+;
+
+/* whether (condicion) { ... } con una rama also opcional.
+ * Las llaves delimitan cada rama, incluso cuando hay otro whether dentro.
+ * No se escribe punto y coma despues de estas estructuras.
+ */
+condicional:
+    WHETHER LPAREN expresion RPAREN bloque alternativa
+;
+
+alternativa:
+    %empty
+  | ALSO bloque
 ;
 
 /* Regla principal. Ejemplo: n * declare_int : 5; */
