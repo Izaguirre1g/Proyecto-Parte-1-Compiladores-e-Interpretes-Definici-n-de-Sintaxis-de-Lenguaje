@@ -105,8 +105,9 @@ El nombre del ejecutable es `micomp`, según el enunciado oficial. Con `-v`
 imprime nombre de fase, tokens, posición, lexema y recuento final. Sin `-v`
 solo muestra errores o un aviso de análisis léxico correcto. Códigos de salida:
 0 éxito léxico; 1 hubo errores léxicos; 2 error de invocación, lectura o
-memoria. `-o`, `-s`, `-t`, `-m`, `-x` y `-p` no simulan un backend: informan que
-la fase necesaria aún no está integrada. No se crea archivo `.bin`.
+memoria. `-o`, `-s`, `-m`, `-x` y `-p` no simulan un backend: informan que
+la fase necesaria aún no está integrada. No se crea archivo `.bin`. La opción `-t` ahora valida sintaxis con Bison;
+la impresión del AST sigue pendiente. Véase `docs/parser.md`.
 
 La batería automatizada ejecuta 18 casos con resultados esperados concretos:
 reservadas de todos los grupos, identificadores parecidos a reservadas,

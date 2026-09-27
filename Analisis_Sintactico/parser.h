@@ -44,6 +44,12 @@
 #if YYDEBUG
 extern int yydebug;
 #endif
+/* "%code requires" blocks.  */
+#line 13 "Analisis_Sintactico/gramatica.y"
+
+#include "sintactico.h"
+
+#line 53 "Analisis_Sintactico/parser.h"
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE
@@ -102,10 +108,16 @@ typedef int YYSTYPE;
 #endif
 
 
-extern YYSTYPE yylval;
 
 
-int yyparse (void);
+int yyparse (ContextoSintactico *ctx);
 
+/* "%code provides" blocks.  */
+#line 17 "Analisis_Sintactico/gramatica.y"
+
+int yylex(YYSTYPE *valor, ContextoSintactico *ctx);
+void yyerror(ContextoSintactico *ctx, const char *mensaje);
+
+#line 122 "Analisis_Sintactico/parser.h"
 
 #endif /* !YY_YY_ANALISIS_SINTACTICO_PARSER_H_INCLUDED  */

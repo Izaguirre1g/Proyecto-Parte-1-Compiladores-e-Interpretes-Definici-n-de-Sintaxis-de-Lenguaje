@@ -1,7 +1,23 @@
 /* Primera etapa: declaraciones, asignaciones, expresiones, bloques, condicionales y ciclos.
  * Incluye funciones sin parametros. Pendientes: parametros, llamadas, give y AST.
- * Los nombres de Bison se mapearan a TOKEN_* mediante un adaptador yylex.
+ * puente_lexer.c traduce TOKEN_* a los tokens de Bison mediante yylex.
  */
+
+/* Cada analisis recibe su propio contexto; no se comparte un lexer global. */
+%define api.pure full
+%define parse.error detailed
+%define parse.lac full
+%parse-param { ContextoSintactico *ctx }
+%lex-param { ContextoSintactico *ctx }
+
+%code requires {
+#include "sintactico.h"
+}
+
+%code provides {
+int yylex(YYSTYPE *valor, ContextoSintactico *ctx);
+void yyerror(ContextoSintactico *ctx, const char *mensaje);
+}
 
 /* Tokens: las piezas que recibe el parser desde el lexer de Javier. */
 %token IDENTIFIER INTEGER STRING CHARACTER
@@ -152,9 +168,9 @@ expresion:
 
 %%
 
-/* Pendiente: conectar yylex y yyerror con el proyecto existente.
+/* yylex y yyerror estan implementadas en puente_lexer.c.
  * Despues de este segundo separador solo va codigo C, no reglas.
- * Ejemplo de entrada cuando se conecte el lexer:
+ * Ejemplo de entrada:
  * create_funk #declare_infinite_void# main() {
  *     resultado * declare_int : 0;
  *     resultado : 2 gauss 3 pitagoras 4;

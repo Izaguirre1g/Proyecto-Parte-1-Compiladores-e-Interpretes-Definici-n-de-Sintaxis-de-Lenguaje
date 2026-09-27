@@ -1,6 +1,9 @@
 #include "cli.h"
 #include "lexer.h"
 
+/*Se incluye interfaz del parser sintáctico, permite utilizar la funcion analizar_sintaxis() desde cli.c*/
+#include "sintactico.h"
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,12 +14,15 @@ typedef struct {
     const char *output;
     const char *pending_option;
     int verbose;
+
+    /*Bandera de sintaxis guarda si se pidio analizar sintaxis: 0 es desactivo y 1 es activado*/
+    int syntax;
 } Options;
 
 static void usage(FILE *out) {
-    fputs("Uso: micomp [-v] <archivo_fuente>\n"
-          "Fase B: analiza únicamente tokens; todavía no genera binario.\n"
-          "Opciones del proyecto reservadas para integración: -o, -s, -t, -m, -x, -p.\n", out);
+    fputs("Uso: micomp [-v] [-t] <archivo_fuente>\n"
+          "-t valida sintaxis; impresión del AST pendiente. Sin -t, solo analiza tokens.\n"
+          "Opciones del proyecto reservadas para integración: -o, -s, -m, -x, -p.\n", out);
 }
 
 static int parse_args(int argc, char **argv, Options *opt) {
@@ -25,6 +31,8 @@ static int parse_args(int argc, char **argv, Options *opt) {
         const char *arg = argv[i];
         if (!positional && strcmp(arg, "--") == 0) { positional = 1; continue; }
         if (!positional && strcmp(arg, "-v") == 0) { opt->verbose = 1; continue; }
+        /*Se agrega la opcion -t para validar sintaxis */
+        if (!positional && strcmp(arg, "-t") == 0) { opt->syntax = 1; continue; }
         if (!positional && strcmp(arg, "-h") == 0) { usage(stdout); return 1; }
         if (!positional && strcmp(arg, "-o") == 0) {
             if (++i >= argc) { fputs("-o necesita un archivo de salida\n", stderr); return -1; }
@@ -32,7 +40,7 @@ static int parse_args(int argc, char **argv, Options *opt) {
             opt->pending_option = "-o";
             continue;
         }
-        if (!positional && (strcmp(arg, "-s") == 0 || strcmp(arg, "-t") == 0 ||
+        if (!positional && (strcmp(arg, "-s") == 0 ||
                             strcmp(arg, "-m") == 0 || strcmp(arg, "-x") == 0 ||
                             strcmp(arg, "-p") == 0)) {
             opt->pending_option = arg;
@@ -115,6 +123,15 @@ int cli_run(int argc, char **argv) {
     size_t size = 0;
     char *source = read_source(opt.input, &size);
     if (!source) return 2;
+
+    /*Se agrega la condicion para que si se pidio analizar sintaxis y no verbose, se ejecute el analisis sintactico*/
+    if (opt.syntax && !opt.verbose) {
+        int estado = analizar_sintaxis(source, size, opt.input, stderr);
+        if (estado == 0)
+            puts("Análisis sintáctico correcto. AST y generación de código pendientes.");
+        free(source);
+        return estado;
+    }
     Lexer lexer;
     lexer_init(&lexer, source, size, opt.input);
     if (opt.verbose) fprintf(stdout, "[léxico] Analizando %s\n", opt.input);
@@ -149,6 +166,14 @@ int cli_run(int argc, char **argv) {
     else if (errors == 0)
         fputs("Análisis léxico correcto. Fases posteriores pendientes; no se generó binario.\n",
               stderr);
+
+    /*Se agrega la condicion para que si se pidio analizar sintaxis y no hubo errores léxicos, se ejecute el analisis sintactico*/
+    int estado = errors ? 1 : 0;
+    if (opt.syntax && errors == 0) {
+        estado = analizar_sintaxis(source, size, opt.input, stderr);
+        if (estado == 0)
+            puts("Análisis sintáctico correcto. AST y generación de código pendientes.");
+    }
     free(source);
-    return errors ? 1 : 0;
+    return estado;
 }
