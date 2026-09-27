@@ -77,13 +77,15 @@ extern int yydebug;
     RBRACE = 278,                  /* RBRACE  */
     WHETHER = 279,                 /* WHETHER  */
     ALSO = 280,                    /* ALSO  */
-    EQUAL = 281,                   /* EQUAL  */
-    NOT_EQUAL = 282,               /* NOT_EQUAL  */
-    LESS = 283,                    /* LESS  */
-    GREATER = 284,                 /* GREATER  */
-    LESS_EQUAL = 285,              /* LESS_EQUAL  */
-    GREATER_EQUAL = 286,           /* GREATER_EQUAL  */
-    NEGATIVO = 287                 /* NEGATIVO  */
+    WHALE = 281,                   /* WHALE  */
+    STOP = 282,                    /* STOP  */
+    EQUAL = 283,                   /* EQUAL  */
+    NOT_EQUAL = 284,               /* NOT_EQUAL  */
+    LESS = 285,                    /* LESS  */
+    GREATER = 286,                 /* GREATER  */
+    LESS_EQUAL = 287,              /* LESS_EQUAL  */
+    GREATER_EQUAL = 288,           /* GREATER_EQUAL  */
+    NEGATIVO = 289                 /* NEGATIVO  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif

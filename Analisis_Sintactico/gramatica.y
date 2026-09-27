@@ -1,5 +1,5 @@
-/* Primera etapa: declaraciones, asignaciones, expresiones, bloques y condicionales.
- * Todavia no incluye funciones, ciclos ni construccion del AST.
+/* Primera etapa: declaraciones, asignaciones, expresiones, bloques, condicionales y ciclos.
+ * Todavia no incluye funciones ni construccion del AST.
  * Los nombres de Bison se mapearan a TOKEN_* mediante un adaptador yylex.
  */
 
@@ -11,6 +11,7 @@
 %token GAUSS NEUMANN PITAGORAS EUCLIDES
 %token LPAREN RPAREN
 %token LBRACE RBRACE WHETHER ALSO
+%token WHALE STOP
 %token EQUAL NOT_EQUAL LESS GREATER LESS_EQUAL GREATER_EQUAL
 
 /* Precedencia propuesta, de menor a mayor. %left asocia a la izquierda.
@@ -39,12 +40,13 @@ sentencias:
   | sentencias sentencia
 ;
 
-/* Los bloques y condicionales tambien son sentencias: pueden anidarse. */
+/* Los bloques, condicionales y ciclos son sentencias: pueden anidarse. */
 sentencia:
     declaracion
   | asignacion
   | bloque
   | condicional
+  | ciclo
 ;
 
 /* Un bloque tiene llaves obligatorias y puede estar vacio. */
@@ -68,6 +70,14 @@ condicional:
 alternativa:
     %empty
   | ALSO bloque
+;
+
+/* Sigue el ejemplo de Javier: whale (condicion) { ... } stop;
+ * En esta regla STOP cierra el ciclo; no es una sentencia break independiente.
+ * Las llaves, stop y el punto y coma son obligatorios.
+ */
+ciclo:
+    WHALE LPAREN expresion RPAREN bloque STOP SEMICOLON
 ;
 
 /* Regla principal. Ejemplo: n * declare_int : 5; */
