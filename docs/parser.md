@@ -45,9 +45,9 @@ modo léxico de Javier. Resultado: 0 éxito, 1 error léxico/sintáctico, 2 fall
 de lectura, invocación o memoria.
 
 La gramática admite funciones con parámetros opcionales, declaraciones inicializadas,
-asignaciones, aritmética básica, comparaciones, bloques, whether/also y whale
+asignaciones, retornos con `give`, aritmética básica, comparaciones, bloques, whether/also y whale
 con cierre `stop;`. Permite bloques vacíos y estructuras anidadas. Todavía no
-admite llamadas, give, alif, operadores lógicos, listas ni módulos.
+admite llamadas, alif, operadores lógicos, listas ni módulos.
 No verifica tipos, declaración de variables, existencia/unicidad de main ni
 retornos obligatorios. No ejecuta el factorial ni calcula su resultado.
 
@@ -71,7 +71,7 @@ create_funk #declare_infinite_void# main() {}
 Se permiten cero, uno o varios parámetros. Cada uno requiere identificador,
 `*` y un tipo de variable (`declare_int`, `declare_boolean`, `declare_text`
 o `declare_char`). No admite valores iniciales, tipo void ni comas al inicio
-o al final. Las llamadas y `give` quedan para el siguiente paso.
+o al final. Las llamadas quedan para el siguiente paso.
 La verificación de nombres duplicados, ámbitos y firma de main corresponde
 al análisis semántico; aquí solo se valida la forma de la declaración.
 
@@ -82,3 +82,24 @@ y capturar salida, errores y código de retorno. No requieren Python.
 `make test-parser` muestra cada caso con su código fuente, el resultado esperado,
 el obtenido y los diagnósticos. Los rechazos esperados se marcan como pruebas
 correctas. Al final se muestra el resumen de la batería.
+
+## Retorno con give
+
+Se reconocen `give expresion;` y `give;` como sentencias dentro de funciones,
+incluso en bloques, condicionales y ciclos anidados. El punto y coma es
+obligatorio y `give` no puede usarse como expresión ni fuera de una función.
+
+```text
+create_funk #declare_int# sumar(a * declare_int, b * declare_int) {
+    give a gauss b;
+}
+
+create_funk #declare_infinite_void# main() {
+    give;
+}
+```
+
+El parser solo valida esta estructura. El análisis semántico deberá verificar
+que el valor corresponda al tipo de retorno, que las funciones void no devuelvan
+un valor y que los caminos requeridos devuelvan un resultado. Aún no se ejecutan
+los retornos ni se construye su AST.
