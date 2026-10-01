@@ -27,6 +27,7 @@ static int token_bison(TokenType tipo) {
         case TOKEN_LBRACE: return LBRACE;
         case TOKEN_RBRACE: return RBRACE;
         case TOKEN_WHETHER: return WHETHER;
+        case TOKEN_ALIF: return ALIF;
         case TOKEN_ALSO: return ALSO;
         case TOKEN_WHALE: return WHALE;
         case TOKEN_STOP: return STOP;

@@ -83,21 +83,22 @@ extern int yydebug;
     LBRACE = 278,                  /* LBRACE  */
     RBRACE = 279,                  /* RBRACE  */
     WHETHER = 280,                 /* WHETHER  */
-    ALSO = 281,                    /* ALSO  */
-    WHALE = 282,                   /* WHALE  */
-    STOP = 283,                    /* STOP  */
-    GIVE = 284,                    /* GIVE  */
-    CREATE_FUNK = 285,             /* CREATE_FUNK  */
-    HASH = 286,                    /* HASH  */
-    MAIN = 287,                    /* MAIN  */
-    DECLARE_INFINITE_VOID = 288,   /* DECLARE_INFINITE_VOID  */
-    EQUAL = 289,                   /* EQUAL  */
-    NOT_EQUAL = 290,               /* NOT_EQUAL  */
-    LESS = 291,                    /* LESS  */
-    GREATER = 292,                 /* GREATER  */
-    LESS_EQUAL = 293,              /* LESS_EQUAL  */
-    GREATER_EQUAL = 294,           /* GREATER_EQUAL  */
-    NEGATIVO = 295                 /* NEGATIVO  */
+    ALIF = 281,                    /* ALIF  */
+    ALSO = 282,                    /* ALSO  */
+    WHALE = 283,                   /* WHALE  */
+    STOP = 284,                    /* STOP  */
+    GIVE = 285,                    /* GIVE  */
+    CREATE_FUNK = 286,             /* CREATE_FUNK  */
+    HASH = 287,                    /* HASH  */
+    MAIN = 288,                    /* MAIN  */
+    DECLARE_INFINITE_VOID = 289,   /* DECLARE_INFINITE_VOID  */
+    EQUAL = 290,                   /* EQUAL  */
+    NOT_EQUAL = 291,               /* NOT_EQUAL  */
+    LESS = 292,                    /* LESS  */
+    GREATER = 293,                 /* GREATER  */
+    LESS_EQUAL = 294,              /* LESS_EQUAL  */
+    GREATER_EQUAL = 295,           /* GREATER_EQUAL  */
+    NEGATIVO = 296                 /* NEGATIVO  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -120,6 +121,6 @@ int yyparse (ContextoSintactico *ctx);
 int yylex(YYSTYPE *valor, ContextoSintactico *ctx);
 void yyerror(ContextoSintactico *ctx, const char *mensaje);
 
-#line 124 "Analisis_Sintactico/parser.h"
+#line 125 "Analisis_Sintactico/parser.h"
 
 #endif /* !YY_YY_ANALISIS_SINTACTICO_PARSER_H_INCLUDED  */

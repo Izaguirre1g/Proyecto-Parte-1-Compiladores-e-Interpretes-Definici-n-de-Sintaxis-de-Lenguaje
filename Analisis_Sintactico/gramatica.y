@@ -26,7 +26,7 @@ void yyerror(ContextoSintactico *ctx, const char *mensaje);
 %token STAR ASSIGN SEMICOLON COMMA
 %token GAUSS NEUMANN PITAGORAS EUCLIDES
 %token LPAREN RPAREN
-%token LBRACE RBRACE WHETHER ALSO
+%token LBRACE RBRACE WHETHER ALIF ALSO
 %token WHALE STOP GIVE
 %token CREATE_FUNK HASH MAIN DECLARE_INFINITE_VOID
 %token EQUAL NOT_EQUAL LESS GREATER LESS_EQUAL GREATER_EQUAL
@@ -145,7 +145,7 @@ contenido_bloque:
   | sentencias
 ;
 
-/* whether (condicion) { ... } con una rama also opcional.
+/* whether (condicion) { ... }, cero o mas alif y un also final opcional.
  * Las llaves delimitan cada rama, incluso cuando hay otro whether dentro.
  * No se escribe punto y coma despues de estas estructuras.
  */
@@ -153,8 +153,10 @@ condicional:
     WHETHER LPAREN expresion RPAREN bloque alternativa
 ;
 
+/* La recursion permite varios alif; ALSO cierra la cadena de alternativas. */
 alternativa:
     %empty
+  | ALIF LPAREN expresion RPAREN bloque alternativa
   | ALSO bloque
 ;
 
