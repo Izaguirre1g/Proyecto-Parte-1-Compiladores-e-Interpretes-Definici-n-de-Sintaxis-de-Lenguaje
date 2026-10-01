@@ -45,7 +45,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 13 "Analisis_Sintactico/gramatica.y"
+#line 18 "Analisis_Sintactico/gramatica.y"
 
 #include "sintactico.h"
 
@@ -105,10 +105,13 @@ extern int yydebug;
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef int YYSTYPE;
+typedef AstNodo * YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif
+
+/* Location type.  */
+typedef AstUbicacion YYLTYPE;
 
 
 
@@ -116,11 +119,11 @@ typedef int YYSTYPE;
 int yyparse (ContextoSintactico *ctx);
 
 /* "%code provides" blocks.  */
-#line 17 "Analisis_Sintactico/gramatica.y"
+#line 22 "Analisis_Sintactico/gramatica.y"
 
-int yylex(YYSTYPE *valor, ContextoSintactico *ctx);
-void yyerror(ContextoSintactico *ctx, const char *mensaje);
+int yylex(YYSTYPE *valor, YYLTYPE *ubicacion, ContextoSintactico *ctx);
+void yyerror(YYLTYPE *ubicacion, ContextoSintactico *ctx, const char *mensaje);
 
-#line 125 "Analisis_Sintactico/parser.h"
+#line 128 "Analisis_Sintactico/parser.h"
 
 #endif /* !YY_YY_ANALISIS_SINTACTICO_PARSER_H_INCLUDED  */

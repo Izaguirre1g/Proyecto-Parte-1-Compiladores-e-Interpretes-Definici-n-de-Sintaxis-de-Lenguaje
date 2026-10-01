@@ -46,55 +46,89 @@ static int token_bison(TokenType tipo) {
     }
 }
 
-/* Bison llama a esta funcion cada vez que necesita otro token. */
-int yylex(YYSTYPE *valor, ContextoSintactico *ctx) {
-    *valor = 0; /* Los valores del AST se incorporaran en una etapa posterior. */
-    Token token = lexer_next(&ctx->lexer); /* Se obtiene el siguiente token del analizador léxico. */
-    
-    /*Se traduce el tipo*/
-    ctx->linea = token.line; /**/
-    ctx->columna = token.column;
+/* Solo los tokens con datos crean hojas. Puntuacion y operadores se usan
+ * en las reglas de Bison; no se guardan como nodos independientes.
+ */
+static int tipo_hoja(TokenType token, AstTipo *tipo) {
+    switch (token) {
+        case TOKEN_IDENTIFIER: case TOKEN_MAIN: *tipo = AST_IDENTIFICADOR; return 1;
+        case TOKEN_INTEGER: *tipo = AST_ENTERO; return 1;
+        case TOKEN_STRING: *tipo = AST_CADENA; return 1;
+        case TOKEN_CHARACTER: *tipo = AST_CARACTER; return 1;
+        case TOKEN_DECLARE_TRUE: case TOKEN_DECLARE_FALSE: *tipo = AST_BOOLEANO; return 1;
+        case TOKEN_DECLARE_INT: case TOKEN_DECLARE_BOOLEAN:
+        case TOKEN_DECLARE_TEXT: case TOKEN_DECLARE_CHAR:
+        case TOKEN_DECLARE_INFINITE_VOID: *tipo = AST_TIPO; return 1;
+        default: return 0;
+    }
+}
 
-    /* Se traduce el tipo de token a la enumeración de Bison. */
+/* Bison llama a esta funcion cada vez que necesita otro token. */
+int yylex(YYSTYPE *valor, YYLTYPE *ubicacion, ContextoSintactico *ctx) {
+    *valor = NULL;
+    Token token = lexer_next(&ctx->lexer);
+    ctx->linea = token.line;
+    ctx->columna = token.column;
+    *ubicacion = (AstUbicacion){token.line, token.column,
+                               ctx->lexer.line, ctx->lexer.column};
     int tipo = token_bison(token.type);
-    if (token.type == TOKEN_ERROR) { /* Se informa el error léxico y se establece el estado del contexto. */
+    if (token.type == TOKEN_ERROR) {
         ctx->estado = token.error == TOKEN_OUT_OF_MEMORY ? 2 : 1;
         fprintf(ctx->diagnosticos, "%s:%zu:%zu: error léxico: %s\n",
                 ctx->lexer.filename, ctx->linea, ctx->columna,
                 token_error_message(token.error));
-        tipo = YYerror; /* Ya se informo el error: no duplicar el diagnostico. */
-    } else if (tipo == YYUNDEF) { /*Caso en que puede ser una palabra valida del lexer pero no esta admitida por la gramática*/
+        tipo = YYerror; /* El error ya fue informado. */
+    } else if (tipo == YYUNDEF) {
         ctx->estado = 1;
         fprintf(ctx->diagnosticos,
                 "%s:%zu:%zu: token %s aún no admitido por la gramática\n",
                 ctx->lexer.filename, ctx->linea, ctx->columna,
                 token_type_name(token.type));
         tipo = YYerror;
+    } else {
+        AstTipo hoja;
+        if (tipo_hoja(token.type, &hoja)) {
+            *valor = ast_crear(ctx->arbol, hoja, token.lexeme, *ubicacion);
+            if (!*valor) {
+                ctx->estado = 2;
+                fprintf(ctx->diagnosticos, "%s:%zu:%zu: memoria insuficiente para el AST\n",
+                        ctx->lexer.filename, ctx->linea, ctx->columna);
+                tipo = YYerror;
+            }
+        }
     }
-    /* Por ahora solo validamos sintaxis; no retenemos el lexema para un AST. */
-    /*Se libera la memoria del token obtenido*/
+    /* ast_crear copio el lexema; ya podemos liberar el token de Javier. */
     token_dispose(&token);
     return tipo;
 }
 
-/* Bison llama a esta funcion cada vez que detecta un error de sintaxis. */
-void yyerror(ContextoSintactico *ctx, const char *mensaje) {
+/* Bison llama a esta funcion cuando detecta un error de sintaxis o memoria. */
+void yyerror(YYLTYPE *ubicacion, ContextoSintactico *ctx, const char *mensaje) {
     fprintf(ctx->diagnosticos, "%s:%zu:%zu: error del parser: %s\n",
-            ctx->lexer.filename, ctx->linea, ctx->columna, mensaje);
-    ctx->estado = 1;
+            ctx->lexer.filename, ubicacion->first_line, ubicacion->first_column, mensaje);
+    if (ctx->estado != 2) ctx->estado = 1;
 }
-/* Esta funcion es llamada desde cli.c para analizar sintaxis, recibe el texto del programa, su longitud , el nombre del archivo y donde escribir errores. */
-int analizar_sintaxis(const char *fuente, size_t longitud,
-                     const char *nombre, FILE *diagnosticos) {
 
-    /* Inicializa el contexto sintáctico y llama a yyparse, que es la función generada por Bison. */
+int construir_ast(const char *fuente, size_t longitud, const char *nombre,
+                  FILE *diagnosticos, Ast *arbol) {
     ContextoSintactico ctx = {0};
     lexer_init(&ctx.lexer, fuente, longitud, nombre);
-    /* Inicializa el flujo de salida de errores, la posición inicial, la salida de errores y el resultado. */
+    ctx.arbol = arbol;
     ctx.diagnosticos = diagnosticos;
     ctx.linea = ctx.columna = 1;
-    /*yyparse() es la función generada por Bison a partir de gramatica.y. Mientras analiza, pide tokens llamando a yylex().*/
     int resultado = yyparse(&ctx);
-    if (resultado == 2 || ctx.estado == 2) return 2;
-    return resultado != 0 || ctx.estado != 0 ? 1 : 0;
+    int estado = resultado == 2 || ctx.estado == 2 ? 2 :
+                 resultado != 0 || ctx.estado != 0 ? 1 : 0;
+    /* Incluye nodos parciales y hojas que Bison descarto al abortar. */
+    if (estado != 0) ast_liberar(arbol);
+    return estado;
+}
+
+/* Conserva la interfaz anterior para quien solo necesite validar. */
+int analizar_sintaxis(const char *fuente, size_t longitud,
+                     const char *nombre, FILE *diagnosticos) {
+    Ast arbol = {0};
+    int estado = construir_ast(fuente, longitud, nombre, diagnosticos, &arbol);
+    ast_liberar(&arbol);
+    return estado;
 }

@@ -21,7 +21,7 @@ typedef struct {
 
 static void usage(FILE *out) {
     fputs("Uso: micomp [-v] [-t] <archivo_fuente>\n"
-          "-t valida sintaxis; impresión del AST pendiente. Sin -t, solo analiza tokens.\n"
+          "-t valida sintaxis e imprime el AST. Sin -t, solo analiza tokens.\n"
           "Opciones del proyecto reservadas para integración: -o, -s, -m, -x, -p.\n", out);
 }
 
@@ -115,6 +115,19 @@ static void print_escaped(const Token *t) {
     putchar('"');
 }
 
+/* El AST se muestra solo cuando el programa completo es sintacticamente valido. */
+static int mostrar_ast(const char *fuente, size_t longitud, const char *nombre) {
+    Ast arbol = {0};
+    int estado = construir_ast(fuente, longitud, nombre, stderr, &arbol);
+    if (estado == 0) {
+        puts("[AST]");
+        ast_imprimir(&arbol, stdout);
+        puts("Análisis sintáctico correcto. Generación de código pendiente.");
+    }
+    ast_liberar(&arbol);
+    return estado;
+}
+
 int cli_run(int argc, char **argv) {
     Options opt = {0};
     int parsed = parse_args(argc, argv, &opt);
@@ -126,9 +139,7 @@ int cli_run(int argc, char **argv) {
 
     /*Se agrega la condicion para que si se pidio analizar sintaxis y no verbose, se ejecute el analisis sintactico*/
     if (opt.syntax && !opt.verbose) {
-        int estado = analizar_sintaxis(source, size, opt.input, stderr);
-        if (estado == 0)
-            puts("Análisis sintáctico correcto. AST y generación de código pendientes.");
+        int estado = mostrar_ast(source, size, opt.input);
         free(source);
         return estado;
     }
@@ -170,9 +181,7 @@ int cli_run(int argc, char **argv) {
     /*Se agrega la condicion para que si se pidio analizar sintaxis y no hubo errores léxicos, se ejecute el analisis sintactico*/
     int estado = errors ? 1 : 0;
     if (opt.syntax && errors == 0) {
-        estado = analizar_sintaxis(source, size, opt.input, stderr);
-        if (estado == 0)
-            puts("Análisis sintáctico correcto. AST y generación de código pendientes.");
+        estado = mostrar_ast(source, size, opt.input);
     }
     free(source);
     return estado;

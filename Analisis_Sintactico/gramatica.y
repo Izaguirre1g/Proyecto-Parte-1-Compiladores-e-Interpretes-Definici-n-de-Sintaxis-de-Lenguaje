@@ -1,5 +1,5 @@
 /* Primera etapa: declaraciones, asignaciones, expresiones, bloques, condicionales y ciclos.
- * Incluye funciones, parametros, give y llamadas. Construccion del AST pendiente.
+ * Incluye funciones, parametros, give y llamadas. Bison construye el AST usando las funciones de ast.c.
  * puente_lexer.c traduce TOKEN_* a los tokens de Bison mediante yylex.
  */
 
@@ -7,6 +7,11 @@
 %define api.pure full
 %define parse.error detailed
 %define parse.lac full
+/* Cada simbolo transporta un puntero a un nodo. Ast es dueno de su memoria. */
+%define api.value.type {AstNodo *}
+%locations
+%define api.location.type {AstUbicacion}
+%initial-action { @$ = (AstUbicacion){1, 1, 1, 1}; }
 %parse-param { ContextoSintactico *ctx }
 %lex-param { ContextoSintactico *ctx }
 
@@ -15,8 +20,8 @@
 }
 
 %code provides {
-int yylex(YYSTYPE *valor, ContextoSintactico *ctx);
-void yyerror(ContextoSintactico *ctx, const char *mensaje);
+int yylex(YYSTYPE *valor, YYLTYPE *ubicacion, ContextoSintactico *ctx);
+void yyerror(YYLTYPE *ubicacion, ContextoSintactico *ctx, const char *mensaje);
 }
 
 /* Tokens: las piezas que recibe el parser desde el lexer de Javier. */
@@ -58,23 +63,49 @@ void yyerror(ContextoSintactico *ctx, const char *mensaje);
  */
 programa:
     funcion
+      {
+        $$ = ast_crear(ctx->arbol, AST_PROGRAMA, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ctx->arbol->raiz = $$;
+      }
   | programa funcion
+      { $$ = $1; $$->ubicacion = @$; ast_agregar_hijo($$, $2); }
 ;
 
 /* Ejemplo: create_funk #declare_infinite_void# main() { ... } */
 funcion:
     CREATE_FUNK HASH tipo_retorno HASH nombre_funcion LPAREN parametros_opcionales RPAREN bloque
+      {
+        $$ = ast_crear(ctx->arbol, AST_FUNCION, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $5);
+        ast_agregar_hijo($$, $3);
+        ast_agregar_hijo($$, $7);
+        ast_agregar_hijo($$, $9);
+      }
 ;
 
 /* Los parentesis pueden estar vacios o contener parametros separados por comas. */
 parametros_opcionales:
     %empty
+      {
+        $$ = ast_crear(ctx->arbol, AST_PARAMETROS, NULL, @$);
+        if (!$$) YYNOMEM;
+      }
   | parametros
+      { $$ = $1; }
 ;
 
 parametros:
     parametro
+      {
+        $$ = ast_crear(ctx->arbol, AST_PARAMETROS, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+      }
   | parametros COMMA parametro
+      { $$ = $1; $$->ubicacion = @$; ast_agregar_hijo($$, $3); }
 ;
 
 /* Sintaxis adoptada: nombre * tipo, sin valor inicial ni punto y coma.
@@ -82,6 +113,12 @@ parametros:
  */
 parametro:
     IDENTIFIER STAR tipo
+      {
+        $$ = ast_crear(ctx->arbol, AST_PARAMETRO, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+      }
 ;
 
 tipo_retorno:
@@ -98,7 +135,13 @@ nombre_funcion:
 /* Una sentencia, o una lista seguida por otra sentencia. */
 sentencias:
     sentencia
+      {
+        $$ = ast_crear(ctx->arbol, AST_BLOQUE, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+      }
   | sentencias sentencia
+      { $$ = $1; ast_agregar_hijo($$, $2); }
 ;
 
 /* Los bloques, condicionales y ciclos son sentencias: pueden anidarse. */
@@ -115,7 +158,16 @@ sentencia:
 /* El tipo de retorno y la presencia de valor se verifican semantica. */
 retorno:
     GIVE expresion SEMICOLON
+      {
+        $$ = ast_crear(ctx->arbol, AST_RETORNO, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $2);
+      }
   | GIVE SEMICOLON
+      {
+        $$ = ast_crear(ctx->arbol, AST_RETORNO, NULL, @$);
+        if (!$$) YYNOMEM;
+      }
 ;
 
 /* Una llamada puede usarse como expresion o como sentencia seguida de ;.
@@ -123,26 +175,49 @@ retorno:
  */
 llamada:
     nombre_funcion LPAREN argumentos_opcionales RPAREN
+      {
+        $$ = ast_crear(ctx->arbol, AST_LLAMADA, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+      }
 ;
 
 argumentos_opcionales:
     %empty
+      {
+        $$ = ast_crear(ctx->arbol, AST_ARGUMENTOS, NULL, @$);
+        if (!$$) YYNOMEM;
+      }
   | argumentos
+      { $$ = $1; }
 ;
 
 argumentos:
     expresion
+      {
+        $$ = ast_crear(ctx->arbol, AST_ARGUMENTOS, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+      }
   | argumentos COMMA expresion
+      { $$ = $1; $$->ubicacion = @$; ast_agregar_hijo($$, $3); }
 ;
 
 /* Un bloque tiene llaves obligatorias y puede estar vacio. */
 bloque:
     LBRACE contenido_bloque RBRACE
+      { $$ = $2; $$->ubicacion = @$; }
 ;
 
 contenido_bloque:
     %empty
+      {
+        $$ = ast_crear(ctx->arbol, AST_BLOQUE, NULL, @$);
+        if (!$$) YYNOMEM;
+      }
   | sentencias
+      { $$ = $1; }
 ;
 
 /* whether (condicion) { ... }, cero o mas alif y un also final opcional.
@@ -151,13 +226,29 @@ contenido_bloque:
  */
 condicional:
     WHETHER LPAREN expresion RPAREN bloque alternativa
+      {
+        $$ = ast_crear(ctx->arbol, AST_SI, "whether", @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $3);
+        ast_agregar_hijo($$, $5);
+        ast_agregar_hijo($$, $6);
+      }
 ;
 
 /* La recursion permite varios alif; ALSO cierra la cadena de alternativas. */
 alternativa:
     %empty
+      { $$ = NULL; }
   | ALIF LPAREN expresion RPAREN bloque alternativa
+      {
+        $$ = ast_crear(ctx->arbol, AST_SI, "alif", @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $3);
+        ast_agregar_hijo($$, $5);
+        ast_agregar_hijo($$, $6);
+      }
   | ALSO bloque
+      { $$ = $2; }
 ;
 
 /* Sigue el ejemplo de Javier: whale (condicion) { ... } stop;
@@ -166,11 +257,24 @@ alternativa:
  */
 ciclo:
     WHALE LPAREN expresion RPAREN bloque STOP SEMICOLON
+      {
+        $$ = ast_crear(ctx->arbol, AST_MIENTRAS, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $3);
+        ast_agregar_hijo($$, $5);
+      }
 ;
 
 /* Regla principal. Ejemplo: n * declare_int : 5; */
 declaracion:
     IDENTIFIER STAR tipo ASSIGN expresion SEMICOLON
+      {
+        $$ = ast_crear(ctx->arbol, AST_DECLARACION, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+        ast_agregar_hijo($$, $5);
+      }
 ;
 
 /* Regla para asignar valores a variables; Dylan verificara su declaracion.
@@ -178,6 +282,12 @@ declaracion:
  */
 asignacion:
     IDENTIFIER ASSIGN expresion SEMICOLON
+      {
+        $$ = ast_crear(ctx->arbol, AST_ASIGNACION, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+      }
 ;
 
 tipo:
@@ -199,17 +309,83 @@ expresion:
   | IDENTIFIER
   | llamada
   | expresion EQUAL expresion
+      {
+        $$ = ast_crear(ctx->arbol, AST_BINARIO, "==", @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+      }
   | expresion NOT_EQUAL expresion
+      {
+        $$ = ast_crear(ctx->arbol, AST_BINARIO, "=/=", @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+      }
   | expresion LESS expresion
+      {
+        $$ = ast_crear(ctx->arbol, AST_BINARIO, "<", @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+      }
   | expresion GREATER expresion
+      {
+        $$ = ast_crear(ctx->arbol, AST_BINARIO, ">", @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+      }
   | expresion LESS_EQUAL expresion
+      {
+        $$ = ast_crear(ctx->arbol, AST_BINARIO, "<=", @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+      }
   | expresion GREATER_EQUAL expresion
+      {
+        $$ = ast_crear(ctx->arbol, AST_BINARIO, ">=", @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+      }
   | expresion GAUSS expresion
+      {
+        $$ = ast_crear(ctx->arbol, AST_BINARIO, "gauss", @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+      }
   | expresion NEUMANN expresion
+      {
+        $$ = ast_crear(ctx->arbol, AST_BINARIO, "neumann", @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+      }
   | expresion PITAGORAS expresion
+      {
+        $$ = ast_crear(ctx->arbol, AST_BINARIO, "pitagoras", @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+      }
   | expresion EUCLIDES expresion
+      {
+        $$ = ast_crear(ctx->arbol, AST_BINARIO, "euclides", @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+      }
   | NEUMANN expresion %prec NEGATIVO
+      {
+        $$ = ast_crear(ctx->arbol, AST_UNARIO, "neumann", @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $2);
+      }
   | LPAREN expresion RPAREN
+      { $$ = $2; } /* Los parentesis ya cumplieron su funcion de agrupacion. */
 ;
 
 %%

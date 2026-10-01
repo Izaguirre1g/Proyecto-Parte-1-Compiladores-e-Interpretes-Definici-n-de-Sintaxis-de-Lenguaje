@@ -10,7 +10,8 @@ traduce explícitamente su enumeración (`TOKEN_MAIN`, etc.) a la de Bison
 
 - `Analisis_Sintactico/gramatica.y`: reglas y configuración de Bison.
 - `Analisis_Sintactico/puente_lexer.c`: adaptador, errores y función pública.
-- `include/sintactico.h`: contexto y contrato de `analizar_sintaxis`.
+- `include/sintactico.h`: contexto y contratos de `analizar_sintaxis` y `construir_ast`.
+- `include/ast.h` y `Analisis_Sintactico/ast.c`: nodos, creación, impresión y liberación del AST.
 
 `parser.c` y `parser.h` son generados: no se editan manualmente. `make` los
 regenera cuando cambia la gramática. Al agregar un token hay que declararlo
@@ -20,9 +21,11 @@ en la gramática y agregar su traducción al switch del adaptador.
 
 `api.pure full` y los parámetros de contexto evitan un lexer global.
 Cada llamada a `analizar_sintaxis` tiene su propio estado. El adaptador guarda
-línea y columna iniciales del token y libera su lexema con `token_dispose`.
-Por ahora el parser solo valida estructura: no conserva valores ni crea AST.
-Cuando se agregue el AST habrá que definir valores semánticos y su propiedad.
+la ubicación del token y copia los lexemas necesarios en hojas del AST antes
+de liberar el token con `token_dispose`. Bison transporta punteros a nodos
+mediante `api.value.type` y construye el árbol con acciones en la gramática.
+`Ast` es propietario de todos los nodos, incluidos los parciales: se liberan
+juntos al terminar o al abortar por error. Véase `docs/ast.md`.
 
 Los errores léxicos se muestran con la causa del lexer; los sintácticos con
 el mensaje de Bison y la posición del último token solicitado. El análisis
@@ -38,7 +41,7 @@ make
 make test
 ```
 
-`-t` es provisional: valida sintaxis pero todavía no imprime AST. `-v -t`
+`-t` valida sintaxis e imprime el AST completo si no hubo errores. `-v -t`
 muestra primero todos los tokens y, si no hubo errores léxicos, inicia un
 nuevo recorrido del fuente para validar sintaxis. Sin `-t`, se mantiene el
 modo léxico de Javier. Resultado: 0 éxito, 1 error léxico/sintáctico, 2 fallo
@@ -54,7 +57,10 @@ retornos obligatorios. No ejecuta el factorial ni calcula su resultado.
 Las pruebas en `tests/test_parser.c` pasan archivos reales por la CLI:
 factorial, funciones y estructuras anidadas, operadores, errores de cierre,
 comparaciones encadenadas, tokens pendientes y errores léxicos (incluido UTF-8).
-Los casos válidos verifican aceptación, no construcción de AST ni evaluación.
+Los casos válidos comprueban aceptación y presencia del AST en la CLI; los
+inválidos comprueban que no se muestre un árbol parcial. `tests/test_ast.c`
+verifica nodos, hijos, precedencia, posiciones y limpieza de árboles incompletos
+con `make test-ast`. Ninguna de estas pruebas ejecuta el programa fuente.
 
 ## Parámetros de funciones
 
@@ -102,7 +108,7 @@ create_funk #declare_infinite_void# main() {
 El parser solo valida esta estructura. El análisis semántico deberá verificar
 que el valor corresponda al tipo de retorno, que las funciones void no devuelvan
 un valor y que los caminos requeridos devuelvan un resultado. Aún no se ejecutan
-los retornos ni se construye su AST.
+los retornos; sí se representan como nodos del AST.
 
 ## Llamadas a funciones
 

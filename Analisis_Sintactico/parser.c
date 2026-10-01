@@ -401,13 +401,15 @@ void free (void *); /* INFRINGES ON USER NAME SPACE */
 
 #if (! defined yyoverflow \
      && (! defined __cplusplus \
-         || (defined YYSTYPE_IS_TRIVIAL && YYSTYPE_IS_TRIVIAL)))
+         || (defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL \
+             && defined YYSTYPE_IS_TRIVIAL && YYSTYPE_IS_TRIVIAL)))
 
 /* A type that is properly aligned for any stack member.  */
 union yyalloc
 {
   yy_state_t yyss_alloc;
   YYSTYPE yyvs_alloc;
+  YYLTYPE yyls_alloc;
 };
 
 /* The size of the maximum gap between one aligned stack and the next.  */
@@ -416,8 +418,9 @@ union yyalloc
 /* The size of an array large to enough to hold all stacks, each with
    N elements.  */
 # define YYSTACK_BYTES(N) \
-     ((N) * (YYSIZEOF (yy_state_t) + YYSIZEOF (YYSTYPE)) \
-      + YYSTACK_GAP_MAXIMUM)
+     ((N) * (YYSIZEOF (yy_state_t) + YYSIZEOF (YYSTYPE) \
+             + YYSIZEOF (YYLTYPE)) \
+      + 2 * YYSTACK_GAP_MAXIMUM)
 
 # define YYCOPY_NEEDED 1
 
@@ -522,15 +525,15 @@ static const yytype_int8 yytranslate[] =
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_uint8 yyrline[] =
+static const yytype_int16 yyrline[] =
 {
-       0,    60,    60,    61,    66,    71,    72,    76,    77,    84,
-      88,    89,    94,    95,   100,   101,   106,   107,   108,   109,
-     110,   111,   112,   117,   118,   125,   129,   130,   134,   135,
-     140,   144,   145,   153,   158,   159,   160,   168,   173,   180,
-     184,   185,   186,   187,   194,   195,   196,   197,   198,   199,
-     200,   201,   202,   203,   204,   205,   206,   207,   208,   209,
-     210,   211,   212
+       0,    65,    65,    72,    78,    91,    96,   101,   107,   115,
+     125,   126,   131,   132,   137,   143,   149,   150,   151,   152,
+     153,   154,   155,   160,   166,   177,   187,   192,   197,   203,
+     209,   214,   219,   228,   240,   242,   250,   259,   270,   284,
+     294,   295,   296,   297,   304,   305,   306,   307,   308,   309,
+     310,   311,   318,   325,   332,   339,   346,   353,   360,   367,
+     374,   381,   387
 };
 #endif
 
@@ -752,7 +755,7 @@ enum { YYENOMEM = -2 };
       }                                                           \
     else                                                          \
       {                                                           \
-        yyerror (ctx, YY_("syntax error: cannot back up")); \
+        yyerror (&yylloc, ctx, YY_("syntax error: cannot back up")); \
         YYERROR;                                                  \
       }                                                           \
   while (0)
@@ -760,6 +763,32 @@ enum { YYENOMEM = -2 };
 /* Backward compatibility with an undocumented macro.
    Use YYerror or YYUNDEF. */
 #define YYERRCODE YYUNDEF
+
+/* YYLLOC_DEFAULT -- Set CURRENT to span from RHS[1] to RHS[N].
+   If N is 0, then set CURRENT to the empty location which ends
+   the previous symbol: RHS[0] (always defined).  */
+
+#ifndef YYLLOC_DEFAULT
+# define YYLLOC_DEFAULT(Current, Rhs, N)                                \
+    do                                                                  \
+      if (N)                                                            \
+        {                                                               \
+          (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;        \
+          (Current).first_column = YYRHSLOC (Rhs, 1).first_column;      \
+          (Current).last_line    = YYRHSLOC (Rhs, N).last_line;         \
+          (Current).last_column  = YYRHSLOC (Rhs, N).last_column;       \
+        }                                                               \
+      else                                                              \
+        {                                                               \
+          (Current).first_line   = (Current).last_line   =              \
+            YYRHSLOC (Rhs, 0).last_line;                                \
+          (Current).first_column = (Current).last_column =              \
+            YYRHSLOC (Rhs, 0).last_column;                              \
+        }                                                               \
+    while (0)
+#endif
+
+#define YYRHSLOC(Rhs, K) ((Rhs)[K])
 
 
 /* Enable debugging if requested.  */
@@ -777,6 +806,63 @@ do {                                            \
 } while (0)
 
 
+/* YYLOCATION_PRINT -- Print the location on the stream.
+   This macro was not mandated originally: define only if we know
+   we won't break user code: when these are the locations we know.  */
+
+# ifndef YYLOCATION_PRINT
+
+#  if defined YY_LOCATION_PRINT
+
+   /* Temporary convenience wrapper in case some people defined the
+      undocumented and private YY_LOCATION_PRINT macros.  */
+#   define YYLOCATION_PRINT(File, Loc)  YY_LOCATION_PRINT(File, *(Loc))
+
+#  elif defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
+
+/* Print *YYLOCP on YYO.  Private, do not rely on its existence. */
+
+YY_ATTRIBUTE_UNUSED
+static int
+yy_location_print_ (FILE *yyo, YYLTYPE const * const yylocp)
+{
+  int res = 0;
+  int end_col = 0 != yylocp->last_column ? yylocp->last_column - 1 : 0;
+  if (0 <= yylocp->first_line)
+    {
+      res += YYFPRINTF (yyo, "%d", yylocp->first_line);
+      if (0 <= yylocp->first_column)
+        res += YYFPRINTF (yyo, ".%d", yylocp->first_column);
+    }
+  if (0 <= yylocp->last_line)
+    {
+      if (yylocp->first_line < yylocp->last_line)
+        {
+          res += YYFPRINTF (yyo, "-%d", yylocp->last_line);
+          if (0 <= end_col)
+            res += YYFPRINTF (yyo, ".%d", end_col);
+        }
+      else if (0 <= end_col && yylocp->first_column < end_col)
+        res += YYFPRINTF (yyo, "-%d", end_col);
+    }
+  return res;
+}
+
+#   define YYLOCATION_PRINT  yy_location_print_
+
+    /* Temporary convenience wrapper in case some people defined the
+       undocumented and private YY_LOCATION_PRINT macros.  */
+#   define YY_LOCATION_PRINT(File, Loc)  YYLOCATION_PRINT(File, &(Loc))
+
+#  else
+
+#   define YYLOCATION_PRINT(File, Loc) ((void) 0)
+    /* Temporary convenience wrapper in case some people defined the
+       undocumented and private YY_LOCATION_PRINT macros.  */
+#   define YY_LOCATION_PRINT  YYLOCATION_PRINT
+
+#  endif
+# endif /* !defined YYLOCATION_PRINT */
 
 
 # define YY_SYMBOL_PRINT(Title, Kind, Value, Location)                    \
@@ -785,7 +871,7 @@ do {                                                                      \
     {                                                                     \
       YYFPRINTF (stderr, "%s ", Title);                                   \
       yy_symbol_print (stderr,                                            \
-                  Kind, Value, ctx); \
+                  Kind, Value, Location, ctx); \
       YYFPRINTF (stderr, "\n");                                           \
     }                                                                     \
 } while (0)
@@ -797,10 +883,11 @@ do {                                                                      \
 
 static void
 yy_symbol_value_print (FILE *yyo,
-                       yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep, ContextoSintactico *ctx)
+                       yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp, ContextoSintactico *ctx)
 {
   FILE *yyoutput = yyo;
   YY_USE (yyoutput);
+  YY_USE (yylocationp);
   YY_USE (ctx);
   if (!yyvaluep)
     return;
@@ -816,12 +903,14 @@ yy_symbol_value_print (FILE *yyo,
 
 static void
 yy_symbol_print (FILE *yyo,
-                 yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep, ContextoSintactico *ctx)
+                 yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp, ContextoSintactico *ctx)
 {
   YYFPRINTF (yyo, "%s %s (",
              yykind < YYNTOKENS ? "token" : "nterm", yysymbol_name (yykind));
 
-  yy_symbol_value_print (yyo, yykind, yyvaluep, ctx);
+  YYLOCATION_PRINT (yyo, yylocationp);
+  YYFPRINTF (yyo, ": ");
+  yy_symbol_value_print (yyo, yykind, yyvaluep, yylocationp, ctx);
   YYFPRINTF (yyo, ")");
 }
 
@@ -854,7 +943,7 @@ do {                                                            \
 `------------------------------------------------*/
 
 static void
-yy_reduce_print (yy_state_t *yyssp, YYSTYPE *yyvsp,
+yy_reduce_print (yy_state_t *yyssp, YYSTYPE *yyvsp, YYLTYPE *yylsp,
                  int yyrule, ContextoSintactico *ctx)
 {
   int yylno = yyrline[yyrule];
@@ -868,7 +957,8 @@ yy_reduce_print (yy_state_t *yyssp, YYSTYPE *yyvsp,
       YYFPRINTF (stderr, "   $%d = ", yyi + 1);
       yy_symbol_print (stderr,
                        YY_ACCESSING_SYMBOL (+yyssp[yyi + 1 - yynrhs]),
-                       &yyvsp[(yyi + 1) - (yynrhs)], ctx);
+                       &yyvsp[(yyi + 1) - (yynrhs)],
+                       &(yylsp[(yyi + 1) - (yynrhs)]), ctx);
       YYFPRINTF (stderr, "\n");
     }
 }
@@ -876,7 +966,7 @@ yy_reduce_print (yy_state_t *yyssp, YYSTYPE *yyvsp,
 # define YY_REDUCE_PRINT(Rule)          \
 do {                                    \
   if (yydebug)                          \
-    yy_reduce_print (yyssp, yyvsp, Rule, ctx); \
+    yy_reduce_print (yyssp, yyvsp, yylsp, Rule, ctx); \
 } while (0)
 
 /* Nonzero means print parse trace.  It is left uninitialized so that
@@ -1158,6 +1248,7 @@ typedef struct
   yy_state_t **yyes;
   YYPTRDIFF_T *yyes_capacity;
   yysymbol_kind_t yytoken;
+  YYLTYPE *yylloc;
 } yypcontext_t;
 
 /* Put in YYARG at most YYARGN of the expected tokens given the
@@ -1381,9 +1472,10 @@ yysyntax_error (YYPTRDIFF_T *yymsg_alloc, char **yymsg,
 
 static void
 yydestruct (const char *yymsg,
-            yysymbol_kind_t yykind, YYSTYPE *yyvaluep, ContextoSintactico *ctx)
+            yysymbol_kind_t yykind, YYSTYPE *yyvaluep, YYLTYPE *yylocationp, ContextoSintactico *ctx)
 {
   YY_USE (yyvaluep);
+  YY_USE (yylocationp);
   YY_USE (ctx);
   if (!yymsg)
     yymsg = "Deleting";
@@ -1416,6 +1508,14 @@ int yychar;
 YY_INITIAL_VALUE (static YYSTYPE yyval_default;)
 YYSTYPE yylval YY_INITIAL_VALUE (= yyval_default);
 
+/* Location data for the lookahead symbol.  */
+static YYLTYPE yyloc_default
+# if defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
+  = { 1, 1, 1, 1 }
+# endif
+;
+YYLTYPE yylloc = yyloc_default;
+
     /* Number of syntax errors so far.  */
     int yynerrs = 0;
 
@@ -1439,6 +1539,11 @@ YYSTYPE yylval YY_INITIAL_VALUE (= yyval_default);
     YYSTYPE *yyvs = yyvsa;
     YYSTYPE *yyvsp = yyvs;
 
+    /* The location stack: array, bottom, top.  */
+    YYLTYPE yylsa[YYINITDEPTH];
+    YYLTYPE *yyls = yylsa;
+    YYLTYPE *yylsp = yyls;
+
     yy_state_t yyesa[20];
     yy_state_t *yyes = yyesa;
     YYPTRDIFF_T yyes_capacity = 20 < YYMAXDEPTH ? 20 : YYMAXDEPTH;
@@ -1453,13 +1558,17 @@ YYSTYPE yylval YY_INITIAL_VALUE (= yyval_default);
   /* The variables used to return semantic value and location from the
      action routines.  */
   YYSTYPE yyval;
+  YYLTYPE yyloc;
+
+  /* The locations where the error started and ended.  */
+  YYLTYPE yyerror_range[3];
 
   /* Buffer for error messages, and its allocated size.  */
   char yymsgbuf[128];
   char *yymsg = yymsgbuf;
   YYPTRDIFF_T yymsg_alloc = sizeof yymsgbuf;
 
-#define YYPOPSTACK(N)   (yyvsp -= (N), yyssp -= (N))
+#define YYPOPSTACK(N)   (yyvsp -= (N), yyssp -= (N), yylsp -= (N))
 
   /* The number of symbols on the RHS of the reduced rule.
      Keep to zero when no symbol should be popped.  */
@@ -1469,6 +1578,14 @@ YYSTYPE yylval YY_INITIAL_VALUE (= yyval_default);
 
   yychar = YYEMPTY; /* Cause a token to be read.  */
 
+
+/* User initialization code.  */
+#line 14 "Analisis_Sintactico/gramatica.y"
+{ yylloc = (AstUbicacion){1, 1, 1, 1}; }
+
+#line 1587 "Analisis_Sintactico/parser.c"
+
+  yylsp[0] = yylloc;
   goto yysetstate;
 
 
@@ -1507,6 +1624,7 @@ yysetstate:
            memory.  */
         yy_state_t *yyss1 = yyss;
         YYSTYPE *yyvs1 = yyvs;
+        YYLTYPE *yyls1 = yyls;
 
         /* Each stack pointer address is followed by the size of the
            data in use in that stack, in bytes.  This used to be a
@@ -1515,9 +1633,11 @@ yysetstate:
         yyoverflow (YY_("memory exhausted"),
                     &yyss1, yysize * YYSIZEOF (*yyssp),
                     &yyvs1, yysize * YYSIZEOF (*yyvsp),
+                    &yyls1, yysize * YYSIZEOF (*yylsp),
                     &yystacksize);
         yyss = yyss1;
         yyvs = yyvs1;
+        yyls = yyls1;
       }
 # else /* defined YYSTACK_RELOCATE */
       /* Extend the stack our own way.  */
@@ -1536,6 +1656,7 @@ yysetstate:
           YYNOMEM;
         YYSTACK_RELOCATE (yyss_alloc, yyss);
         YYSTACK_RELOCATE (yyvs_alloc, yyvs);
+        YYSTACK_RELOCATE (yyls_alloc, yyls);
 #  undef YYSTACK_RELOCATE
         if (yyss1 != yyssa)
           YYSTACK_FREE (yyss1);
@@ -1544,6 +1665,7 @@ yysetstate:
 
       yyssp = yyss + yysize - 1;
       yyvsp = yyvs + yysize - 1;
+      yylsp = yyls + yysize - 1;
 
       YY_IGNORE_USELESS_CAST_BEGIN
       YYDPRINTF ((stderr, "Stack size increased to %ld\n",
@@ -1580,7 +1702,7 @@ yybackup:
   if (yychar == YYEMPTY)
     {
       YYDPRINTF ((stderr, "Reading a token\n"));
-      yychar = yylex (&yylval, ctx);
+      yychar = yylex (&yylval, &yylloc, ctx);
     }
 
   if (yychar <= YYEOF)
@@ -1597,6 +1719,7 @@ yybackup:
          loop in error recovery. */
       yychar = YYUNDEF;
       yytoken = YYSYMBOL_YYerror;
+      yyerror_range[1] = yylloc;
       goto yyerrlab1;
     }
   else
@@ -1634,6 +1757,7 @@ yybackup:
   YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
   *++yyvsp = yylval;
   YY_IGNORE_MAYBE_UNINITIALIZED_END
+  *++yylsp = yylloc;
 
   /* Discard the shifted token.  */
   yychar = YYEMPTY;
@@ -1668,14 +1792,382 @@ yyreduce:
      GCC warning that YYVAL may be used uninitialized.  */
   yyval = yyvsp[1-yylen];
 
-
+  /* Default location. */
+  YYLLOC_DEFAULT (yyloc, (yylsp - yylen), yylen);
+  yyerror_range[1] = yyloc;
   YY_REDUCE_PRINT (yyn);
   {
     int yychar_backup = yychar;
     switch (yyn)
       {
+  case 2: /* programa: funcion  */
+#line 66 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_PROGRAMA, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[0]);
+        ctx->arbol->raiz = yyval;
+      }
+#line 1812 "Analisis_Sintactico/parser.c"
+    break;
 
-#line 1679 "Analisis_Sintactico/parser.c"
+  case 3: /* programa: programa funcion  */
+#line 73 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[-1]; yyval->ubicacion = (yyloc); ast_agregar_hijo(yyval, yyvsp[0]); }
+#line 1818 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 4: /* funcion: CREATE_FUNK HASH tipo_retorno HASH nombre_funcion LPAREN parametros_opcionales RPAREN bloque  */
+#line 79 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_FUNCION, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-4]);
+        ast_agregar_hijo(yyval, yyvsp[-6]);
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 1831 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 5: /* parametros_opcionales: %empty  */
+#line 92 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_PARAMETROS, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+      }
+#line 1840 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 6: /* parametros_opcionales: parametros  */
+#line 97 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[0]; }
+#line 1846 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 7: /* parametros: parametro  */
+#line 102 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_PARAMETROS, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 1856 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 8: /* parametros: parametros COMMA parametro  */
+#line 108 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[-2]; yyval->ubicacion = (yyloc); ast_agregar_hijo(yyval, yyvsp[0]); }
+#line 1862 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 9: /* parametro: IDENTIFIER STAR tipo  */
+#line 116 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_PARAMETRO, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 1873 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 14: /* sentencias: sentencia  */
+#line 138 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_BLOQUE, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 1883 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 15: /* sentencias: sentencias sentencia  */
+#line 144 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[-1]; ast_agregar_hijo(yyval, yyvsp[0]); }
+#line 1889 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 23: /* retorno: GIVE expresion SEMICOLON  */
+#line 161 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_RETORNO, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-1]);
+      }
+#line 1899 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 24: /* retorno: GIVE SEMICOLON  */
+#line 167 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_RETORNO, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+      }
+#line 1908 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 25: /* llamada: nombre_funcion LPAREN argumentos_opcionales RPAREN  */
+#line 178 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_LLAMADA, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-3]);
+        ast_agregar_hijo(yyval, yyvsp[-1]);
+      }
+#line 1919 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 26: /* argumentos_opcionales: %empty  */
+#line 188 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_ARGUMENTOS, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+      }
+#line 1928 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 27: /* argumentos_opcionales: argumentos  */
+#line 193 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[0]; }
+#line 1934 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 28: /* argumentos: expresion  */
+#line 198 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_ARGUMENTOS, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 1944 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 29: /* argumentos: argumentos COMMA expresion  */
+#line 204 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[-2]; yyval->ubicacion = (yyloc); ast_agregar_hijo(yyval, yyvsp[0]); }
+#line 1950 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 30: /* bloque: LBRACE contenido_bloque RBRACE  */
+#line 210 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[-1]; yyval->ubicacion = (yyloc); }
+#line 1956 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 31: /* contenido_bloque: %empty  */
+#line 215 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_BLOQUE, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+      }
+#line 1965 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 32: /* contenido_bloque: sentencias  */
+#line 220 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[0]; }
+#line 1971 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 33: /* condicional: WHETHER LPAREN expresion RPAREN bloque alternativa  */
+#line 229 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_SI, "whether", (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-3]);
+        ast_agregar_hijo(yyval, yyvsp[-1]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 1983 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 34: /* alternativa: %empty  */
+#line 241 "Analisis_Sintactico/gramatica.y"
+      { yyval = NULL; }
+#line 1989 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 35: /* alternativa: ALIF LPAREN expresion RPAREN bloque alternativa  */
+#line 243 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_SI, "alif", (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-3]);
+        ast_agregar_hijo(yyval, yyvsp[-1]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2001 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 36: /* alternativa: ALSO bloque  */
+#line 251 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[0]; }
+#line 2007 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 37: /* ciclo: WHALE LPAREN expresion RPAREN bloque STOP SEMICOLON  */
+#line 260 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_MIENTRAS, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-4]);
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+      }
+#line 2018 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 38: /* declaracion: IDENTIFIER STAR tipo ASSIGN expresion SEMICOLON  */
+#line 271 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_DECLARACION, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-5]);
+        ast_agregar_hijo(yyval, yyvsp[-3]);
+        ast_agregar_hijo(yyval, yyvsp[-1]);
+      }
+#line 2030 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 39: /* asignacion: IDENTIFIER ASSIGN expresion SEMICOLON  */
+#line 285 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_ASIGNACION, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-3]);
+        ast_agregar_hijo(yyval, yyvsp[-1]);
+      }
+#line 2041 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 51: /* expresion: expresion EQUAL expresion  */
+#line 312 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_BINARIO, "==", (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2052 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 52: /* expresion: expresion NOT_EQUAL expresion  */
+#line 319 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_BINARIO, "=/=", (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2063 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 53: /* expresion: expresion LESS expresion  */
+#line 326 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_BINARIO, "<", (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2074 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 54: /* expresion: expresion GREATER expresion  */
+#line 333 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_BINARIO, ">", (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2085 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 55: /* expresion: expresion LESS_EQUAL expresion  */
+#line 340 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_BINARIO, "<=", (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2096 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 56: /* expresion: expresion GREATER_EQUAL expresion  */
+#line 347 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_BINARIO, ">=", (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2107 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 57: /* expresion: expresion GAUSS expresion  */
+#line 354 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_BINARIO, "gauss", (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2118 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 58: /* expresion: expresion NEUMANN expresion  */
+#line 361 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_BINARIO, "neumann", (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2129 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 59: /* expresion: expresion PITAGORAS expresion  */
+#line 368 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_BINARIO, "pitagoras", (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2140 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 60: /* expresion: expresion EUCLIDES expresion  */
+#line 375 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_BINARIO, "euclides", (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2151 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 61: /* expresion: NEUMANN expresion  */
+#line 382 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_UNARIO, "neumann", (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2161 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 62: /* expresion: LPAREN expresion RPAREN  */
+#line 388 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[-1]; }
+#line 2167 "Analisis_Sintactico/parser.c"
+    break;
+
+
+#line 2171 "Analisis_Sintactico/parser.c"
 
         default: break;
       }
@@ -1699,6 +2191,7 @@ yyreduce:
   yylen = 0;
 
   *++yyvsp = yyval;
+  *++yylsp = yyloc;
 
   /* Now 'shift' the result of the reduction.  Determine what state
      that goes to, based on the state we popped back to and the rule
@@ -1727,7 +2220,7 @@ yyerrlab:
       ++yynerrs;
       {
         yypcontext_t yyctx
-          = {yyssp, yyesa, &yyes, &yyes_capacity, yytoken};
+          = {yyssp, yyesa, &yyes, &yyes_capacity, yytoken, &yylloc};
         char const *yymsgp = YY_("syntax error");
         int yysyntax_error_status;
         if (yychar != YYEMPTY)
@@ -1754,12 +2247,13 @@ yyerrlab:
                 yysyntax_error_status = YYENOMEM;
               }
           }
-        yyerror (ctx, yymsgp);
+        yyerror (&yylloc, ctx, yymsgp);
         if (yysyntax_error_status == YYENOMEM)
           YYNOMEM;
       }
     }
 
+  yyerror_range[1] = yylloc;
   if (yyerrstatus == 3)
     {
       /* If just tried and failed to reuse lookahead token after an
@@ -1774,7 +2268,7 @@ yyerrlab:
       else
         {
           yydestruct ("Error: discarding",
-                      yytoken, &yylval, ctx);
+                      yytoken, &yylval, &yylloc, ctx);
           yychar = YYEMPTY;
         }
     }
@@ -1828,9 +2322,9 @@ yyerrlab1:
       if (yyssp == yyss)
         YYABORT;
 
-
+      yyerror_range[1] = *yylsp;
       yydestruct ("Error: popping",
-                  YY_ACCESSING_SYMBOL (yystate), yyvsp, ctx);
+                  YY_ACCESSING_SYMBOL (yystate), yyvsp, yylsp, ctx);
       YYPOPSTACK (1);
       yystate = *yyssp;
       YY_STACK_PRINT (yyss, yyssp);
@@ -1844,6 +2338,9 @@ yyerrlab1:
   *++yyvsp = yylval;
   YY_IGNORE_MAYBE_UNINITIALIZED_END
 
+  yyerror_range[2] = yylloc;
+  ++yylsp;
+  YYLLOC_DEFAULT (*yylsp, yyerror_range, 2);
 
   /* Shift the error token.  */
   YY_SYMBOL_PRINT ("Shifting", YY_ACCESSING_SYMBOL (yyn), yyvsp, yylsp);
@@ -1872,7 +2369,7 @@ yyabortlab:
 | yyexhaustedlab -- YYNOMEM (memory exhaustion) comes here.  |
 `-----------------------------------------------------------*/
 yyexhaustedlab:
-  yyerror (ctx, YY_("memory exhausted"));
+  yyerror (&yylloc, ctx, YY_("memory exhausted"));
   yyresult = 2;
   goto yyreturnlab;
 
@@ -1887,7 +2384,7 @@ yyreturnlab:
          user semantic actions for why this is necessary.  */
       yytoken = YYTRANSLATE (yychar);
       yydestruct ("Cleanup: discarding lookahead",
-                  yytoken, &yylval, ctx);
+                  yytoken, &yylval, &yylloc, ctx);
     }
   /* Do not reclaim the symbols of the rule whose action triggered
      this YYABORT or YYACCEPT.  */
@@ -1896,7 +2393,7 @@ yyreturnlab:
   while (yyssp != yyss)
     {
       yydestruct ("Cleanup: popping",
-                  YY_ACCESSING_SYMBOL (+*yyssp), yyvsp, ctx);
+                  YY_ACCESSING_SYMBOL (+*yyssp), yyvsp, yylsp, ctx);
       YYPOPSTACK (1);
     }
 #ifndef yyoverflow
@@ -1910,7 +2407,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 215 "Analisis_Sintactico/gramatica.y"
+#line 391 "Analisis_Sintactico/gramatica.y"
 
 
 /* yylex y yyerror estan implementadas en puente_lexer.c.
