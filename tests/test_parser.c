@@ -187,6 +187,8 @@ static int comprobar(const char *nombre, const Resultado *r, int codigo,
     if (sintaxis) {
         int anuncia_exito = strstr(r->salida, "Análisis sintáctico correcto") != NULL;
         correcto = correcto && anuncia_exito == (codigo == 0);
+        int imprime_ast = strstr(r->salida, "[AST]\nPrograma") != NULL;
+        correcto = correcto && imprime_ast == (codigo == 0);
     }
     printf("[%s] %s — código esperado: %d; obtenido: %d\n",
            correcto ? "OK" : "FALLO", nombre, codigo, r->codigo);
