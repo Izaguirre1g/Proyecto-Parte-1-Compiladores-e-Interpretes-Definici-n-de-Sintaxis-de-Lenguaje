@@ -86,17 +86,18 @@ extern int yydebug;
     ALSO = 281,                    /* ALSO  */
     WHALE = 282,                   /* WHALE  */
     STOP = 283,                    /* STOP  */
-    CREATE_FUNK = 284,             /* CREATE_FUNK  */
-    HASH = 285,                    /* HASH  */
-    MAIN = 286,                    /* MAIN  */
-    DECLARE_INFINITE_VOID = 287,   /* DECLARE_INFINITE_VOID  */
-    EQUAL = 288,                   /* EQUAL  */
-    NOT_EQUAL = 289,               /* NOT_EQUAL  */
-    LESS = 290,                    /* LESS  */
-    GREATER = 291,                 /* GREATER  */
-    LESS_EQUAL = 292,              /* LESS_EQUAL  */
-    GREATER_EQUAL = 293,           /* GREATER_EQUAL  */
-    NEGATIVO = 294                 /* NEGATIVO  */
+    GIVE = 284,                    /* GIVE  */
+    CREATE_FUNK = 285,             /* CREATE_FUNK  */
+    HASH = 286,                    /* HASH  */
+    MAIN = 287,                    /* MAIN  */
+    DECLARE_INFINITE_VOID = 288,   /* DECLARE_INFINITE_VOID  */
+    EQUAL = 289,                   /* EQUAL  */
+    NOT_EQUAL = 290,               /* NOT_EQUAL  */
+    LESS = 291,                    /* LESS  */
+    GREATER = 292,                 /* GREATER  */
+    LESS_EQUAL = 293,              /* LESS_EQUAL  */
+    GREATER_EQUAL = 294,           /* GREATER_EQUAL  */
+    NEGATIVO = 295                 /* NEGATIVO  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -119,6 +120,6 @@ int yyparse (ContextoSintactico *ctx);
 int yylex(YYSTYPE *valor, ContextoSintactico *ctx);
 void yyerror(ContextoSintactico *ctx, const char *mensaje);
 
-#line 123 "Analisis_Sintactico/parser.h"
+#line 124 "Analisis_Sintactico/parser.h"
 
 #endif /* !YY_YY_ANALISIS_SINTACTICO_PARSER_H_INCLUDED  */

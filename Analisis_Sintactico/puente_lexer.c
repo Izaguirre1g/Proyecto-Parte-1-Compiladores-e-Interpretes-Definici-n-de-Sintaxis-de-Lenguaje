@@ -30,6 +30,7 @@ static int token_bison(TokenType tipo) {
         case TOKEN_ALSO: return ALSO;
         case TOKEN_WHALE: return WHALE;
         case TOKEN_STOP: return STOP;
+        case TOKEN_GIVE: return GIVE;
         case TOKEN_CREATE_FUNK: return CREATE_FUNK;
         case TOKEN_HASH: return HASH;
         case TOKEN_MAIN: return MAIN;

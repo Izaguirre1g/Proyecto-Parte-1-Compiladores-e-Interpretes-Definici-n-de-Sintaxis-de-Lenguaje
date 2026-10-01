@@ -1,5 +1,5 @@
 /* Primera etapa: declaraciones, asignaciones, expresiones, bloques, condicionales y ciclos.
- * Incluye funciones con parametros opcionales. Pendientes: llamadas, give y AST.
+ * Incluye funciones con parametros opcionales. Incluye give. Pendientes: llamadas y AST.
  * puente_lexer.c traduce TOKEN_* a los tokens de Bison mediante yylex.
  */
 
@@ -27,7 +27,7 @@ void yyerror(ContextoSintactico *ctx, const char *mensaje);
 %token GAUSS NEUMANN PITAGORAS EUCLIDES
 %token LPAREN RPAREN
 %token LBRACE RBRACE WHETHER ALSO
-%token WHALE STOP
+%token WHALE STOP GIVE
 %token CREATE_FUNK HASH MAIN DECLARE_INFINITE_VOID
 %token EQUAL NOT_EQUAL LESS GREATER LESS_EQUAL GREATER_EQUAL
 
@@ -108,6 +108,13 @@ sentencia:
   | bloque
   | condicional
   | ciclo
+  | retorno
+;
+
+/* El tipo de retorno y la presencia de valor se verifican semantica. */
+retorno:
+    GIVE expresion SEMICOLON
+  | GIVE SEMICOLON
 ;
 
 /* Un bloque tiene llaves obligatorias y puede estar vacio. */
