@@ -45,9 +45,9 @@ modo léxico de Javier. Resultado: 0 éxito, 1 error léxico/sintáctico, 2 fall
 de lectura, invocación o memoria.
 
 La gramática admite funciones con parámetros opcionales, declaraciones inicializadas,
-asignaciones, llamadas, retornos con `give`, aritmética básica, comparaciones, bloques, whether/also y whale
+asignaciones, llamadas, retornos con `give`, aritmética básica, comparaciones, bloques, whether/alif/also y whale
 con cierre `stop;`. Permite bloques vacíos y estructuras anidadas. Todavía no
-admite alif, operadores lógicos, listas ni módulos.
+admite operadores lógicos, listas ni módulos.
 No verifica tipos, declaración de variables, existencia/unicidad de main ni
 retornos obligatorios. No ejecuta el factorial ni calcula su resultado.
 
@@ -125,3 +125,26 @@ la cantidad y los tipos de argumentos, el uso de resultados void y cualquier
 restricción sobre llamadas a main. Aceptar la sintaxis no ejecuta la función.
 Las palabras reservadas como `show` no son identificadores de función y siguen
 pendientes de reglas propias.
+
+## Condicionales con alif
+
+Se adopta `alif` como rama intermedia con condición (else if), y `also` como
+rama final sin condición (else). Después del bloque de `whether` se permiten
+cero o más `alif (expresion) { ... }` y un único `also { ... }` opcional al final.
+Cada rama requiere llaves, aunque esté vacía. No se escribe punto y coma entre
+ramas ni después del condicional. Se permiten condicionales anidados.
+
+```text
+whether (n < 0) { give neumann 1; }
+alif (n == 0) { give 0; }
+alif (n < 10) { give 1; }
+also { give 2; }
+```
+
+Un `alif` suelto, posterior a `also` o separado de su cadena por otra sentencia
+es un error sintáctico. La validación del tipo de las condiciones corresponde
+al análisis semántico. El ejemplo completo se analiza con:
+
+```bash
+./micomp -t examples/condicionales.bal
+```
