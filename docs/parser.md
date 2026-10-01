@@ -45,9 +45,9 @@ modo léxico de Javier. Resultado: 0 éxito, 1 error léxico/sintáctico, 2 fall
 de lectura, invocación o memoria.
 
 La gramática admite funciones con parámetros opcionales, declaraciones inicializadas,
-asignaciones, retornos con `give`, aritmética básica, comparaciones, bloques, whether/also y whale
+asignaciones, llamadas, retornos con `give`, aritmética básica, comparaciones, bloques, whether/also y whale
 con cierre `stop;`. Permite bloques vacíos y estructuras anidadas. Todavía no
-admite llamadas, alif, operadores lógicos, listas ni módulos.
+admite alif, operadores lógicos, listas ni módulos.
 No verifica tipos, declaración de variables, existencia/unicidad de main ni
 retornos obligatorios. No ejecuta el factorial ni calcula su resultado.
 
@@ -71,7 +71,7 @@ create_funk #declare_infinite_void# main() {}
 Se permiten cero, uno o varios parámetros. Cada uno requiere identificador,
 `*` y un tipo de variable (`declare_int`, `declare_boolean`, `declare_text`
 o `declare_char`). No admite valores iniciales, tipo void ni comas al inicio
-o al final. Las llamadas quedan para el siguiente paso.
+o al final. Los argumentos de las llamadas son expresiones, sin declarar tipos.
 La verificación de nombres duplicados, ámbitos y firma de main corresponde
 al análisis semántico; aquí solo se valida la forma de la declaración.
 
@@ -103,3 +103,25 @@ El parser solo valida esta estructura. El análisis semántico deberá verificar
 que el valor corresponda al tipo de retorno, que las funciones void no devuelvan
 un valor y que los caminos requeridos devuelvan un resultado. Aún no se ejecutan
 los retornos ni se construye su AST.
+
+## Llamadas a funciones
+
+Una llamada tiene la forma `nombre(argumentos)`. Los argumentos son expresiones
+separadas por comas; también se admite una lista vacía. Se puede usar la llamada
+en una expresión (`resultado : sumar(2, 3);`, `give sumar(a, b);`) o como
+sentencia independiente (`saludar();`). Se admiten llamadas anidadas, como
+`sumar(2, sumar(3, 4))`. En una expresión, el punto y coma corresponde a la
+sentencia completa, no a cada llamada interior.
+
+```bash
+make
+./micomp -t examples/llamadas.bal
+make test-parser
+```
+
+El nombre sigue la misma regla que las declaraciones de funciones (identificador
+o `main`). La etapa semántica deberá comprobar la existencia de la función,
+la cantidad y los tipos de argumentos, el uso de resultados void y cualquier
+restricción sobre llamadas a main. Aceptar la sintaxis no ejecuta la función.
+Las palabras reservadas como `show` no son identificadores de función y siguen
+pendientes de reglas propias.

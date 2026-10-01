@@ -1,5 +1,5 @@
 /* Primera etapa: declaraciones, asignaciones, expresiones, bloques, condicionales y ciclos.
- * Incluye funciones con parametros opcionales. Incluye give. Pendientes: llamadas y AST.
+ * Incluye funciones, parametros, give y llamadas. Construccion del AST pendiente.
  * puente_lexer.c traduce TOKEN_* a los tokens de Bison mediante yylex.
  */
 
@@ -109,12 +109,30 @@ sentencia:
   | condicional
   | ciclo
   | retorno
+  | llamada SEMICOLON
 ;
 
 /* El tipo de retorno y la presencia de valor se verifican semantica. */
 retorno:
     GIVE expresion SEMICOLON
   | GIVE SEMICOLON
+;
+
+/* Una llamada puede usarse como expresion o como sentencia seguida de ;.
+ * Cada argumento es una expresion: permite operaciones y llamadas anidadas.
+ */
+llamada:
+    nombre_funcion LPAREN argumentos_opcionales RPAREN
+;
+
+argumentos_opcionales:
+    %empty
+  | argumentos
+;
+
+argumentos:
+    expresion
+  | argumentos COMMA expresion
 ;
 
 /* Un bloque tiene llaves obligatorias y puede estar vacio. */
@@ -177,6 +195,7 @@ expresion:
   | DECLARE_TRUE
   | DECLARE_FALSE
   | IDENTIFIER
+  | llamada
   | expresion EQUAL expresion
   | expresion NOT_EQUAL expresion
   | expresion LESS expresion
