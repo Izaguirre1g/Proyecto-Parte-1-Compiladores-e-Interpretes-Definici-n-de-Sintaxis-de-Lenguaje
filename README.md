@@ -16,7 +16,8 @@ cd "/mnt/c/ruta/al/repositorio"
 bison -Wall -Werror -d -o Analisis_Sintactico/parser.c Analisis_Sintactico/gramatica.y
 gcc -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -Iinclude \
   src/main.c src/cli.c src/lexer.c src/token.c \
-  Analisis_Sintactico/parser.c Analisis_Sintactico/puente_lexer.c -o micomp
+  Analisis_Sintactico/parser.c Analisis_Sintactico/puente_lexer.c \
+  Analisis_Sintactico/ast.c -o micomp
 ./micomp -v examples/factorial.bal
 ```
 
@@ -38,7 +39,7 @@ make
 make test
 ```
 
-`make test` ejecuta las pruebas de ambos analizadores y muestra los tokens del
+`make test` ejecuta las pruebas de ambos analizadores y del AST y muestra los tokens del
 factorial. Sin make, los comandos de la opción WSL funcionan igual en Ubuntu;
 las pruebas del parser se compilan y ejecutan así (con `micomp` ya compilado):
 
@@ -53,16 +54,19 @@ Las pruebas terminan con `OK: 18 casos del lexer, incluido factorial.bal`.
 El análisis del factorial termina con `64 tokens, 0 errores`. Para analizar otro
 archivo, usa `./micomp -v ruta/al/archivo.bal`.
 
-Para validar también la sintaxis:
+Para validar la sintaxis y mostrar el AST:
 
 ```bash
 ./micomp -t examples/factorial.bal
 ./micomp -v -t examples/factorial.bal
 make test-parser
+make test-ast
 ```
 
-Por ahora `-t` valida la sintaxis y anuncia que el AST está pendiente; aún no
-imprime un árbol. Sin `-t` se conserva el análisis exclusivamente léxico.
+`-t` valida la sintaxis y muestra el AST con sangría y posiciones del fuente.
+Solo imprime el árbol si el archivo completo es válido. Sin `-t` se conserva
+el análisis exclusivamente léxico. La estructura del árbol y las acciones de
+Bison se explican en `docs/ast.md`.
 `micomp` devuelve 0 si el análisis solicitado tiene éxito, 1 por errores de
 entrada y 2 por fallos de lectura, invocación o memoria. No genera ensamblador
 ni binario. La integración y sus límites se explican en `docs/parser.md`;
