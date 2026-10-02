@@ -17,8 +17,8 @@ bison -Wall -Werror -d -o Analisis_Sintactico/parser.c Analisis_Sintactico/grama
 gcc -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -Iinclude \
   src/main.c src/cli.c src/lexer.c src/token.c \
   Analisis_Sintactico/parser.c Analisis_Sintactico/puente_lexer.c \
-  Analisis_Sintactico/ast.c -o micomp
-./micomp -v examples/factorial.bal
+  Analisis_Sintactico/ast.c -o balc
+./balc -v examples/factorial.bal
 ```
 
 Para ejecutar las pruebas sin `make`:
@@ -41,7 +41,7 @@ make test
 
 `make test` ejecuta las pruebas de ambos analizadores y del AST y muestra los tokens del
 factorial. Sin make, los comandos de la opción WSL funcionan igual en Ubuntu;
-las pruebas del parser se compilan y ejecutan así (con `micomp` ya compilado):
+las pruebas del parser se compilan y ejecutan así (con `balc` ya compilado):
 
 ```bash
 gcc -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 tests/test_parser.c -o tests/test_parser
@@ -52,13 +52,13 @@ gcc -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 tests/test_parser.c -o tests/t
 
 Las pruebas terminan con `OK: 18 casos del lexer, incluido factorial.bal`.
 El análisis del factorial termina con `64 tokens, 0 errores`. Para analizar otro
-archivo, usa `./micomp -v ruta/al/archivo.bal`.
+archivo, usa `./balc -v ruta/al/archivo.bal`.
 
 Para validar la sintaxis y mostrar el AST:
 
 ```bash
-./micomp -t examples/factorial.bal
-./micomp -v -t examples/factorial.bal
+./balc -t examples/factorial.bal
+./balc -v -t examples/factorial.bal
 make test-parser
 make test-ast
 ```
@@ -67,7 +67,22 @@ make test-ast
 Solo imprime el árbol si el archivo completo es válido. Sin `-t` se conserva
 el análisis exclusivamente léxico. La estructura del árbol y las acciones de
 Bison se explican en `docs/ast.md`.
-`micomp` devuelve 0 si el análisis solicitado tiene éxito, 1 por errores de
+`balc` devuelve 0 si el análisis solicitado tiene éxito, 1 por errores de
 entrada y 2 por fallos de lectura, invocación o memoria. No genera ensamblador
 ni binario. La integración y sus límites se explican en `docs/parser.md`;
 el diseño léxico está en `docs/lexer.md`.
+
+## Lenguaje ampliado
+
+El ejecutable se llama `balc` y conserva las opciones `-v` y `-t`. Las reglas actuales,
+las diferencias con el PDF del avance y los límites de esta fase están en
+[docs/lenguaje_actual.md](docs/lenguaje_actual.md).
+
+```bash
+./balc -t examples/lenguaje_ampliado.bal
+./balc -t examples/matematicas.bal
+```
+
+Incluye declaraciones sin inicialización, lógica, residuo/potencia, cycle,
+colecciones, importaciones, constantes y seek/seize en el parser y AST.
+No incluye ejecución, carga/enlace de módulos ni generación de código.

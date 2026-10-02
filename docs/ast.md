@@ -3,7 +3,8 @@
 El AST representa la estructura del programa. No ejecuta sus instrucciones ni
 verifica los tipos semánticos. La gramática actual construye nodos para todas
 las construcciones que reconoce: funciones, parámetros, bloques, declaraciones,
-asignaciones, expresiones, condicionales, ciclos, retornos y llamadas.
+asignaciones, expresiones, condicionales, ciclos, retornos, llamadas, colecciones,
+importaciones, constantes y bloques de manejo de errores.
 
 ## Archivos y responsabilidades
 
@@ -50,19 +51,36 @@ Cada nodo contiene `tipo`, `texto` opcional, `ubicacion`, `primer_hijo`,
 
 | Nodo | Hijos en orden |
 |---|---|
-| Programa | Funciones en orden del fuente |
+| Programa | Funciones, importaciones y constantes globales en orden del fuente |
 | Funcion | Nombre, tipo de retorno, Parametros, Bloque |
 | Parametros / Argumentos | Elementos en orden; pueden estar vacíos |
 | Parametro | Nombre, tipo |
 | Bloque | Sentencias en orden; puede estar vacío |
-| Declaracion | Nombre, tipo, expresión inicial |
-| Asignacion | Nombre de destino, expresión |
+| Declaracion | Nombre, tipo simple o compuesto, expresión inicial opcional |
+| Asignacion | Referencia de destino (nombre, miembro o índice), expresión |
 | Binario | Operando izquierdo, operando derecho; texto = operador |
 | Unario | Operando; texto = operador |
 | Si | Condición, bloque verdadero, alternativa opcional |
 | Mientras | Condición, bloque del cuerpo |
 | Retorno | Expresión opcional |
-| Llamada | Nombre, Argumentos |
+| Llamada | Referencia de destino, Argumentos |
+| Declaraciones | Declaraciones o listas agrupadas, en orden |
+| Constante | Nombre, tipo, inicializador obligatorio |
+| TipoArreglo | Tipo base, Dimensiones |
+| TipoLista | Tipo base |
+| Dimensiones | Nodos Dimension, en orden |
+| Dimension | Expresión; vacía únicamente en parámetros sin tamaño |
+| Indice | Referencia base, expresión de índice |
+| AccesoMiembro | Referencia base, identificador del miembro |
+| LiteralColeccion | Elementos; admite otros LiteralColeccion y lista vacía |
+| Lista | Nombre, tipo de elemento, inicializador opcional |
+| Agregar / Eliminar | Colección, valor o índice respectivamente |
+| Tamano | Colección |
+| Recorrido | Variable, inicio, límite exclusivo, paso, bloque |
+| Importacion | Nombre de módulo, alias opcional |
+| Intentar | Bloque protegido, Capturas |
+| Capturas | Nodos Captura en orden |
+| Captura | Identificador de tipo de error, identificador de variable, bloque |
 | Identificador / Tipo / literales | Sin hijos; texto = lexema original |
 
 `alif` se representa como otro nodo `Si` en la alternativa del anterior; su texto
@@ -109,9 +127,9 @@ Desde la raíz del proyecto:
 
 ```bash
 make
-./micomp -t examples/factorial.bal
-./micomp -t examples/llamadas.bal
-./micomp -t examples/condicionales.bal
+./balc -t examples/factorial.bal
+./balc -t examples/llamadas.bal
+./balc -t examples/condicionales.bal
 make test-ast
 make test
 ```
@@ -121,3 +139,17 @@ no presentan un árbol parcial ante errores. `-v -t` añade el listado léxico p
 Las pruebas comprueban precedencia, asociatividad, llamadas y control anidados,
 literales, posiciones UTF-8/CRLF, independencia del fuente y limpieza tras errores.
 El AST aún no asigna ámbitos, tipos semánticos, direcciones ni instrucciones.
+
+## Contratos de las extensiones
+
+Una declaración sin inicializador tiene dos hijos; no se crea un valor cero.
+Los arreglos conservan dimensiones en el tipo y los accesos `m[i][j]` son dos
+nodos `Indice` anidados. Una lista usa el nodo `Lista`, diferente de una variable
+de tipo arreglo; los parámetros de lista usan `TipoLista`.
+`Recorrido` siempre tiene cinco hijos: el paso omitido se convierte en un nodo
+entero `1`. Su límite se interpreta como exclusivo en la futura generación de
+código. `Importacion` solo registra el módulo: no carga archivos.
+`Intentar` y `Captura` no implementan excepciones en ejecución.
+
+Los detalles de sintaxis, precedencia y tareas semánticas pendientes están en
+`docs/lenguaje_actual.md`. Las pruebas estructurales cubren también las extensiones.

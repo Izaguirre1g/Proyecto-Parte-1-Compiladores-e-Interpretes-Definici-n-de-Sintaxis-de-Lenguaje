@@ -1,6 +1,6 @@
 # Conexión del lexer con Bison
 
-El flujo es `cli_run -> analizar_sintaxis -> yyparse -> yylex -> lexer_next`.
+Con `-t`, el flujo es `cli_run -> construir_ast -> yyparse -> yylex -> lexer_next`.
 La CLI lee el archivo y entrega sus bytes al parser. Bison llama a `yylex`
 cada vez que necesita un token; `puente_lexer.c` llama al lexer de Javier y
 traduce explícitamente su enumeración (`TOKEN_MAIN`, etc.) a la de Bison
@@ -36,8 +36,8 @@ en la gramática se rechazan con un mensaje explícito; nunca se omiten.
 
 ```bash
 make
-./micomp -t examples/factorial.bal
-./micomp -v -t examples/factorial.bal
+./balc -t examples/factorial.bal
+./balc -v -t examples/factorial.bal
 make test
 ```
 
@@ -47,12 +47,13 @@ nuevo recorrido del fuente para validar sintaxis. Sin `-t`, se mantiene el
 modo léxico de Javier. Resultado: 0 éxito, 1 error léxico/sintáctico, 2 fallo
 de lectura, invocación o memoria.
 
-La gramática admite funciones con parámetros opcionales, declaraciones inicializadas,
-asignaciones, llamadas, retornos con `give`, aritmética básica, comparaciones, bloques, whether/alif/also y whale
-con cierre `stop;`. Permite bloques vacíos y estructuras anidadas. Todavía no
-admite operadores lógicos, listas ni módulos.
-No verifica tipos, declaración de variables, existencia/unicidad de main ni
-retornos obligatorios. No ejecuta el factorial ni calcula su resultado.
+La gramática admite funciones y parámetros simples o compuestos, declaraciones
+con inicialización opcional, constantes, llamadas, retornos, aritmética y lógica,
+condicionales, whale, cycle, arreglos, matrices, listas, importaciones y seek/seize.
+La sintaxis detallada y las decisiones sobre el PDF están en `docs/lenguaje_actual.md`.
+No admite declare_float ni show. No verifica tipos, símbolos, existencia/unicidad
+de main ni retornos obligatorios. No ejecuta programas, carga módulos, realiza
+operaciones de listas ni implementa excepciones en ejecución.
 
 Las pruebas en `tests/test_parser.c` pasan archivos reales por la CLI:
 factorial, funciones y estructuras anidadas, operadores, errores de cierre,
@@ -76,8 +77,8 @@ create_funk #declare_infinite_void# main() {}
 
 Se permiten cero, uno o varios parámetros. Cada uno requiere identificador,
 `*` y un tipo de variable (`declare_int`, `declare_boolean`, `declare_text`
-o `declare_char`). No admite valores iniciales, tipo void ni comas al inicio
-o al final. Los argumentos de las llamadas son expresiones, sin declarar tipos.
+o `declare_char`). En parámetros no admite valores iniciales, tipo void ni comas al inicio
+o al final. Admite tipos de arreglo y `declare_list tipo`, descritos en `docs/lenguaje_actual.md`. Los argumentos de las llamadas son expresiones, sin declarar tipos.
 La verificación de nombres duplicados, ámbitos y firma de main corresponde
 al análisis semántico; aquí solo se valida la forma de la declaración.
 
@@ -121,7 +122,7 @@ sentencia completa, no a cada llamada interior.
 
 ```bash
 make
-./micomp -t examples/llamadas.bal
+./balc -t examples/llamadas.bal
 make test-parser
 ```
 
@@ -129,8 +130,8 @@ El nombre sigue la misma regla que las declaraciones de funciones (identificador
 o `main`). La etapa semántica deberá comprobar la existencia de la función,
 la cantidad y los tipos de argumentos, el uso de resultados void y cualquier
 restricción sobre llamadas a main. Aceptar la sintaxis no ejecuta la función.
-Las palabras reservadas como `show` no son identificadores de función y siguen
-pendientes de reglas propias.
+`show` continúa rechazado. `add`, `remove` y `size` tienen reglas y nodos
+propios; las llamadas a módulos usan destinos como `math.suma`.
 
 ## Condicionales con alif
 
@@ -152,5 +153,5 @@ es un error sintáctico. La validación del tipo de las condiciones corresponde
 al análisis semántico. El ejemplo completo se analiza con:
 
 ```bash
-./micomp -t examples/condicionales.bal
+./balc -t examples/condicionales.bal
 ```

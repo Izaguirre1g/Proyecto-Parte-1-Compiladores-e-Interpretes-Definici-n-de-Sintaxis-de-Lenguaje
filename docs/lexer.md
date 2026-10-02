@@ -7,9 +7,9 @@ y produce tokens con su posición. También se incluye una interfaz de línea de
 comandos con la opción `-v` para inspeccionar el resultado del análisis.
 
 El lexer reconoce tokens; no decide si su orden forma una instrucción válida.
-Por ejemplo, reconoce `alif` y `also`, pero aún falta definir la gramática de
-esos bloques. La presencia de un token no implica que la construcción completa
-esté implementada.
+Por ejemplo, reconoce `alif` y `also`; sus reglas de combinación se implementan
+en el parser. La presencia de un token no implica que la construcción completa
+esté implementada (por ejemplo, `show` permanece fuera del parser).
 
 ## Tokens reconocidos
 
@@ -43,10 +43,9 @@ en cadenas, caracteres y comentarios, como `"café"` y `$ñ$`.
 palabra. Los marcadores documentales `@`, `!!!`, `!?`, `%?` no son lexemas
 válidos del fuente; la API expresa EOF y los errores mediante enumeraciones.
 
-Quedan por formalizar la precedencia de operadores, el significado
-de `alif` frente a `also`, el uso preciso de `stop` y `endgame`, y la sintaxis
-definitiva de construcciones que aparecen distintas en los ejemplos. Estas
-decisiones no impiden reconocer sus tokens individuales.
+Las decisiones actuales de precedencia, `alif` con condición, `also` final,
+`stop;` y `endgame;` están documentadas en `docs/lenguaje_actual.md`.
+El parser y el AST implementan esas reglas sobre los tokens de este lexer.
 
 ## Funcionamiento
 
@@ -101,7 +100,7 @@ dirección, ámbito ni tipo semántico.
 
 ## Línea de comandos y pruebas
 
-El nombre del ejecutable es `micomp`, según el enunciado oficial. Con `-v`
+El nombre del ejecutable es `balc`, por decisión del equipo. Con `-v`
 imprime nombre de fase, tokens, posición, lexema y recuento final. Sin `-v`
 solo muestra errores o un aviso de análisis léxico correcto. Códigos de salida:
 0 éxito léxico; 1 hubo errores léxicos; 2 error de invocación, lectura o
@@ -138,10 +137,11 @@ ALU, LSU, BRU y CRIPTO, y necesitan una planificación que respete dependencias.
 
 ## Trabajo pendiente
 
-1. Acordar el contrato `Token` e integrar el lexer con el parser.
-2. Definir las construcciones que todavía tienen ejemplos contradictorios,
-   especialmente `alif`, `also` y el cierre de los ciclos.
-3. Generar y probar ensamblador de expresiones, asignaciones y accesos a
-   memoria cuando estén disponibles el AST, los símbolos y una ISA estable.
-4. Comprobar el factorial de principio a fin y documentar el ensamblador,
+La conexión con el parser y el AST ya está implementada; las decisiones de
+sintaxis están registradas en `docs/lenguaje_actual.md`. Queda pendiente:
+
+1. Integrar símbolos y verificaciones semánticas sobre el AST.
+2. Generar y probar ensamblador de expresiones, asignaciones y accesos a
+   memoria cuando estén disponibles los símbolos y una ISA estable.
+3. Comprobar el factorial de principio a fin y documentar el ensamblador,
    binario y resultado obtenidos.
