@@ -20,7 +20,7 @@ typedef struct {
 } Options;
 
 static void usage(FILE *out) {
-    fputs("Uso: micomp [-v] [-t] <archivo_fuente>\n"
+    fputs("Uso: balc [-v] [-t] <archivo_fuente>\n"
           "-t valida sintaxis e imprime el AST. Sin -t, solo analiza tokens.\n"
           "Opciones del proyecto reservadas para integración: -o, -s, -m, -x, -p.\n", out);
 }

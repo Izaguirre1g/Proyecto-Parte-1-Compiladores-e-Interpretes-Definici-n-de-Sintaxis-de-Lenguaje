@@ -29,7 +29,12 @@ void yyerror(YYLTYPE *ubicacion, ContextoSintactico *ctx, const char *mensaje);
 %token DECLARE_INT DECLARE_BOOLEAN DECLARE_TEXT DECLARE_CHAR
 %token DECLARE_TRUE DECLARE_FALSE
 %token STAR ASSIGN SEMICOLON COMMA
-%token GAUSS NEUMANN PITAGORAS EUCLIDES
+%token GAUSS NEUMANN PITAGORAS EUCLIDES EULER DESCARTES
+%token AND OR NOT XOR
+%token CYCLE LET UNTIL STEP ENDGAME
+%token LBRACKET RBRACKET DOT
+%token DECLARE_LIST ADD REMOVE SIZE
+%token BRING AKA DECLARE_CONST SEEK SEIZE
 %token LPAREN RPAREN
 %token LBRACE RBRACE WHETHER ALIF ALSO
 %token WHALE STOP GIVE
@@ -38,6 +43,8 @@ void yyerror(YYLTYPE *ubicacion, ContextoSintactico *ctx, const char *mensaje);
 
 /* Precedencia propuesta, de menor a mayor. %left asocia a la izquierda.
  * GAUSS: suma; NEUMANN: resta; PITAGORAS: multiplicacion; EUCLIDES: division.
+ * Potencia asocia a la derecha y tiene prioridad sobre la negacion.
+ * Logica: OR < XOR < AND < comparaciones; NOT es unario.
  * NEGATIVO es una marca interna de precedencia, no un token del lexer.
  */
 /* Comparaciones: menor prioridad que la aritmetica.
@@ -45,10 +52,14 @@ void yyerror(YYLTYPE *ubicacion, ContextoSintactico *ctx, const char *mensaje);
  * EQUAL: ==; NOT_EQUAL: =/=; LESS: <; GREATER: >;
  * LESS_EQUAL: <=; GREATER_EQUAL: >=.
  */
+%left OR
+%left XOR
+%left AND
 %nonassoc EQUAL NOT_EQUAL LESS GREATER LESS_EQUAL GREATER_EQUAL
 %left GAUSS NEUMANN
-%left PITAGORAS EUCLIDES
-%precedence NEGATIVO
+%left PITAGORAS EUCLIDES EULER
+%precedence NEGATIVO NOT
+%right DESCARTES
 
 /* Primera forma de programa: una o mas funciones con parametros opcionales.
  * Las sentencias quedan dentro de los cuerpos de las funciones.
@@ -62,14 +73,14 @@ void yyerror(YYLTYPE *ubicacion, ContextoSintactico *ctx, const char *mensaje);
  * La existencia y unicidad de main se verificaran en la etapa semantica.
  */
 programa:
-    funcion
+    elemento_superior
       {
         $$ = ast_crear(ctx->arbol, AST_PROGRAMA, NULL, @$);
         if (!$$) YYNOMEM;
         ast_agregar_hijo($$, $1);
         ctx->arbol->raiz = $$;
       }
-  | programa funcion
+  | programa elemento_superior
       { $$ = $1; $$->ubicacion = @$; ast_agregar_hijo($$, $2); }
 ;
 
@@ -112,7 +123,7 @@ parametros:
  * Ejemplo: a * declare_int, b * declare_int
  */
 parametro:
-    IDENTIFIER STAR tipo
+    IDENTIFIER STAR tipo_parametro
       {
         $$ = ast_crear(ctx->arbol, AST_PARAMETRO, NULL, @$);
         if (!$$) YYNOMEM;
@@ -152,6 +163,10 @@ sentencia:
   | condicional
   | ciclo
   | retorno
+  | constante
+  | declaracion_lista
+  | recorrido
+  | intentar
   | llamada SEMICOLON
 ;
 
@@ -174,11 +189,31 @@ retorno:
  * Cada argumento es una expresion: permite operaciones y llamadas anidadas.
  */
 llamada:
-    nombre_funcion LPAREN argumentos_opcionales RPAREN
+    destino_llamada LPAREN argumentos_opcionales RPAREN
       {
         $$ = ast_crear(ctx->arbol, AST_LLAMADA, NULL, @$);
         if (!$$) YYNOMEM;
         ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+      }
+  | ADD LPAREN expresion COMMA expresion RPAREN
+      {
+        $$ = ast_crear(ctx->arbol, AST_AGREGAR, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $3);
+        ast_agregar_hijo($$, $5);
+      }
+  | REMOVE LPAREN expresion COMMA expresion RPAREN
+      {
+        $$ = ast_crear(ctx->arbol, AST_ELIMINAR, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $3);
+        ast_agregar_hijo($$, $5);
+      }
+  | SIZE LPAREN expresion RPAREN
+      {
+        $$ = ast_crear(ctx->arbol, AST_TAMANO, NULL, @$);
+        if (!$$) YYNOMEM;
         ast_agregar_hijo($$, $3);
       }
 ;
@@ -267,21 +302,15 @@ ciclo:
 
 /* Regla principal. Ejemplo: n * declare_int : 5; */
 declaracion:
-    IDENTIFIER STAR tipo ASSIGN expresion SEMICOLON
-      {
-        $$ = ast_crear(ctx->arbol, AST_DECLARACION, NULL, @$);
-        if (!$$) YYNOMEM;
-        ast_agregar_hijo($$, $1);
-        ast_agregar_hijo($$, $3);
-        ast_agregar_hijo($$, $5);
-      }
+    declaradores SEMICOLON
+      { $$ = $1; $$->ubicacion = @$; }
 ;
 
 /* Regla para asignar valores a variables; Dylan verificara su declaracion.
  * Ejemplo: resultado : 1;
  */
 asignacion:
-    IDENTIFIER ASSIGN expresion SEMICOLON
+    referencia ASSIGN expresion SEMICOLON
       {
         $$ = ast_crear(ctx->arbol, AST_ASIGNACION, NULL, @$);
         if (!$$) YYNOMEM;
@@ -306,7 +335,8 @@ expresion:
   | CHARACTER
   | DECLARE_TRUE
   | DECLARE_FALSE
-  | IDENTIFIER
+  | referencia
+  | literal_coleccion
   | llamada
   | expresion EQUAL expresion
       {
@@ -378,6 +408,47 @@ expresion:
         ast_agregar_hijo($$, $1);
         ast_agregar_hijo($$, $3);
       }
+  | expresion AND expresion
+      {
+        $$ = ast_crear(ctx->arbol, AST_BINARIO, "&&", @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+      }
+  | expresion OR expresion
+      {
+        $$ = ast_crear(ctx->arbol, AST_BINARIO, "||", @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+      }
+  | expresion XOR expresion
+      {
+        $$ = ast_crear(ctx->arbol, AST_BINARIO, "^", @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+      }
+  | expresion EULER expresion
+      {
+        $$ = ast_crear(ctx->arbol, AST_BINARIO, "euler", @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+      }
+  | expresion DESCARTES expresion
+      {
+        $$ = ast_crear(ctx->arbol, AST_BINARIO, "descartes", @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+      }
+  | NOT expresion
+      {
+        $$ = ast_crear(ctx->arbol, AST_UNARIO, "~", @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $2);
+      }
   | NEUMANN expresion %prec NEGATIVO
       {
         $$ = ast_crear(ctx->arbol, AST_UNARIO, "neumann", @$);
@@ -386,6 +457,289 @@ expresion:
       }
   | LPAREN expresion RPAREN
       { $$ = $2; } /* Los parentesis ya cumplieron su funcion de agrupacion. */
+;
+
+/* Extensiones de declaraciones, colecciones, modulos y control. */
+
+elemento_superior:
+    funcion
+      { $$ = $1; }
+  | importacion
+      { $$ = $1; }
+  | constante
+      { $$ = $1; }
+;
+
+importacion:
+    BRING IDENTIFIER alias_opcional SEMICOLON
+      {
+        $$ = ast_crear(ctx->arbol, AST_IMPORTACION, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $2);
+        ast_agregar_hijo($$, $3);
+      }
+;
+
+alias_opcional:
+    %empty
+      { $$ = NULL; }
+  | AKA IDENTIFIER
+      { $$ = $2; }
+;
+
+tipo_parametro:
+    tipo
+      { $$ = $1; }
+  | tipo dimensiones_parametro
+      {
+        $$ = ast_crear(ctx->arbol, AST_TIPO_ARREGLO, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $2);
+      }
+  | DECLARE_LIST tipo
+      {
+        $$ = ast_crear(ctx->arbol, AST_TIPO_LISTA, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $2);
+      }
+;
+
+tipo_variable:
+    tipo
+      { $$ = $1; }
+  | tipo dimensiones
+      {
+        $$ = ast_crear(ctx->arbol, AST_TIPO_ARREGLO, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $2);
+      }
+;
+
+dimensiones:
+    dimension
+      {
+        $$ = ast_crear(ctx->arbol, AST_DIMENSIONES, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+      }
+  | dimensiones dimension
+      { $$ = $1; $$->ubicacion = @$; ast_agregar_hijo($$, $2); }
+;
+
+dimensiones_parametro:
+    dimension_parametro
+      {
+        $$ = ast_crear(ctx->arbol, AST_DIMENSIONES, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+      }
+  | dimensiones_parametro dimension_parametro
+      { $$ = $1; $$->ubicacion = @$; ast_agregar_hijo($$, $2); }
+;
+
+dimension:
+    LBRACKET expresion RBRACKET
+      {
+        $$ = ast_crear(ctx->arbol, AST_DIMENSION, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $2);
+      }
+;
+
+dimension_parametro:
+    dimension
+      { $$ = $1; }
+  | LBRACKET RBRACKET
+      {
+        $$ = ast_crear(ctx->arbol, AST_DIMENSION, NULL, @$);
+        if (!$$) YYNOMEM;
+      }
+;
+
+declarador:
+    IDENTIFIER STAR tipo_variable inicializador_opcional
+      {
+        $$ = ast_crear(ctx->arbol, AST_DECLARACION, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+        ast_agregar_hijo($$, $4);
+      }
+;
+
+inicializador_opcional:
+    %empty
+      { $$ = NULL; }
+  | ASSIGN expresion
+      { $$ = $2; }
+;
+
+declaradores:
+    declarador
+      { $$ = $1; }
+  | declaradores COMMA declarador
+      {
+        $$ = $1;
+        if ($$->tipo != AST_DECLARACIONES) {
+            $$ = ast_crear(ctx->arbol, AST_DECLARACIONES, NULL, @$);
+            if (!$$) YYNOMEM;
+            ast_agregar_hijo($$, $1);
+        }
+        $$->ubicacion = @$;
+        ast_agregar_hijo($$, $3);
+      }
+;
+
+listas:
+    declarador_lista
+      { $$ = $1; }
+  | listas COMMA declarador_lista
+      {
+        $$ = $1;
+        if ($$->tipo != AST_DECLARACIONES) {
+            $$ = ast_crear(ctx->arbol, AST_DECLARACIONES, NULL, @$);
+            if (!$$) YYNOMEM;
+            ast_agregar_hijo($$, $1);
+        }
+        $$->ubicacion = @$;
+        ast_agregar_hijo($$, $3);
+      }
+;
+
+constante:
+    DECLARE_CONST IDENTIFIER STAR tipo_variable ASSIGN expresion SEMICOLON
+      {
+        $$ = ast_crear(ctx->arbol, AST_CONSTANTE, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $2);
+        ast_agregar_hijo($$, $4);
+        ast_agregar_hijo($$, $6);
+      }
+;
+
+declaracion_lista:
+    DECLARE_LIST listas SEMICOLON
+      { $$ = $2; $$->ubicacion = @$; }
+;
+
+declarador_lista:
+    IDENTIFIER STAR tipo inicializador_opcional
+      {
+        $$ = ast_crear(ctx->arbol, AST_LISTA, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+        ast_agregar_hijo($$, $4);
+      }
+;
+
+recorrido:
+    CYCLE IDENTIFIER LET expresion UNTIL expresion paso_opcional bloque ENDGAME SEMICOLON
+      {
+        $$ = ast_crear(ctx->arbol, AST_RECORRIDO, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $2);
+        ast_agregar_hijo($$, $4);
+        ast_agregar_hijo($$, $6);
+        ast_agregar_hijo($$, $7);
+        ast_agregar_hijo($$, $8);
+      }
+;
+
+paso_opcional:
+    %empty
+      {
+        $$ = ast_crear(ctx->arbol, AST_ENTERO, "1", @$);
+        if (!$$) YYNOMEM;
+      }
+  | STEP expresion
+      { $$ = $2; }
+;
+
+intentar:
+    SEEK bloque capturas
+      {
+        $$ = ast_crear(ctx->arbol, AST_INTENTAR, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $2);
+        ast_agregar_hijo($$, $3);
+      }
+;
+
+capturas:
+    captura
+      {
+        $$ = ast_crear(ctx->arbol, AST_CAPTURAS, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+      }
+  | capturas captura
+      { $$ = $1; $$->ubicacion = @$; ast_agregar_hijo($$, $2); }
+;
+
+captura:
+    SEIZE LPAREN IDENTIFIER IDENTIFIER RPAREN bloque
+      {
+        $$ = ast_crear(ctx->arbol, AST_CAPTURA, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $3);
+        ast_agregar_hijo($$, $4);
+        ast_agregar_hijo($$, $6);
+      }
+;
+
+referencia:
+    IDENTIFIER
+      { $$ = $1; }
+  | referencia DOT IDENTIFIER
+      {
+        $$ = ast_crear(ctx->arbol, AST_ACCESO_MIEMBRO, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+      }
+  | referencia LBRACKET expresion RBRACKET
+      {
+        $$ = ast_crear(ctx->arbol, AST_INDICE, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+        ast_agregar_hijo($$, $3);
+      }
+;
+
+destino_llamada:
+    referencia
+      { $$ = $1; }
+  | MAIN
+      { $$ = $1; }
+;
+
+literal_coleccion:
+    LBRACKET elementos_opcionales RBRACKET
+      { $$ = $2; $$->ubicacion = @$; }
+;
+
+elementos_opcionales:
+    %empty
+      {
+        $$ = ast_crear(ctx->arbol, AST_LITERAL_COLECCION, NULL, @$);
+        if (!$$) YYNOMEM;
+      }
+  | elementos
+      { $$ = $1; }
+;
+
+elementos:
+    expresion
+      {
+        $$ = ast_crear(ctx->arbol, AST_LITERAL_COLECCION, NULL, @$);
+        if (!$$) YYNOMEM;
+        ast_agregar_hijo($$, $1);
+      }
+  | elementos COMMA expresion
+      { $$ = $1; ast_agregar_hijo($$, $3); }
 ;
 
 %%

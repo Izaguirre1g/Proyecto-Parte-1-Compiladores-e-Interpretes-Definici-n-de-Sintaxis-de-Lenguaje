@@ -43,7 +43,8 @@ const char *ast_nombre_tipo(AstTipo tipo) {
         "Programa", "Funcion", "Parametros", "Parametro", "Tipo",
         "Bloque", "Declaracion", "Asignacion", "Binario", "Unario",
         "Identificador", "Entero", "Cadena", "Caracter", "Booleano",
-        "Si", "Mientras", "Retorno", "Llamada", "Argumentos"
+        "Si", "Mientras", "Retorno", "Llamada", "Argumentos",
+        "Importacion", "Constante", "Declaraciones", "TipoArreglo", "TipoLista", "Dimensiones", "Dimension", "Indice", "AccesoMiembro", "LiteralColeccion", "Lista", "Agregar", "Eliminar", "Tamano", "Recorrido", "Intentar", "Capturas", "Captura"
     };
     return (unsigned)tipo < sizeof(nombres) / sizeof(nombres[0])
         ? nombres[tipo] : "Desconocido";

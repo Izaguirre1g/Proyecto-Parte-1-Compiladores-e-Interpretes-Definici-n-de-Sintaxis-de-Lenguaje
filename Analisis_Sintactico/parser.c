@@ -114,50 +114,99 @@ enum yysymbol_kind_t
   YYSYMBOL_NEUMANN = 18,                   /* NEUMANN  */
   YYSYMBOL_PITAGORAS = 19,                 /* PITAGORAS  */
   YYSYMBOL_EUCLIDES = 20,                  /* EUCLIDES  */
-  YYSYMBOL_LPAREN = 21,                    /* LPAREN  */
-  YYSYMBOL_RPAREN = 22,                    /* RPAREN  */
-  YYSYMBOL_LBRACE = 23,                    /* LBRACE  */
-  YYSYMBOL_RBRACE = 24,                    /* RBRACE  */
-  YYSYMBOL_WHETHER = 25,                   /* WHETHER  */
-  YYSYMBOL_ALIF = 26,                      /* ALIF  */
-  YYSYMBOL_ALSO = 27,                      /* ALSO  */
-  YYSYMBOL_WHALE = 28,                     /* WHALE  */
-  YYSYMBOL_STOP = 29,                      /* STOP  */
-  YYSYMBOL_GIVE = 30,                      /* GIVE  */
-  YYSYMBOL_CREATE_FUNK = 31,               /* CREATE_FUNK  */
-  YYSYMBOL_HASH = 32,                      /* HASH  */
-  YYSYMBOL_MAIN = 33,                      /* MAIN  */
-  YYSYMBOL_DECLARE_INFINITE_VOID = 34,     /* DECLARE_INFINITE_VOID  */
-  YYSYMBOL_EQUAL = 35,                     /* EQUAL  */
-  YYSYMBOL_NOT_EQUAL = 36,                 /* NOT_EQUAL  */
-  YYSYMBOL_LESS = 37,                      /* LESS  */
-  YYSYMBOL_GREATER = 38,                   /* GREATER  */
-  YYSYMBOL_LESS_EQUAL = 39,                /* LESS_EQUAL  */
-  YYSYMBOL_GREATER_EQUAL = 40,             /* GREATER_EQUAL  */
-  YYSYMBOL_NEGATIVO = 41,                  /* NEGATIVO  */
-  YYSYMBOL_YYACCEPT = 42,                  /* $accept  */
-  YYSYMBOL_programa = 43,                  /* programa  */
-  YYSYMBOL_funcion = 44,                   /* funcion  */
-  YYSYMBOL_parametros_opcionales = 45,     /* parametros_opcionales  */
-  YYSYMBOL_parametros = 46,                /* parametros  */
-  YYSYMBOL_parametro = 47,                 /* parametro  */
-  YYSYMBOL_tipo_retorno = 48,              /* tipo_retorno  */
-  YYSYMBOL_nombre_funcion = 49,            /* nombre_funcion  */
-  YYSYMBOL_sentencias = 50,                /* sentencias  */
-  YYSYMBOL_sentencia = 51,                 /* sentencia  */
-  YYSYMBOL_retorno = 52,                   /* retorno  */
-  YYSYMBOL_llamada = 53,                   /* llamada  */
-  YYSYMBOL_argumentos_opcionales = 54,     /* argumentos_opcionales  */
-  YYSYMBOL_argumentos = 55,                /* argumentos  */
-  YYSYMBOL_bloque = 56,                    /* bloque  */
-  YYSYMBOL_contenido_bloque = 57,          /* contenido_bloque  */
-  YYSYMBOL_condicional = 58,               /* condicional  */
-  YYSYMBOL_alternativa = 59,               /* alternativa  */
-  YYSYMBOL_ciclo = 60,                     /* ciclo  */
-  YYSYMBOL_declaracion = 61,               /* declaracion  */
-  YYSYMBOL_asignacion = 62,                /* asignacion  */
-  YYSYMBOL_tipo = 63,                      /* tipo  */
-  YYSYMBOL_expresion = 64                  /* expresion  */
+  YYSYMBOL_EULER = 21,                     /* EULER  */
+  YYSYMBOL_DESCARTES = 22,                 /* DESCARTES  */
+  YYSYMBOL_AND = 23,                       /* AND  */
+  YYSYMBOL_OR = 24,                        /* OR  */
+  YYSYMBOL_NOT = 25,                       /* NOT  */
+  YYSYMBOL_XOR = 26,                       /* XOR  */
+  YYSYMBOL_CYCLE = 27,                     /* CYCLE  */
+  YYSYMBOL_LET = 28,                       /* LET  */
+  YYSYMBOL_UNTIL = 29,                     /* UNTIL  */
+  YYSYMBOL_STEP = 30,                      /* STEP  */
+  YYSYMBOL_ENDGAME = 31,                   /* ENDGAME  */
+  YYSYMBOL_LBRACKET = 32,                  /* LBRACKET  */
+  YYSYMBOL_RBRACKET = 33,                  /* RBRACKET  */
+  YYSYMBOL_DOT = 34,                       /* DOT  */
+  YYSYMBOL_DECLARE_LIST = 35,              /* DECLARE_LIST  */
+  YYSYMBOL_ADD = 36,                       /* ADD  */
+  YYSYMBOL_REMOVE = 37,                    /* REMOVE  */
+  YYSYMBOL_SIZE = 38,                      /* SIZE  */
+  YYSYMBOL_BRING = 39,                     /* BRING  */
+  YYSYMBOL_AKA = 40,                       /* AKA  */
+  YYSYMBOL_DECLARE_CONST = 41,             /* DECLARE_CONST  */
+  YYSYMBOL_SEEK = 42,                      /* SEEK  */
+  YYSYMBOL_SEIZE = 43,                     /* SEIZE  */
+  YYSYMBOL_LPAREN = 44,                    /* LPAREN  */
+  YYSYMBOL_RPAREN = 45,                    /* RPAREN  */
+  YYSYMBOL_LBRACE = 46,                    /* LBRACE  */
+  YYSYMBOL_RBRACE = 47,                    /* RBRACE  */
+  YYSYMBOL_WHETHER = 48,                   /* WHETHER  */
+  YYSYMBOL_ALIF = 49,                      /* ALIF  */
+  YYSYMBOL_ALSO = 50,                      /* ALSO  */
+  YYSYMBOL_WHALE = 51,                     /* WHALE  */
+  YYSYMBOL_STOP = 52,                      /* STOP  */
+  YYSYMBOL_GIVE = 53,                      /* GIVE  */
+  YYSYMBOL_CREATE_FUNK = 54,               /* CREATE_FUNK  */
+  YYSYMBOL_HASH = 55,                      /* HASH  */
+  YYSYMBOL_MAIN = 56,                      /* MAIN  */
+  YYSYMBOL_DECLARE_INFINITE_VOID = 57,     /* DECLARE_INFINITE_VOID  */
+  YYSYMBOL_EQUAL = 58,                     /* EQUAL  */
+  YYSYMBOL_NOT_EQUAL = 59,                 /* NOT_EQUAL  */
+  YYSYMBOL_LESS = 60,                      /* LESS  */
+  YYSYMBOL_GREATER = 61,                   /* GREATER  */
+  YYSYMBOL_LESS_EQUAL = 62,                /* LESS_EQUAL  */
+  YYSYMBOL_GREATER_EQUAL = 63,             /* GREATER_EQUAL  */
+  YYSYMBOL_NEGATIVO = 64,                  /* NEGATIVO  */
+  YYSYMBOL_YYACCEPT = 65,                  /* $accept  */
+  YYSYMBOL_programa = 66,                  /* programa  */
+  YYSYMBOL_funcion = 67,                   /* funcion  */
+  YYSYMBOL_parametros_opcionales = 68,     /* parametros_opcionales  */
+  YYSYMBOL_parametros = 69,                /* parametros  */
+  YYSYMBOL_parametro = 70,                 /* parametro  */
+  YYSYMBOL_tipo_retorno = 71,              /* tipo_retorno  */
+  YYSYMBOL_nombre_funcion = 72,            /* nombre_funcion  */
+  YYSYMBOL_sentencias = 73,                /* sentencias  */
+  YYSYMBOL_sentencia = 74,                 /* sentencia  */
+  YYSYMBOL_retorno = 75,                   /* retorno  */
+  YYSYMBOL_llamada = 76,                   /* llamada  */
+  YYSYMBOL_argumentos_opcionales = 77,     /* argumentos_opcionales  */
+  YYSYMBOL_argumentos = 78,                /* argumentos  */
+  YYSYMBOL_bloque = 79,                    /* bloque  */
+  YYSYMBOL_contenido_bloque = 80,          /* contenido_bloque  */
+  YYSYMBOL_condicional = 81,               /* condicional  */
+  YYSYMBOL_alternativa = 82,               /* alternativa  */
+  YYSYMBOL_ciclo = 83,                     /* ciclo  */
+  YYSYMBOL_declaracion = 84,               /* declaracion  */
+  YYSYMBOL_asignacion = 85,                /* asignacion  */
+  YYSYMBOL_tipo = 86,                      /* tipo  */
+  YYSYMBOL_expresion = 87,                 /* expresion  */
+  YYSYMBOL_elemento_superior = 88,         /* elemento_superior  */
+  YYSYMBOL_importacion = 89,               /* importacion  */
+  YYSYMBOL_alias_opcional = 90,            /* alias_opcional  */
+  YYSYMBOL_tipo_parametro = 91,            /* tipo_parametro  */
+  YYSYMBOL_tipo_variable = 92,             /* tipo_variable  */
+  YYSYMBOL_dimensiones = 93,               /* dimensiones  */
+  YYSYMBOL_dimensiones_parametro = 94,     /* dimensiones_parametro  */
+  YYSYMBOL_dimension = 95,                 /* dimension  */
+  YYSYMBOL_dimension_parametro = 96,       /* dimension_parametro  */
+  YYSYMBOL_declarador = 97,                /* declarador  */
+  YYSYMBOL_inicializador_opcional = 98,    /* inicializador_opcional  */
+  YYSYMBOL_declaradores = 99,              /* declaradores  */
+  YYSYMBOL_listas = 100,                   /* listas  */
+  YYSYMBOL_constante = 101,                /* constante  */
+  YYSYMBOL_declaracion_lista = 102,        /* declaracion_lista  */
+  YYSYMBOL_declarador_lista = 103,         /* declarador_lista  */
+  YYSYMBOL_recorrido = 104,                /* recorrido  */
+  YYSYMBOL_paso_opcional = 105,            /* paso_opcional  */
+  YYSYMBOL_intentar = 106,                 /* intentar  */
+  YYSYMBOL_capturas = 107,                 /* capturas  */
+  YYSYMBOL_captura = 108,                  /* captura  */
+  YYSYMBOL_referencia = 109,               /* referencia  */
+  YYSYMBOL_destino_llamada = 110,          /* destino_llamada  */
+  YYSYMBOL_literal_coleccion = 111,        /* literal_coleccion  */
+  YYSYMBOL_elementos_opcionales = 112,     /* elementos_opcionales  */
+  YYSYMBOL_elementos = 113                 /* elementos  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -274,7 +323,7 @@ typedef int yytype_uint16;
 
 
 /* Stored state numbers (used for stacks). */
-typedef yytype_int8 yy_state_t;
+typedef yytype_uint8 yy_state_t;
 
 /* State numbers in computations.  */
 typedef int yy_state_fast_t;
@@ -463,21 +512,21 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  5
+#define YYFINAL  12
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   210
+#define YYLAST   695
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  42
+#define YYNTOKENS  65
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  23
+#define YYNNTS  49
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  62
+#define YYNRULES  121
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  117
+#define YYNSTATES  236
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   296
+#define YYMAXUTOK   319
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -520,20 +569,28 @@ static const yytype_int8 yytranslate[] =
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
       15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
       25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
-      35,    36,    37,    38,    39,    40,    41
+      35,    36,    37,    38,    39,    40,    41,    42,    43,    44,
+      45,    46,    47,    48,    49,    50,    51,    52,    53,    54,
+      55,    56,    57,    58,    59,    60,    61,    62,    63,    64
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    65,    65,    72,    78,    91,    96,   101,   107,   115,
-     125,   126,   131,   132,   137,   143,   149,   150,   151,   152,
-     153,   154,   155,   160,   166,   177,   187,   192,   197,   203,
-     209,   214,   219,   228,   240,   242,   250,   259,   270,   284,
-     294,   295,   296,   297,   304,   305,   306,   307,   308,   309,
-     310,   311,   318,   325,   332,   339,   346,   353,   360,   367,
-     374,   381,   387
+       0,    76,    76,    83,    89,   102,   107,   112,   118,   126,
+     136,   137,   142,   143,   148,   154,   160,   161,   162,   163,
+     164,   165,   166,   167,   168,   169,   170,   175,   181,   192,
+     199,   206,   213,   222,   227,   232,   238,   244,   249,   254,
+     263,   275,   277,   285,   294,   305,   313,   323,   324,   325,
+     326,   333,   334,   335,   336,   337,   338,   339,   340,   341,
+     348,   355,   362,   369,   376,   383,   390,   397,   404,   411,
+     418,   425,   432,   439,   446,   452,   458,   465,   467,   469,
+     474,   484,   486,   491,   493,   500,   509,   511,   521,   527,
+     532,   538,   543,   552,   554,   562,   573,   575,   580,   582,
+     596,   598,   612,   623,   628,   639,   652,   657,   662,   672,
+     678,   683,   694,   696,   703,   713,   715,   720,   725,   730,
+     735,   741
 };
 #endif
 
@@ -554,6 +611,9 @@ yysymbol_name (yysymbol_kind_t yysymbol)
   "STRING", "CHARACTER", "DECLARE_INT", "DECLARE_BOOLEAN", "DECLARE_TEXT",
   "DECLARE_CHAR", "DECLARE_TRUE", "DECLARE_FALSE", "STAR", "ASSIGN",
   "SEMICOLON", "COMMA", "GAUSS", "NEUMANN", "PITAGORAS", "EUCLIDES",
+  "EULER", "DESCARTES", "AND", "OR", "NOT", "XOR", "CYCLE", "LET", "UNTIL",
+  "STEP", "ENDGAME", "LBRACKET", "RBRACKET", "DOT", "DECLARE_LIST", "ADD",
+  "REMOVE", "SIZE", "BRING", "AKA", "DECLARE_CONST", "SEEK", "SEIZE",
   "LPAREN", "RPAREN", "LBRACE", "RBRACE", "WHETHER", "ALIF", "ALSO",
   "WHALE", "STOP", "GIVE", "CREATE_FUNK", "HASH", "MAIN",
   "DECLARE_INFINITE_VOID", "EQUAL", "NOT_EQUAL", "LESS", "GREATER",
@@ -562,18 +622,25 @@ yysymbol_name (yysymbol_kind_t yysymbol)
   "tipo_retorno", "nombre_funcion", "sentencias", "sentencia", "retorno",
   "llamada", "argumentos_opcionales", "argumentos", "bloque",
   "contenido_bloque", "condicional", "alternativa", "ciclo", "declaracion",
-  "asignacion", "tipo", "expresion", YY_NULLPTR
+  "asignacion", "tipo", "expresion", "elemento_superior", "importacion",
+  "alias_opcional", "tipo_parametro", "tipo_variable", "dimensiones",
+  "dimensiones_parametro", "dimension", "dimension_parametro",
+  "declarador", "inicializador_opcional", "declaradores", "listas",
+  "constante", "declaracion_lista", "declarador_lista", "recorrido",
+  "paso_opcional", "intentar", "capturas", "captura", "referencia",
+  "destino_llamada", "literal_coleccion", "elementos_opcionales",
+  "elementos", YY_NULLPTR
   };
   return yy_sname[yysymbol];
 }
 #endif
 
-#define YYPACT_NINF (-46)
+#define YYPACT_NINF (-125)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
 
-#define YYTABLE_NINF (-14)
+#define YYTABLE_NINF (-116)
 
 #define yytable_value_is_error(Yyn) \
   ((Yyn) == YYTABLE_NINF)
@@ -582,18 +649,30 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
-     -27,   -22,     5,   -46,    11,   -46,   -46,   -46,   -46,   -46,
-     -46,   -46,   -19,   -46,     4,   -46,   -46,    -4,    37,    35,
-      32,    41,   -46,    15,    47,    37,   -46,    69,   -46,   -46,
-      -5,    39,    40,    38,    43,    69,   -46,   -46,    58,   -46,
-      34,   -46,   -46,   -46,   -46,    15,    63,    63,    63,    55,
-     -46,   -46,   -46,   -46,   -46,   -46,    63,    63,   -46,    86,
-      63,   -46,   -46,   -46,    64,    92,   122,   128,   -46,   134,
-     -46,    63,    63,    63,    63,    63,    63,    63,    63,    63,
-      63,    57,    61,   164,    63,   -46,    47,    47,   -46,    27,
-      27,   -46,   -46,   170,   170,   170,   170,   170,   170,   -46,
-      63,    98,    25,    51,   164,   -46,    65,    47,   -46,    67,
-      63,   -46,   -46,   158,    47,    25,   -46
+      17,    14,    19,   -27,    13,  -125,  -125,  -125,  -125,   -11,
+      21,    11,  -125,  -125,    41,    55,    65,  -125,  -125,  -125,
+    -125,  -125,    23,  -125,  -125,  -125,    44,    73,    -1,   194,
+      44,  -125,   194,  -125,  -125,    57,  -125,  -125,  -125,  -125,
+    -125,  -125,   194,   194,   194,    58,    59,    66,   194,  -125,
+    -125,   317,    25,    67,  -125,  -125,    62,   110,    92,    92,
+     538,    83,   112,   194,   194,   194,   336,   194,   194,   194,
+     194,   194,   194,   194,   194,   194,  -125,   194,   194,   194,
+     194,   194,   194,   194,   126,   194,  -125,   124,    95,   123,
+    -125,  -125,   194,   259,   307,   365,  -125,   114,   114,    92,
+      92,    92,    92,   616,   585,   598,   632,   632,   632,   632,
+     632,   632,   383,  -125,    96,   129,   538,    56,   100,   110,
+     538,   194,   194,  -125,  -125,  -125,   194,    65,   115,  -125,
+     198,  -125,  -125,   412,   432,   538,  -125,    94,   115,  -125,
+    -125,   135,   139,   146,   100,   107,   109,   158,   198,  -125,
+    -125,   140,  -125,   111,  -125,  -125,  -125,  -125,  -125,    46,
+    -125,  -125,  -125,  -125,    -9,  -125,  -125,  -125,  -125,    65,
+     128,   144,    80,  -125,   116,   194,   194,  -125,   238,  -125,
+    -125,  -125,  -125,   157,   194,   151,   194,    65,  -125,   146,
+     122,   116,  -125,   442,   462,  -125,   135,  -125,   248,   194,
+    -125,   509,   151,  -125,   165,  -125,   100,   100,  -125,   538,
+     194,  -125,   168,   -35,   120,   522,   130,   136,   100,  -125,
+     159,   194,   100,   100,   194,  -125,  -125,   538,   148,  -125,
+     569,   166,   100,  -125,   -35,  -125
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -601,119 +680,249 @@ static const yytype_int16 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     0,     0,     2,     0,     1,     3,    40,    41,    42,
-      43,    11,     0,    10,     0,    13,    12,     0,     5,     0,
-       0,     6,     7,     0,     0,     0,     9,    31,     4,     8,
-      13,     0,     0,     0,     0,    32,    14,    21,     0,    18,
-       0,    19,    20,    16,    17,     0,     0,     0,     0,    49,
-      44,    45,    46,    47,    48,    24,     0,     0,    50,     0,
-      26,    15,    22,    30,     0,     0,     0,     0,    61,     0,
-      23,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,    27,    28,     0,    39,     0,     0,    62,    57,
-      58,    59,    60,    51,    52,    53,    54,    55,    56,    25,
-       0,     0,    34,     0,    29,    38,     0,     0,    33,     0,
-       0,    36,    37,     0,     0,    34,    35
+       0,     0,     0,     0,     0,    77,     2,    78,    79,    81,
+       0,     0,     1,     3,     0,     0,     0,    47,    48,    49,
+      50,    11,     0,    10,    82,    80,    86,     0,     0,     0,
+      87,    88,     0,    13,    12,     0,   112,    51,    52,    53,
+      54,    55,     0,     0,   118,     0,     0,     0,     0,   116,
+      58,     0,    56,     0,    57,    89,     0,     5,    75,    74,
+     120,     0,   119,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,    92,     0,     0,     0,
+       0,     0,     0,     0,     0,    33,   102,     0,     0,     6,
+       7,   117,     0,     0,     0,     0,    76,    65,    66,    67,
+      68,    72,    73,    69,    70,    71,    59,    60,    61,    62,
+      63,    64,     0,   113,     0,    34,    35,     0,     0,     0,
+     121,     0,     0,    32,   114,    29,     0,     0,    83,     9,
+      38,     4,     8,     0,     0,    36,    85,     0,    84,    93,
+      90,   112,     0,     0,     0,     0,     0,     0,    39,    14,
+      21,     0,    18,     0,    19,    20,    16,    17,    98,     0,
+      22,    23,    24,    25,   115,    30,    31,    94,    91,     0,
+       0,     0,     0,   100,     0,     0,     0,    28,     0,    15,
+      26,    37,    45,     0,     0,    96,     0,     0,   103,     0,
+       0,   108,   109,     0,     0,    27,     0,    99,     0,     0,
+      95,     0,    96,   101,     0,   110,     0,     0,    46,    97,
+       0,   104,     0,    41,     0,   106,     0,     0,     0,    40,
+       0,     0,     0,     0,     0,    43,    44,   107,     0,   111,
+       0,     0,     0,   105,    41,    42
 };
 
 /* YYPGOTO[NTERM-NUM].  */
-static const yytype_int8 yypgoto[] =
+static const yytype_int16 yypgoto[] =
 {
-     -46,   -46,    83,   -46,   -46,    62,   -46,    74,   -46,    54,
-     -46,   -21,   -46,   -46,   -24,   -46,   -46,   -20,   -46,   -46,
-     -46,    -7,   -45
+    -125,  -125,  -125,  -125,  -125,    63,  -125,  -125,  -125,    36,
+    -125,  -124,  -125,  -125,  -114,  -125,  -125,   -49,  -125,  -125,
+    -125,   -10,   -32,   182,  -125,  -125,  -125,    18,  -125,  -125,
+     -23,    50,     8,     1,  -125,  -125,  -122,  -125,     4,  -125,
+    -125,  -125,  -125,    16,  -121,  -125,  -125,  -125,  -125
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
-static const yytype_int8 yydefgoto[] =
+static const yytype_uint8 yydefgoto[] =
 {
-       0,     2,     3,    20,    21,    22,    12,    34,    35,    36,
-      37,    58,    81,    82,    39,    40,    41,   108,    42,    43,
-      44,    13,    59
+       0,     4,     5,    88,    89,    90,    22,    35,   148,   149,
+     150,    50,   114,   115,   152,   153,   154,   219,   155,   156,
+     157,    26,    51,     6,     7,    15,   129,    27,    30,   138,
+     139,   140,   158,   200,   159,   172,     8,   161,   173,   162,
+     222,   163,   191,   192,    52,    53,    54,    61,    62
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
    positive, shift that token.  If negative, reduce the rule whose
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
-static const yytype_int8 yytable[] =
+static const yytype_int16 yytable[] =
 {
-      28,    65,    66,    67,     1,     5,    38,    15,    45,    46,
-       4,    68,    69,    14,    38,    83,    26,    18,     7,     8,
-       9,    10,     7,     8,     9,    10,    89,    90,    91,    92,
-      93,    94,    95,    96,    97,    98,     1,    16,    64,   101,
-      19,    49,    50,    51,    52,    11,    73,    74,    23,    53,
-      54,   106,   107,    55,    24,   104,    56,    25,    63,    57,
-      47,    48,   102,   103,    60,   113,    49,    50,    51,    52,
-      27,    16,    30,    62,    53,    54,   -13,   100,    84,    99,
-     109,    56,   112,   111,    57,     6,   110,    29,    17,    61,
-     115,     0,    27,     0,    31,   116,    16,    32,     0,    33,
-       0,    70,    16,    71,    72,    73,    74,    85,     0,    71,
-      72,    73,    74,   105,     0,    71,    72,    73,    74,     0,
-       0,    75,    76,    77,    78,    79,    80,    75,    76,    77,
-      78,    79,    80,    75,    76,    77,    78,    79,    80,    71,
-      72,    73,    74,     0,    86,    71,    72,    73,    74,     0,
-      87,    71,    72,    73,    74,     0,    88,    75,    76,    77,
-      78,    79,    80,    75,    76,    77,    78,    79,    80,    75,
-      76,    77,    78,    79,    80,    71,    72,    73,    74,     0,
-     114,    71,    72,    73,    74,     0,     0,    71,    72,    73,
-      74,     0,     0,    75,    76,    77,    78,    79,    80,    75,
-      76,    77,    78,    79,    80,   -14,   -14,   -14,   -14,   -14,
-     -14
+      56,    23,    33,    31,   131,   184,   151,    55,   160,   164,
+      58,    59,    60,    12,   217,   218,    66,     9,    17,    18,
+      19,    20,    10,    83,   151,    84,   160,   164,    11,    14,
+     174,    93,    94,    95,    16,    97,    98,    99,   100,   101,
+     102,   103,   104,   105,    24,   106,   107,   108,   109,   110,
+     111,   112,     1,   116,     2,    34,     1,    83,     2,    84,
+     120,   182,   183,    17,    18,    19,    20,     3,    21,  -115,
+      25,     3,    17,    18,    19,    20,    29,    86,    28,    67,
+      68,    69,    70,    71,    72,    73,    74,    32,    75,   133,
+     134,   127,   213,   214,   135,   188,   189,    36,    37,    38,
+      39,    57,    63,    64,   225,    40,    41,   128,   228,   229,
+      65,    85,    42,    87,    72,   178,    91,   136,   234,    43,
+      77,    78,    79,    80,    81,    82,    44,   167,    92,   113,
+      45,    46,    47,    69,    70,    71,    72,   117,    48,   119,
+     118,   125,   170,   193,   194,   126,   130,   137,   169,   171,
+      49,   175,   198,   176,   201,   180,   186,   187,   181,   190,
+     196,    36,    37,    38,    39,   199,   204,   209,   212,    40,
+      41,   216,   220,   177,   226,   223,    42,   202,   215,   231,
+     224,   233,   132,    43,   179,   235,    13,   185,   168,   227,
+      44,   197,   230,   203,    45,    46,    47,    36,    37,    38,
+      39,   141,    48,   211,     0,    40,    41,   205,     0,     0,
+       0,     0,    42,     0,    49,     0,     0,     0,     0,    43,
+       0,     0,     0,     0,     0,   142,    44,     0,     0,     0,
+      45,    46,    47,   143,    45,    46,    47,     0,    48,     2,
+     144,     0,     0,     0,   130,     0,   145,     0,     0,   146,
+      49,   147,     0,   195,    49,    67,    68,    69,    70,    71,
+      72,    73,    74,   208,    75,    67,    68,    69,    70,    71,
+      72,    73,    74,     0,    75,   121,    67,    68,    69,    70,
+      71,    72,    73,    74,     0,    75,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,    77,    78,    79,    80,
+      81,    82,     0,     0,     0,     0,    77,    78,    79,    80,
+      81,    82,     0,     0,     0,     0,     0,    77,    78,    79,
+      80,    81,    82,   122,    67,    68,    69,    70,    71,    72,
+      73,    74,     0,    75,    67,    68,    69,    70,    71,    72,
+      73,    74,     0,    75,     0,     0,     0,     0,     0,     0,
+      76,     0,     0,    67,    68,    69,    70,    71,    72,    73,
+      74,     0,    75,     0,     0,    77,    78,    79,    80,    81,
+      82,     0,     0,     0,     0,    77,    78,    79,    80,    81,
+      82,    96,    67,    68,    69,    70,    71,    72,    73,    74,
+       0,    75,     0,     0,    77,    78,    79,    80,    81,    82,
+      67,    68,    69,    70,    71,    72,    73,    74,     0,    75,
+     123,     0,     0,     0,     0,     0,   124,     0,     0,     0,
+       0,     0,     0,    77,    78,    79,    80,    81,    82,    67,
+      68,    69,    70,    71,    72,    73,    74,     0,    75,     0,
+       0,    77,    78,    79,    80,    81,    82,     0,     0,    67,
+      68,    69,    70,    71,    72,    73,    74,   165,    75,    67,
+      68,    69,    70,    71,    72,    73,    74,     0,    75,     0,
+      77,    78,    79,    80,    81,    82,     0,   166,     0,    67,
+      68,    69,    70,    71,    72,    73,    74,   206,    75,     0,
+      77,    78,    79,    80,    81,    82,     0,     0,     0,     0,
+      77,    78,    79,    80,    81,    82,     0,   207,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+      77,    78,    79,    80,    81,    82,    67,    68,    69,    70,
+      71,    72,    73,    74,     0,    75,     0,     0,   210,    67,
+      68,    69,    70,    71,    72,    73,    74,     0,    75,     0,
+       0,     0,   221,     0,     0,    67,    68,    69,    70,    71,
+      72,    73,    74,     0,    75,     0,     0,    77,    78,    79,
+      80,    81,    82,     0,     0,     0,     0,     0,     0,     0,
+      77,    78,    79,    80,    81,    82,    67,    68,    69,    70,
+      71,    72,    73,    74,     0,    75,    77,    78,    79,    80,
+      81,    82,    67,    68,    69,    70,    71,    72,    73,     0,
+       0,    75,     0,     0,   232,    67,    68,    69,    70,    71,
+      72,    73,     0,     0,     0,     0,     0,    77,    78,    79,
+      80,    81,    82,    67,    68,    69,    70,    71,    72,     0,
+       0,     0,     0,    77,    78,    79,    80,    81,    82,    67,
+      68,    69,    70,    71,    72,     0,    77,    78,    79,    80,
+      81,    82,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,    77,    78,    79,    80,    81,    82,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+    -116,  -116,  -116,  -116,  -116,  -116
 };
 
-static const yytype_int8 yycheck[] =
+static const yytype_int16 yycheck[] =
 {
-      24,    46,    47,    48,    31,     0,    27,     3,    13,    14,
-      32,    56,    57,    32,    35,    60,    23,    21,     7,     8,
-       9,    10,     7,     8,     9,    10,    71,    72,    73,    74,
-      75,    76,    77,    78,    79,    80,    31,    33,    45,    84,
-       3,     3,     4,     5,     6,    34,    19,    20,    13,    11,
-      12,    26,    27,    15,    22,   100,    18,    16,    24,    21,
-      21,    21,    86,    87,    21,   110,     3,     4,     5,     6,
-      23,    33,     3,    15,    11,    12,    21,    16,    14,    22,
-      29,    18,    15,   107,    21,     2,    21,    25,    14,    35,
-     114,    -1,    23,    -1,    25,   115,    33,    28,    -1,    30,
-      -1,    15,    33,    17,    18,    19,    20,    15,    -1,    17,
-      18,    19,    20,    15,    -1,    17,    18,    19,    20,    -1,
-      -1,    35,    36,    37,    38,    39,    40,    35,    36,    37,
-      38,    39,    40,    35,    36,    37,    38,    39,    40,    17,
-      18,    19,    20,    -1,    22,    17,    18,    19,    20,    -1,
-      22,    17,    18,    19,    20,    -1,    22,    35,    36,    37,
-      38,    39,    40,    35,    36,    37,    38,    39,    40,    35,
-      36,    37,    38,    39,    40,    17,    18,    19,    20,    -1,
-      22,    17,    18,    19,    20,    -1,    -1,    17,    18,    19,
-      20,    -1,    -1,    35,    36,    37,    38,    39,    40,    35,
-      36,    37,    38,    39,    40,    35,    36,    37,    38,    39,
-      40
+      32,    11,     3,    26,   118,    14,   130,    30,   130,   130,
+      42,    43,    44,     0,    49,    50,    48,     3,     7,     8,
+       9,    10,     3,    32,   148,    34,   148,   148,    55,    40,
+     144,    63,    64,    65,    13,    67,    68,    69,    70,    71,
+      72,    73,    74,    75,     3,    77,    78,    79,    80,    81,
+      82,    83,    39,    85,    41,    56,    39,    32,    41,    34,
+      92,    15,    16,     7,     8,     9,    10,    54,    57,    44,
+      15,    54,     7,     8,     9,    10,    32,    15,    55,    17,
+      18,    19,    20,    21,    22,    23,    24,    14,    26,   121,
+     122,    35,   206,   207,   126,    15,    16,     3,     4,     5,
+       6,    44,    44,    44,   218,    11,    12,   117,   222,   223,
+      44,    44,    18,     3,    22,   147,    33,   127,   232,    25,
+      58,    59,    60,    61,    62,    63,    32,    33,    16,     3,
+      36,    37,    38,    19,    20,    21,    22,    13,    44,    16,
+      45,    45,     3,   175,   176,    16,    46,    32,    13,     3,
+      56,    44,   184,    44,   186,    15,    28,    13,    47,    43,
+       3,     3,     4,     5,     6,    14,    44,   199,     3,    11,
+      12,     3,    52,    15,    15,    45,    18,   187,   210,    31,
+      44,    15,   119,    25,   148,   234,     4,   169,   138,   221,
+      32,   183,   224,   189,    36,    37,    38,     3,     4,     5,
+       6,     3,    44,   202,    -1,    11,    12,   191,    -1,    -1,
+      -1,    -1,    18,    -1,    56,    -1,    -1,    -1,    -1,    25,
+      -1,    -1,    -1,    -1,    -1,    27,    32,    -1,    -1,    -1,
+      36,    37,    38,    35,    36,    37,    38,    -1,    44,    41,
+      42,    -1,    -1,    -1,    46,    -1,    48,    -1,    -1,    51,
+      56,    53,    -1,    15,    56,    17,    18,    19,    20,    21,
+      22,    23,    24,    15,    26,    17,    18,    19,    20,    21,
+      22,    23,    24,    -1,    26,    16,    17,    18,    19,    20,
+      21,    22,    23,    24,    -1,    26,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    58,    59,    60,    61,
+      62,    63,    -1,    -1,    -1,    -1,    58,    59,    60,    61,
+      62,    63,    -1,    -1,    -1,    -1,    -1,    58,    59,    60,
+      61,    62,    63,    16,    17,    18,    19,    20,    21,    22,
+      23,    24,    -1,    26,    17,    18,    19,    20,    21,    22,
+      23,    24,    -1,    26,    -1,    -1,    -1,    -1,    -1,    -1,
+      33,    -1,    -1,    17,    18,    19,    20,    21,    22,    23,
+      24,    -1,    26,    -1,    -1,    58,    59,    60,    61,    62,
+      63,    -1,    -1,    -1,    -1,    58,    59,    60,    61,    62,
+      63,    45,    17,    18,    19,    20,    21,    22,    23,    24,
+      -1,    26,    -1,    -1,    58,    59,    60,    61,    62,    63,
+      17,    18,    19,    20,    21,    22,    23,    24,    -1,    26,
+      45,    -1,    -1,    -1,    -1,    -1,    33,    -1,    -1,    -1,
+      -1,    -1,    -1,    58,    59,    60,    61,    62,    63,    17,
+      18,    19,    20,    21,    22,    23,    24,    -1,    26,    -1,
+      -1,    58,    59,    60,    61,    62,    63,    -1,    -1,    17,
+      18,    19,    20,    21,    22,    23,    24,    45,    26,    17,
+      18,    19,    20,    21,    22,    23,    24,    -1,    26,    -1,
+      58,    59,    60,    61,    62,    63,    -1,    45,    -1,    17,
+      18,    19,    20,    21,    22,    23,    24,    45,    26,    -1,
+      58,    59,    60,    61,    62,    63,    -1,    -1,    -1,    -1,
+      58,    59,    60,    61,    62,    63,    -1,    45,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      58,    59,    60,    61,    62,    63,    17,    18,    19,    20,
+      21,    22,    23,    24,    -1,    26,    -1,    -1,    29,    17,
+      18,    19,    20,    21,    22,    23,    24,    -1,    26,    -1,
+      -1,    -1,    30,    -1,    -1,    17,    18,    19,    20,    21,
+      22,    23,    24,    -1,    26,    -1,    -1,    58,    59,    60,
+      61,    62,    63,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      58,    59,    60,    61,    62,    63,    17,    18,    19,    20,
+      21,    22,    23,    24,    -1,    26,    58,    59,    60,    61,
+      62,    63,    17,    18,    19,    20,    21,    22,    23,    -1,
+      -1,    26,    -1,    -1,    45,    17,    18,    19,    20,    21,
+      22,    23,    -1,    -1,    -1,    -1,    -1,    58,    59,    60,
+      61,    62,    63,    17,    18,    19,    20,    21,    22,    -1,
+      -1,    -1,    -1,    58,    59,    60,    61,    62,    63,    17,
+      18,    19,    20,    21,    22,    -1,    58,    59,    60,    61,
+      62,    63,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    58,    59,    60,    61,    62,    63,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      58,    59,    60,    61,    62,    63
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,    31,    43,    44,    32,     0,    44,     7,     8,     9,
-      10,    34,    48,    63,    32,     3,    33,    49,    21,     3,
-      45,    46,    47,    13,    22,    16,    63,    23,    56,    47,
-       3,    25,    28,    30,    49,    50,    51,    52,    53,    56,
-      57,    58,    60,    61,    62,    13,    14,    21,    21,     3,
-       4,     5,     6,    11,    12,    15,    18,    21,    53,    64,
-      21,    51,    15,    24,    63,    64,    64,    64,    64,    64,
-      15,    17,    18,    19,    20,    35,    36,    37,    38,    39,
-      40,    54,    55,    64,    14,    15,    22,    22,    22,    64,
-      64,    64,    64,    64,    64,    64,    64,    64,    64,    22,
-      16,    64,    56,    56,    64,    15,    26,    27,    59,    29,
-      21,    56,    15,    64,    22,    56,    59
+       0,    39,    41,    54,    66,    67,    88,    89,   101,     3,
+       3,    55,     0,    88,    40,    90,    13,     7,     8,     9,
+      10,    57,    71,    86,     3,    15,    86,    92,    55,    32,
+      93,    95,    14,     3,    56,    72,     3,     4,     5,     6,
+      11,    12,    18,    25,    32,    36,    37,    38,    44,    56,
+      76,    87,   109,   110,   111,    95,    87,    44,    87,    87,
+      87,   112,   113,    44,    44,    44,    87,    17,    18,    19,
+      20,    21,    22,    23,    24,    26,    33,    58,    59,    60,
+      61,    62,    63,    32,    34,    44,    15,     3,    68,    69,
+      70,    33,    16,    87,    87,    87,    45,    87,    87,    87,
+      87,    87,    87,    87,    87,    87,    87,    87,    87,    87,
+      87,    87,    87,     3,    77,    78,    87,    13,    45,    16,
+      87,    16,    16,    45,    33,    45,    16,    35,    86,    91,
+      46,    79,    70,    87,    87,    87,    86,    32,    94,    95,
+      96,     3,    27,    35,    42,    48,    51,    53,    73,    74,
+      75,    76,    79,    80,    81,    83,    84,    85,    97,    99,
+     101,   102,   104,   106,   109,    45,    45,    33,    96,    13,
+       3,     3,   100,   103,    79,    44,    44,    15,    87,    74,
+      15,    47,    15,    16,    14,    92,    28,    13,    15,    16,
+      43,   107,   108,    87,    87,    15,     3,    97,    87,    14,
+      98,    87,    86,   103,    44,   108,    45,    45,    15,    87,
+      29,    98,     3,    79,    79,    87,     3,    49,    50,    82,
+      52,    30,   105,    45,    44,    79,    15,    87,    79,    79,
+      87,    31,    45,    15,    79,    82
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    42,    43,    43,    44,    45,    45,    46,    46,    47,
-      48,    48,    49,    49,    50,    50,    51,    51,    51,    51,
-      51,    51,    51,    52,    52,    53,    54,    54,    55,    55,
-      56,    57,    57,    58,    59,    59,    59,    60,    61,    62,
-      63,    63,    63,    63,    64,    64,    64,    64,    64,    64,
-      64,    64,    64,    64,    64,    64,    64,    64,    64,    64,
-      64,    64,    64
+       0,    65,    66,    66,    67,    68,    68,    69,    69,    70,
+      71,    71,    72,    72,    73,    73,    74,    74,    74,    74,
+      74,    74,    74,    74,    74,    74,    74,    75,    75,    76,
+      76,    76,    76,    77,    77,    78,    78,    79,    80,    80,
+      81,    82,    82,    82,    83,    84,    85,    86,    86,    86,
+      86,    87,    87,    87,    87,    87,    87,    87,    87,    87,
+      87,    87,    87,    87,    87,    87,    87,    87,    87,    87,
+      87,    87,    87,    87,    87,    87,    87,    88,    88,    88,
+      89,    90,    90,    91,    91,    91,    92,    92,    93,    93,
+      94,    94,    95,    96,    96,    97,    98,    98,    99,    99,
+     100,   100,   101,   102,   103,   104,   105,   105,   106,   107,
+     107,   108,   109,   109,   109,   110,   110,   111,   112,   112,
+     113,   113
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
@@ -721,11 +930,17 @@ static const yytype_int8 yyr2[] =
 {
        0,     2,     1,     2,     9,     0,     1,     1,     3,     3,
        1,     1,     1,     1,     1,     2,     1,     1,     1,     1,
-       1,     1,     2,     3,     2,     4,     0,     1,     1,     3,
-       3,     0,     1,     6,     0,     6,     2,     7,     6,     4,
-       1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
-       1,     3,     3,     3,     3,     3,     3,     3,     3,     3,
-       3,     2,     3
+       1,     1,     1,     1,     1,     1,     2,     3,     2,     4,
+       6,     6,     4,     0,     1,     1,     3,     3,     0,     1,
+       6,     0,     6,     2,     7,     2,     4,     1,     1,     1,
+       1,     1,     1,     1,     1,     1,     1,     1,     1,     3,
+       3,     3,     3,     3,     3,     3,     3,     3,     3,     3,
+       3,     3,     3,     3,     2,     2,     3,     1,     1,     1,
+       4,     0,     2,     1,     2,     2,     1,     2,     1,     2,
+       1,     2,     3,     1,     2,     4,     0,     2,     1,     3,
+       1,     3,     7,     3,     4,    10,     0,     2,     3,     1,
+       2,     6,     1,     3,     4,     1,     1,     3,     0,     1,
+       1,     3
 };
 
 
@@ -1583,7 +1798,7 @@ YYLTYPE yylloc = yyloc_default;
 #line 14 "Analisis_Sintactico/gramatica.y"
 { yylloc = (AstUbicacion){1, 1, 1, 1}; }
 
-#line 1587 "Analisis_Sintactico/parser.c"
+#line 1802 "Analisis_Sintactico/parser.c"
 
   yylsp[0] = yylloc;
   goto yysetstate;
@@ -1800,25 +2015,25 @@ yyreduce:
     int yychar_backup = yychar;
     switch (yyn)
       {
-  case 2: /* programa: funcion  */
-#line 66 "Analisis_Sintactico/gramatica.y"
+  case 2: /* programa: elemento_superior  */
+#line 77 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_PROGRAMA, NULL, (yyloc));
         if (!yyval) YYNOMEM;
         ast_agregar_hijo(yyval, yyvsp[0]);
         ctx->arbol->raiz = yyval;
       }
-#line 1812 "Analisis_Sintactico/parser.c"
+#line 2027 "Analisis_Sintactico/parser.c"
     break;
 
-  case 3: /* programa: programa funcion  */
-#line 73 "Analisis_Sintactico/gramatica.y"
+  case 3: /* programa: programa elemento_superior  */
+#line 84 "Analisis_Sintactico/gramatica.y"
       { yyval = yyvsp[-1]; yyval->ubicacion = (yyloc); ast_agregar_hijo(yyval, yyvsp[0]); }
-#line 1818 "Analisis_Sintactico/parser.c"
+#line 2033 "Analisis_Sintactico/parser.c"
     break;
 
   case 4: /* funcion: CREATE_FUNK HASH tipo_retorno HASH nombre_funcion LPAREN parametros_opcionales RPAREN bloque  */
-#line 79 "Analisis_Sintactico/gramatica.y"
+#line 90 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_FUNCION, NULL, (yyloc));
         if (!yyval) YYNOMEM;
@@ -1827,151 +2042,183 @@ yyreduce:
         ast_agregar_hijo(yyval, yyvsp[-2]);
         ast_agregar_hijo(yyval, yyvsp[0]);
       }
-#line 1831 "Analisis_Sintactico/parser.c"
+#line 2046 "Analisis_Sintactico/parser.c"
     break;
 
   case 5: /* parametros_opcionales: %empty  */
-#line 92 "Analisis_Sintactico/gramatica.y"
+#line 103 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_PARAMETROS, NULL, (yyloc));
         if (!yyval) YYNOMEM;
       }
-#line 1840 "Analisis_Sintactico/parser.c"
+#line 2055 "Analisis_Sintactico/parser.c"
     break;
 
   case 6: /* parametros_opcionales: parametros  */
-#line 97 "Analisis_Sintactico/gramatica.y"
+#line 108 "Analisis_Sintactico/gramatica.y"
       { yyval = yyvsp[0]; }
-#line 1846 "Analisis_Sintactico/parser.c"
+#line 2061 "Analisis_Sintactico/parser.c"
     break;
 
   case 7: /* parametros: parametro  */
-#line 102 "Analisis_Sintactico/gramatica.y"
+#line 113 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_PARAMETROS, NULL, (yyloc));
         if (!yyval) YYNOMEM;
         ast_agregar_hijo(yyval, yyvsp[0]);
       }
-#line 1856 "Analisis_Sintactico/parser.c"
+#line 2071 "Analisis_Sintactico/parser.c"
     break;
 
   case 8: /* parametros: parametros COMMA parametro  */
-#line 108 "Analisis_Sintactico/gramatica.y"
+#line 119 "Analisis_Sintactico/gramatica.y"
       { yyval = yyvsp[-2]; yyval->ubicacion = (yyloc); ast_agregar_hijo(yyval, yyvsp[0]); }
-#line 1862 "Analisis_Sintactico/parser.c"
+#line 2077 "Analisis_Sintactico/parser.c"
     break;
 
-  case 9: /* parametro: IDENTIFIER STAR tipo  */
-#line 116 "Analisis_Sintactico/gramatica.y"
+  case 9: /* parametro: IDENTIFIER STAR tipo_parametro  */
+#line 127 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_PARAMETRO, NULL, (yyloc));
         if (!yyval) YYNOMEM;
         ast_agregar_hijo(yyval, yyvsp[-2]);
         ast_agregar_hijo(yyval, yyvsp[0]);
       }
-#line 1873 "Analisis_Sintactico/parser.c"
+#line 2088 "Analisis_Sintactico/parser.c"
     break;
 
   case 14: /* sentencias: sentencia  */
-#line 138 "Analisis_Sintactico/gramatica.y"
+#line 149 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_BLOQUE, NULL, (yyloc));
         if (!yyval) YYNOMEM;
         ast_agregar_hijo(yyval, yyvsp[0]);
       }
-#line 1883 "Analisis_Sintactico/parser.c"
+#line 2098 "Analisis_Sintactico/parser.c"
     break;
 
   case 15: /* sentencias: sentencias sentencia  */
-#line 144 "Analisis_Sintactico/gramatica.y"
+#line 155 "Analisis_Sintactico/gramatica.y"
       { yyval = yyvsp[-1]; ast_agregar_hijo(yyval, yyvsp[0]); }
-#line 1889 "Analisis_Sintactico/parser.c"
+#line 2104 "Analisis_Sintactico/parser.c"
     break;
 
-  case 23: /* retorno: GIVE expresion SEMICOLON  */
-#line 161 "Analisis_Sintactico/gramatica.y"
+  case 27: /* retorno: GIVE expresion SEMICOLON  */
+#line 176 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_RETORNO, NULL, (yyloc));
         if (!yyval) YYNOMEM;
         ast_agregar_hijo(yyval, yyvsp[-1]);
       }
-#line 1899 "Analisis_Sintactico/parser.c"
+#line 2114 "Analisis_Sintactico/parser.c"
     break;
 
-  case 24: /* retorno: GIVE SEMICOLON  */
-#line 167 "Analisis_Sintactico/gramatica.y"
+  case 28: /* retorno: GIVE SEMICOLON  */
+#line 182 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_RETORNO, NULL, (yyloc));
         if (!yyval) YYNOMEM;
       }
-#line 1908 "Analisis_Sintactico/parser.c"
+#line 2123 "Analisis_Sintactico/parser.c"
     break;
 
-  case 25: /* llamada: nombre_funcion LPAREN argumentos_opcionales RPAREN  */
-#line 178 "Analisis_Sintactico/gramatica.y"
+  case 29: /* llamada: destino_llamada LPAREN argumentos_opcionales RPAREN  */
+#line 193 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_LLAMADA, NULL, (yyloc));
         if (!yyval) YYNOMEM;
         ast_agregar_hijo(yyval, yyvsp[-3]);
         ast_agregar_hijo(yyval, yyvsp[-1]);
       }
-#line 1919 "Analisis_Sintactico/parser.c"
+#line 2134 "Analisis_Sintactico/parser.c"
     break;
 
-  case 26: /* argumentos_opcionales: %empty  */
-#line 188 "Analisis_Sintactico/gramatica.y"
+  case 30: /* llamada: ADD LPAREN expresion COMMA expresion RPAREN  */
+#line 200 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_AGREGAR, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-3]);
+        ast_agregar_hijo(yyval, yyvsp[-1]);
+      }
+#line 2145 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 31: /* llamada: REMOVE LPAREN expresion COMMA expresion RPAREN  */
+#line 207 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_ELIMINAR, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-3]);
+        ast_agregar_hijo(yyval, yyvsp[-1]);
+      }
+#line 2156 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 32: /* llamada: SIZE LPAREN expresion RPAREN  */
+#line 214 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_TAMANO, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-1]);
+      }
+#line 2166 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 33: /* argumentos_opcionales: %empty  */
+#line 223 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_ARGUMENTOS, NULL, (yyloc));
         if (!yyval) YYNOMEM;
       }
-#line 1928 "Analisis_Sintactico/parser.c"
+#line 2175 "Analisis_Sintactico/parser.c"
     break;
 
-  case 27: /* argumentos_opcionales: argumentos  */
-#line 193 "Analisis_Sintactico/gramatica.y"
+  case 34: /* argumentos_opcionales: argumentos  */
+#line 228 "Analisis_Sintactico/gramatica.y"
       { yyval = yyvsp[0]; }
-#line 1934 "Analisis_Sintactico/parser.c"
+#line 2181 "Analisis_Sintactico/parser.c"
     break;
 
-  case 28: /* argumentos: expresion  */
-#line 198 "Analisis_Sintactico/gramatica.y"
+  case 35: /* argumentos: expresion  */
+#line 233 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_ARGUMENTOS, NULL, (yyloc));
         if (!yyval) YYNOMEM;
         ast_agregar_hijo(yyval, yyvsp[0]);
       }
-#line 1944 "Analisis_Sintactico/parser.c"
+#line 2191 "Analisis_Sintactico/parser.c"
     break;
 
-  case 29: /* argumentos: argumentos COMMA expresion  */
-#line 204 "Analisis_Sintactico/gramatica.y"
+  case 36: /* argumentos: argumentos COMMA expresion  */
+#line 239 "Analisis_Sintactico/gramatica.y"
       { yyval = yyvsp[-2]; yyval->ubicacion = (yyloc); ast_agregar_hijo(yyval, yyvsp[0]); }
-#line 1950 "Analisis_Sintactico/parser.c"
+#line 2197 "Analisis_Sintactico/parser.c"
     break;
 
-  case 30: /* bloque: LBRACE contenido_bloque RBRACE  */
-#line 210 "Analisis_Sintactico/gramatica.y"
+  case 37: /* bloque: LBRACE contenido_bloque RBRACE  */
+#line 245 "Analisis_Sintactico/gramatica.y"
       { yyval = yyvsp[-1]; yyval->ubicacion = (yyloc); }
-#line 1956 "Analisis_Sintactico/parser.c"
+#line 2203 "Analisis_Sintactico/parser.c"
     break;
 
-  case 31: /* contenido_bloque: %empty  */
-#line 215 "Analisis_Sintactico/gramatica.y"
+  case 38: /* contenido_bloque: %empty  */
+#line 250 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_BLOQUE, NULL, (yyloc));
         if (!yyval) YYNOMEM;
       }
-#line 1965 "Analisis_Sintactico/parser.c"
+#line 2212 "Analisis_Sintactico/parser.c"
     break;
 
-  case 32: /* contenido_bloque: sentencias  */
-#line 220 "Analisis_Sintactico/gramatica.y"
+  case 39: /* contenido_bloque: sentencias  */
+#line 255 "Analisis_Sintactico/gramatica.y"
       { yyval = yyvsp[0]; }
-#line 1971 "Analisis_Sintactico/parser.c"
+#line 2218 "Analisis_Sintactico/parser.c"
     break;
 
-  case 33: /* condicional: WHETHER LPAREN expresion RPAREN bloque alternativa  */
-#line 229 "Analisis_Sintactico/gramatica.y"
+  case 40: /* condicional: WHETHER LPAREN expresion RPAREN bloque alternativa  */
+#line 264 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_SI, "whether", (yyloc));
         if (!yyval) YYNOMEM;
@@ -1979,17 +2226,17 @@ yyreduce:
         ast_agregar_hijo(yyval, yyvsp[-1]);
         ast_agregar_hijo(yyval, yyvsp[0]);
       }
-#line 1983 "Analisis_Sintactico/parser.c"
+#line 2230 "Analisis_Sintactico/parser.c"
     break;
 
-  case 34: /* alternativa: %empty  */
-#line 241 "Analisis_Sintactico/gramatica.y"
+  case 41: /* alternativa: %empty  */
+#line 276 "Analisis_Sintactico/gramatica.y"
       { yyval = NULL; }
-#line 1989 "Analisis_Sintactico/parser.c"
+#line 2236 "Analisis_Sintactico/parser.c"
     break;
 
-  case 35: /* alternativa: ALIF LPAREN expresion RPAREN bloque alternativa  */
-#line 243 "Analisis_Sintactico/gramatica.y"
+  case 42: /* alternativa: ALIF LPAREN expresion RPAREN bloque alternativa  */
+#line 278 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_SI, "alif", (yyloc));
         if (!yyval) YYNOMEM;
@@ -1997,177 +2244,619 @@ yyreduce:
         ast_agregar_hijo(yyval, yyvsp[-1]);
         ast_agregar_hijo(yyval, yyvsp[0]);
       }
-#line 2001 "Analisis_Sintactico/parser.c"
+#line 2248 "Analisis_Sintactico/parser.c"
     break;
 
-  case 36: /* alternativa: ALSO bloque  */
-#line 251 "Analisis_Sintactico/gramatica.y"
+  case 43: /* alternativa: ALSO bloque  */
+#line 286 "Analisis_Sintactico/gramatica.y"
       { yyval = yyvsp[0]; }
-#line 2007 "Analisis_Sintactico/parser.c"
+#line 2254 "Analisis_Sintactico/parser.c"
     break;
 
-  case 37: /* ciclo: WHALE LPAREN expresion RPAREN bloque STOP SEMICOLON  */
-#line 260 "Analisis_Sintactico/gramatica.y"
+  case 44: /* ciclo: WHALE LPAREN expresion RPAREN bloque STOP SEMICOLON  */
+#line 295 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_MIENTRAS, NULL, (yyloc));
         if (!yyval) YYNOMEM;
         ast_agregar_hijo(yyval, yyvsp[-4]);
         ast_agregar_hijo(yyval, yyvsp[-2]);
       }
-#line 2018 "Analisis_Sintactico/parser.c"
+#line 2265 "Analisis_Sintactico/parser.c"
     break;
 
-  case 38: /* declaracion: IDENTIFIER STAR tipo ASSIGN expresion SEMICOLON  */
-#line 271 "Analisis_Sintactico/gramatica.y"
-      {
-        yyval = ast_crear(ctx->arbol, AST_DECLARACION, NULL, (yyloc));
-        if (!yyval) YYNOMEM;
-        ast_agregar_hijo(yyval, yyvsp[-5]);
-        ast_agregar_hijo(yyval, yyvsp[-3]);
-        ast_agregar_hijo(yyval, yyvsp[-1]);
-      }
-#line 2030 "Analisis_Sintactico/parser.c"
+  case 45: /* declaracion: declaradores SEMICOLON  */
+#line 306 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[-1]; yyval->ubicacion = (yyloc); }
+#line 2271 "Analisis_Sintactico/parser.c"
     break;
 
-  case 39: /* asignacion: IDENTIFIER ASSIGN expresion SEMICOLON  */
-#line 285 "Analisis_Sintactico/gramatica.y"
+  case 46: /* asignacion: referencia ASSIGN expresion SEMICOLON  */
+#line 314 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_ASIGNACION, NULL, (yyloc));
         if (!yyval) YYNOMEM;
         ast_agregar_hijo(yyval, yyvsp[-3]);
         ast_agregar_hijo(yyval, yyvsp[-1]);
       }
-#line 2041 "Analisis_Sintactico/parser.c"
+#line 2282 "Analisis_Sintactico/parser.c"
     break;
 
-  case 51: /* expresion: expresion EQUAL expresion  */
-#line 312 "Analisis_Sintactico/gramatica.y"
+  case 59: /* expresion: expresion EQUAL expresion  */
+#line 342 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_BINARIO, "==", (yyloc));
         if (!yyval) YYNOMEM;
         ast_agregar_hijo(yyval, yyvsp[-2]);
         ast_agregar_hijo(yyval, yyvsp[0]);
       }
-#line 2052 "Analisis_Sintactico/parser.c"
+#line 2293 "Analisis_Sintactico/parser.c"
     break;
 
-  case 52: /* expresion: expresion NOT_EQUAL expresion  */
-#line 319 "Analisis_Sintactico/gramatica.y"
+  case 60: /* expresion: expresion NOT_EQUAL expresion  */
+#line 349 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_BINARIO, "=/=", (yyloc));
         if (!yyval) YYNOMEM;
         ast_agregar_hijo(yyval, yyvsp[-2]);
         ast_agregar_hijo(yyval, yyvsp[0]);
       }
-#line 2063 "Analisis_Sintactico/parser.c"
+#line 2304 "Analisis_Sintactico/parser.c"
     break;
 
-  case 53: /* expresion: expresion LESS expresion  */
-#line 326 "Analisis_Sintactico/gramatica.y"
+  case 61: /* expresion: expresion LESS expresion  */
+#line 356 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_BINARIO, "<", (yyloc));
         if (!yyval) YYNOMEM;
         ast_agregar_hijo(yyval, yyvsp[-2]);
         ast_agregar_hijo(yyval, yyvsp[0]);
       }
-#line 2074 "Analisis_Sintactico/parser.c"
+#line 2315 "Analisis_Sintactico/parser.c"
     break;
 
-  case 54: /* expresion: expresion GREATER expresion  */
-#line 333 "Analisis_Sintactico/gramatica.y"
+  case 62: /* expresion: expresion GREATER expresion  */
+#line 363 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_BINARIO, ">", (yyloc));
         if (!yyval) YYNOMEM;
         ast_agregar_hijo(yyval, yyvsp[-2]);
         ast_agregar_hijo(yyval, yyvsp[0]);
       }
-#line 2085 "Analisis_Sintactico/parser.c"
+#line 2326 "Analisis_Sintactico/parser.c"
     break;
 
-  case 55: /* expresion: expresion LESS_EQUAL expresion  */
-#line 340 "Analisis_Sintactico/gramatica.y"
+  case 63: /* expresion: expresion LESS_EQUAL expresion  */
+#line 370 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_BINARIO, "<=", (yyloc));
         if (!yyval) YYNOMEM;
         ast_agregar_hijo(yyval, yyvsp[-2]);
         ast_agregar_hijo(yyval, yyvsp[0]);
       }
-#line 2096 "Analisis_Sintactico/parser.c"
+#line 2337 "Analisis_Sintactico/parser.c"
     break;
 
-  case 56: /* expresion: expresion GREATER_EQUAL expresion  */
-#line 347 "Analisis_Sintactico/gramatica.y"
+  case 64: /* expresion: expresion GREATER_EQUAL expresion  */
+#line 377 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_BINARIO, ">=", (yyloc));
         if (!yyval) YYNOMEM;
         ast_agregar_hijo(yyval, yyvsp[-2]);
         ast_agregar_hijo(yyval, yyvsp[0]);
       }
-#line 2107 "Analisis_Sintactico/parser.c"
+#line 2348 "Analisis_Sintactico/parser.c"
     break;
 
-  case 57: /* expresion: expresion GAUSS expresion  */
-#line 354 "Analisis_Sintactico/gramatica.y"
+  case 65: /* expresion: expresion GAUSS expresion  */
+#line 384 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_BINARIO, "gauss", (yyloc));
         if (!yyval) YYNOMEM;
         ast_agregar_hijo(yyval, yyvsp[-2]);
         ast_agregar_hijo(yyval, yyvsp[0]);
       }
-#line 2118 "Analisis_Sintactico/parser.c"
+#line 2359 "Analisis_Sintactico/parser.c"
     break;
 
-  case 58: /* expresion: expresion NEUMANN expresion  */
-#line 361 "Analisis_Sintactico/gramatica.y"
+  case 66: /* expresion: expresion NEUMANN expresion  */
+#line 391 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_BINARIO, "neumann", (yyloc));
         if (!yyval) YYNOMEM;
         ast_agregar_hijo(yyval, yyvsp[-2]);
         ast_agregar_hijo(yyval, yyvsp[0]);
       }
-#line 2129 "Analisis_Sintactico/parser.c"
+#line 2370 "Analisis_Sintactico/parser.c"
     break;
 
-  case 59: /* expresion: expresion PITAGORAS expresion  */
-#line 368 "Analisis_Sintactico/gramatica.y"
+  case 67: /* expresion: expresion PITAGORAS expresion  */
+#line 398 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_BINARIO, "pitagoras", (yyloc));
         if (!yyval) YYNOMEM;
         ast_agregar_hijo(yyval, yyvsp[-2]);
         ast_agregar_hijo(yyval, yyvsp[0]);
       }
-#line 2140 "Analisis_Sintactico/parser.c"
+#line 2381 "Analisis_Sintactico/parser.c"
     break;
 
-  case 60: /* expresion: expresion EUCLIDES expresion  */
-#line 375 "Analisis_Sintactico/gramatica.y"
+  case 68: /* expresion: expresion EUCLIDES expresion  */
+#line 405 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_BINARIO, "euclides", (yyloc));
         if (!yyval) YYNOMEM;
         ast_agregar_hijo(yyval, yyvsp[-2]);
         ast_agregar_hijo(yyval, yyvsp[0]);
       }
-#line 2151 "Analisis_Sintactico/parser.c"
+#line 2392 "Analisis_Sintactico/parser.c"
     break;
 
-  case 61: /* expresion: NEUMANN expresion  */
-#line 382 "Analisis_Sintactico/gramatica.y"
+  case 69: /* expresion: expresion AND expresion  */
+#line 412 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_BINARIO, "&&", (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2403 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 70: /* expresion: expresion OR expresion  */
+#line 419 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_BINARIO, "||", (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2414 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 71: /* expresion: expresion XOR expresion  */
+#line 426 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_BINARIO, "^", (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2425 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 72: /* expresion: expresion EULER expresion  */
+#line 433 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_BINARIO, "euler", (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2436 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 73: /* expresion: expresion DESCARTES expresion  */
+#line 440 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_BINARIO, "descartes", (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2447 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 74: /* expresion: NOT expresion  */
+#line 447 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_UNARIO, "~", (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2457 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 75: /* expresion: NEUMANN expresion  */
+#line 453 "Analisis_Sintactico/gramatica.y"
       {
         yyval = ast_crear(ctx->arbol, AST_UNARIO, "neumann", (yyloc));
         if (!yyval) YYNOMEM;
         ast_agregar_hijo(yyval, yyvsp[0]);
       }
-#line 2161 "Analisis_Sintactico/parser.c"
+#line 2467 "Analisis_Sintactico/parser.c"
     break;
 
-  case 62: /* expresion: LPAREN expresion RPAREN  */
-#line 388 "Analisis_Sintactico/gramatica.y"
+  case 76: /* expresion: LPAREN expresion RPAREN  */
+#line 459 "Analisis_Sintactico/gramatica.y"
       { yyval = yyvsp[-1]; }
-#line 2167 "Analisis_Sintactico/parser.c"
+#line 2473 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 77: /* elemento_superior: funcion  */
+#line 466 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[0]; }
+#line 2479 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 78: /* elemento_superior: importacion  */
+#line 468 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[0]; }
+#line 2485 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 79: /* elemento_superior: constante  */
+#line 470 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[0]; }
+#line 2491 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 80: /* importacion: BRING IDENTIFIER alias_opcional SEMICOLON  */
+#line 475 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_IMPORTACION, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+        ast_agregar_hijo(yyval, yyvsp[-1]);
+      }
+#line 2502 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 81: /* alias_opcional: %empty  */
+#line 485 "Analisis_Sintactico/gramatica.y"
+      { yyval = NULL; }
+#line 2508 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 82: /* alias_opcional: AKA IDENTIFIER  */
+#line 487 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[0]; }
+#line 2514 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 83: /* tipo_parametro: tipo  */
+#line 492 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[0]; }
+#line 2520 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 84: /* tipo_parametro: tipo dimensiones_parametro  */
+#line 494 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_TIPO_ARREGLO, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-1]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2531 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 85: /* tipo_parametro: DECLARE_LIST tipo  */
+#line 501 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_TIPO_LISTA, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2541 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 86: /* tipo_variable: tipo  */
+#line 510 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[0]; }
+#line 2547 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 87: /* tipo_variable: tipo dimensiones  */
+#line 512 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_TIPO_ARREGLO, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-1]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2558 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 88: /* dimensiones: dimension  */
+#line 522 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_DIMENSIONES, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2568 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 89: /* dimensiones: dimensiones dimension  */
+#line 528 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[-1]; yyval->ubicacion = (yyloc); ast_agregar_hijo(yyval, yyvsp[0]); }
+#line 2574 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 90: /* dimensiones_parametro: dimension_parametro  */
+#line 533 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_DIMENSIONES, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2584 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 91: /* dimensiones_parametro: dimensiones_parametro dimension_parametro  */
+#line 539 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[-1]; yyval->ubicacion = (yyloc); ast_agregar_hijo(yyval, yyvsp[0]); }
+#line 2590 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 92: /* dimension: LBRACKET expresion RBRACKET  */
+#line 544 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_DIMENSION, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-1]);
+      }
+#line 2600 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 93: /* dimension_parametro: dimension  */
+#line 553 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[0]; }
+#line 2606 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 94: /* dimension_parametro: LBRACKET RBRACKET  */
+#line 555 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_DIMENSION, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+      }
+#line 2615 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 95: /* declarador: IDENTIFIER STAR tipo_variable inicializador_opcional  */
+#line 563 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_DECLARACION, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-3]);
+        ast_agregar_hijo(yyval, yyvsp[-1]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2627 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 96: /* inicializador_opcional: %empty  */
+#line 574 "Analisis_Sintactico/gramatica.y"
+      { yyval = NULL; }
+#line 2633 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 97: /* inicializador_opcional: ASSIGN expresion  */
+#line 576 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[0]; }
+#line 2639 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 98: /* declaradores: declarador  */
+#line 581 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[0]; }
+#line 2645 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 99: /* declaradores: declaradores COMMA declarador  */
+#line 583 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = yyvsp[-2];
+        if (yyval->tipo != AST_DECLARACIONES) {
+            yyval = ast_crear(ctx->arbol, AST_DECLARACIONES, NULL, (yyloc));
+            if (!yyval) YYNOMEM;
+            ast_agregar_hijo(yyval, yyvsp[-2]);
+        }
+        yyval->ubicacion = (yyloc);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2660 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 100: /* listas: declarador_lista  */
+#line 597 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[0]; }
+#line 2666 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 101: /* listas: listas COMMA declarador_lista  */
+#line 599 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = yyvsp[-2];
+        if (yyval->tipo != AST_DECLARACIONES) {
+            yyval = ast_crear(ctx->arbol, AST_DECLARACIONES, NULL, (yyloc));
+            if (!yyval) YYNOMEM;
+            ast_agregar_hijo(yyval, yyvsp[-2]);
+        }
+        yyval->ubicacion = (yyloc);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2681 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 102: /* constante: DECLARE_CONST IDENTIFIER STAR tipo_variable ASSIGN expresion SEMICOLON  */
+#line 613 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_CONSTANTE, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-5]);
+        ast_agregar_hijo(yyval, yyvsp[-3]);
+        ast_agregar_hijo(yyval, yyvsp[-1]);
+      }
+#line 2693 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 103: /* declaracion_lista: DECLARE_LIST listas SEMICOLON  */
+#line 624 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[-1]; yyval->ubicacion = (yyloc); }
+#line 2699 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 104: /* declarador_lista: IDENTIFIER STAR tipo inicializador_opcional  */
+#line 629 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_LISTA, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-3]);
+        ast_agregar_hijo(yyval, yyvsp[-1]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2711 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 105: /* recorrido: CYCLE IDENTIFIER LET expresion UNTIL expresion paso_opcional bloque ENDGAME SEMICOLON  */
+#line 640 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_RECORRIDO, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-8]);
+        ast_agregar_hijo(yyval, yyvsp[-6]);
+        ast_agregar_hijo(yyval, yyvsp[-4]);
+        ast_agregar_hijo(yyval, yyvsp[-3]);
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+      }
+#line 2725 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 106: /* paso_opcional: %empty  */
+#line 653 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_ENTERO, "1", (yyloc));
+        if (!yyval) YYNOMEM;
+      }
+#line 2734 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 107: /* paso_opcional: STEP expresion  */
+#line 658 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[0]; }
+#line 2740 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 108: /* intentar: SEEK bloque capturas  */
+#line 663 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_INTENTAR, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-1]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2751 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 109: /* capturas: captura  */
+#line 673 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_CAPTURAS, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2761 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 110: /* capturas: capturas captura  */
+#line 679 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[-1]; yyval->ubicacion = (yyloc); ast_agregar_hijo(yyval, yyvsp[0]); }
+#line 2767 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 111: /* captura: SEIZE LPAREN IDENTIFIER IDENTIFIER RPAREN bloque  */
+#line 684 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_CAPTURA, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-3]);
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2779 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 112: /* referencia: IDENTIFIER  */
+#line 695 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[0]; }
+#line 2785 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 113: /* referencia: referencia DOT IDENTIFIER  */
+#line 697 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_ACCESO_MIEMBRO, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-2]);
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2796 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 114: /* referencia: referencia LBRACKET expresion RBRACKET  */
+#line 704 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_INDICE, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[-3]);
+        ast_agregar_hijo(yyval, yyvsp[-1]);
+      }
+#line 2807 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 115: /* destino_llamada: referencia  */
+#line 714 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[0]; }
+#line 2813 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 116: /* destino_llamada: MAIN  */
+#line 716 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[0]; }
+#line 2819 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 117: /* literal_coleccion: LBRACKET elementos_opcionales RBRACKET  */
+#line 721 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[-1]; yyval->ubicacion = (yyloc); }
+#line 2825 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 118: /* elementos_opcionales: %empty  */
+#line 726 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_LITERAL_COLECCION, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+      }
+#line 2834 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 119: /* elementos_opcionales: elementos  */
+#line 731 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[0]; }
+#line 2840 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 120: /* elementos: expresion  */
+#line 736 "Analisis_Sintactico/gramatica.y"
+      {
+        yyval = ast_crear(ctx->arbol, AST_LITERAL_COLECCION, NULL, (yyloc));
+        if (!yyval) YYNOMEM;
+        ast_agregar_hijo(yyval, yyvsp[0]);
+      }
+#line 2850 "Analisis_Sintactico/parser.c"
+    break;
+
+  case 121: /* elementos: elementos COMMA expresion  */
+#line 742 "Analisis_Sintactico/gramatica.y"
+      { yyval = yyvsp[-2]; ast_agregar_hijo(yyval, yyvsp[0]); }
+#line 2856 "Analisis_Sintactico/parser.c"
     break;
 
 
-#line 2171 "Analisis_Sintactico/parser.c"
+#line 2860 "Analisis_Sintactico/parser.c"
 
         default: break;
       }
@@ -2407,7 +3096,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 391 "Analisis_Sintactico/gramatica.y"
+#line 745 "Analisis_Sintactico/gramatica.y"
 
 
 /* yylex y yyerror estan implementadas en puente_lexer.c.

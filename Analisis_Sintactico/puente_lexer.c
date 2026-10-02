@@ -42,6 +42,29 @@ static int token_bison(TokenType tipo) {
         case TOKEN_GREATER: return GREATER;
         case TOKEN_LESS_EQUAL: return LESS_EQUAL;
         case TOKEN_GREATER_EQUAL: return GREATER_EQUAL;
+        case TOKEN_EULER: return EULER;
+        case TOKEN_DESCARTES: return DESCARTES;
+        case TOKEN_AND: return AND;
+        case TOKEN_OR: return OR;
+        case TOKEN_NOT: return NOT;
+        case TOKEN_XOR: return XOR;
+        case TOKEN_CYCLE: return CYCLE;
+        case TOKEN_LET: return LET;
+        case TOKEN_UNTIL: return UNTIL;
+        case TOKEN_STEP: return STEP;
+        case TOKEN_ENDGAME: return ENDGAME;
+        case TOKEN_LBRACKET: return LBRACKET;
+        case TOKEN_RBRACKET: return RBRACKET;
+        case TOKEN_DOT: return DOT;
+        case TOKEN_DECLARE_LIST: return DECLARE_LIST;
+        case TOKEN_ADD: return ADD;
+        case TOKEN_REMOVE: return REMOVE;
+        case TOKEN_SIZE: return SIZE;
+        case TOKEN_BRING: return BRING;
+        case TOKEN_AKA: return AKA;
+        case TOKEN_DECLARE_CONST: return DECLARE_CONST;
+        case TOKEN_SEEK: return SEEK;
+        case TOKEN_SEIZE: return SEIZE;
         default: return YYUNDEF; /*indica que el token no está definido en la gramática*/
     }
 }

@@ -1,4 +1,4 @@
-/* Pruebas de integracion: archivo -> micomp -> lexer -> Bison.
+/* Pruebas de integracion: archivo -> balc -> lexer -> Bison.
  * Usa procesos y archivos temporales POSIX (Ubuntu/WSL), sin Python.
  * Ejecutar desde la raiz del proyecto con make test-parser.
  */
@@ -87,6 +87,69 @@ static const Caso casos[] = {
     CASO("alif sin bloque", "create_funk #declare_infinite_void# main() { whether (n < 0) {} alif (n == 0) give; }", 1, "error del parser"),
     CASO("alif separado por sentencia", "create_funk #declare_infinite_void# main() { whether (n < 0) {} n : 1; alif (n == 0) {} }", 1, "error del parser"),
     CASO("alif con punto y coma previo", "create_funk #declare_infinite_void# main() { whether (n < 0) {}; alif (n == 0) {} }", 1, "error del parser"),
+    CASO("declaracion sin inicializar", "create_funk #declare_infinite_void# main() { n * declare_int; n : 5; }", 0, ""),
+    CASO("declaraciones multiples", "create_funk #declare_infinite_void# main() { a * declare_int, b * declare_int : 2; }", 0, ""),
+    CASO("tipos sin inicializar", "create_funk #declare_infinite_void# main() { b * declare_boolean; t * declare_text; c * declare_char; }", 0, ""),
+    CASO("inicializacion incompleta", "create_funk #declare_infinite_void# main() { n * declare_int : ; }", 1, "error del parser"),
+    CASO("declaracion sin punto y coma", "create_funk #declare_infinite_void# main() { n * declare_int }", 1, "error del parser"),
+    CASO("declaracion coma final", "create_funk #declare_infinite_void# main() { a * declare_int,; }", 1, "error del parser"),
+    CASO("logica completa", "create_funk #declare_infinite_void# main() { b * declare_boolean : ~declare_false && declare_true || declare_false ^ declare_true; }", 0, ""),
+    CASO("condicion compuesta", "create_funk #declare_infinite_void# main() { whether (edad >= 18 && edad < 65) {} alif (~(edad == 0) || edad > 90) {} }", 0, ""),
+    CASO("residuo y potencia", "create_funk #declare_infinite_void# main() { n * declare_int : 2 descartes 3 descartes 2 euler 5; n : neumann 2 descartes 2; }", 0, ""),
+    CASO("and sin operando", "create_funk #declare_infinite_void# main() { b * declare_boolean : declare_true &&; }", 1, "error del parser"),
+    CASO("not sin operando", "create_funk #declare_infinite_void# main() { b * declare_boolean : ~; }", 1, "error del parser"),
+    CASO("potencia sin operando", "create_funk #declare_infinite_void# main() { n * declare_int : 2 descartes; }", 1, "error del parser"),
+    CASO("cycle paso por defecto", "create_funk #declare_infinite_void# main() { cycle i let 0 until 5 {} endgame; }", 0, ""),
+    CASO("cycle paso explicito", "create_funk #declare_infinite_void# main() { cycle i let 0 until 5 step 2 { n : i; } endgame; }", 0, ""),
+    CASO("cycle descendente", "create_funk #declare_infinite_void# main() { cycle i let 5 until 0 step neumann 1 {} endgame; }", 0, ""),
+    CASO("cycle con expresiones", "create_funk #declare_infinite_void# main() { cycle i let f(0) until limite gauss 1 step paso {} endgame; }", 0, ""),
+    CASO("cycle anidado", "create_funk #declare_infinite_void# main() { cycle i let 0 until 2 { cycle j let 0 until 3 {} endgame; } endgame; }", 0, ""),
+    CASO("cycle con parentesis rechazado", "create_funk #declare_infinite_void# main() { cycle(i let 0 until 5) {} endgame; }", 1, "error del parser"),
+    CASO("cycle formato anterior rechazado", "create_funk #declare_infinite_void# main() { cycle(let i:0; until 5) {} endgame; }", 1, "error del parser"),
+    CASO("cycle sin endgame", "create_funk #declare_infinite_void# main() { cycle i let 0 until 5 {} }", 1, "error del parser"),
+    CASO("cycle sin punto y coma", "create_funk #declare_infinite_void# main() { cycle i let 0 until 5 {} endgame }", 1, "error del parser"),
+    CASO("cycle step sin valor", "create_funk #declare_infinite_void# main() { cycle i let 0 until 5 step {} endgame; }", 1, "error del parser"),
+    CASO("arreglo sin inicializar", "create_funk #declare_infinite_void# main() { a * declare_int[5]; a[0] : 2; n * declare_int : a[0]; }", 0, ""),
+    CASO("matriz inicializada", "create_funk #declare_infinite_void# main() { a * declare_int[2][3] : [[1,2,3],[4,5,6]]; a[1][2] : a[0][0] gauss 1; }", 0, ""),
+    CASO("dimensiones dinamicas", "create_funk #declare_infinite_void# main() { a * declare_int[filas][columnas gauss 1]; }", 0, ""),
+    CASO("multiples matrices", "create_funk #declare_infinite_void# main() { a * declare_int[1][1] : [[1]], b * declare_int[1][1] : [[2]]; }", 0, ""),
+    CASO("parametro arreglo", "create_funk #declare_int# f(a * declare_int[]) { give a[0]; }", 0, ""),
+    CASO("parametro matriz", "create_funk #declare_int# f(a * declare_int[filas][cols], b * declare_int[][]) { give a[1][2] gauss b[0][0]; }", 0, ""),
+    CASO("parametro lista", "create_funk #declare_int# f(a * declare_list declare_int) { give size(a); }", 0, ""),
+    CASO("dimension vacia en variable", "create_funk #declare_infinite_void# main() { a * declare_int[]; }", 1, "error del parser"),
+    CASO("indice vacio", "create_funk #declare_infinite_void# main() { a[] : 1; }", 1, "error del parser"),
+    CASO("matriz falta corchete", "create_funk #declare_infinite_void# main() { a * declare_int[2][3; }", 1, "error del parser"),
+    CASO("literal coma final", "create_funk #declare_infinite_void# main() { a * declare_int[2] : [1,]; }", 1, "error del parser"),
+    CASO("literal falta separador", "create_funk #declare_infinite_void# main() { a * declare_int[2] : [1 2]; }", 1, "error del parser"),
+    CASO("literal no asignable", "create_funk #declare_infinite_void# main() { [1,2] : 3; }", 1, "error del parser"),
+    CASO("listas y operaciones", "create_funk #declare_infinite_void# main() { declare_list a * declare_int : [1,2], b * declare_int : []; add(a,3); remove(a,0); n * declare_int : size(a); }", 0, ""),
+    CASO("lista sin inicializador", "create_funk #declare_infinite_void# main() { declare_list a * declare_text; }", 0, ""),
+    CASO("lista y recorrido exclusivo", "create_funk #declare_infinite_void# main() { declare_list a * declare_int : [1,2]; cycle i let 0 until size(a) { a[i] : a[i] gauss 1; } endgame; }", 0, ""),
+    CASO("add falta argumento", "create_funk #declare_infinite_void# main() { add(a); }", 1, "error del parser"),
+    CASO("remove argumento extra", "create_funk #declare_infinite_void# main() { remove(a,1,2); }", 1, "error del parser"),
+    CASO("size sin argumento", "create_funk #declare_infinite_void# main() { size(); }", 1, "error del parser"),
+    CASO("size varios argumentos", "create_funk #declare_infinite_void# main() { size(a,b); }", 1, "error del parser"),
+    CASO("lista sin tipo", "create_funk #declare_infinite_void# main() { declare_list a : []; }", 1, "error del parser"),
+    CASO("importacion con alias", "bring matematicas aka math; create_funk #declare_infinite_void# main() { n * declare_int : math.suma(2,3); math.procesar(n); }", 0, ""),
+    CASO("importacion sin alias", "bring matematicas; create_funk #declare_int# f() { give matematicas.suma(1,2); }", 0, ""),
+    CASO("acceso modulo y matriz", "bring datos aka d; create_funk #declare_infinite_void# main() { d.matriz[0][1] : d.valor; }", 0, ""),
+    CASO("alias ausente", "bring datos aka; create_funk #declare_infinite_void# main() {}", 1, "error del parser"),
+    CASO("importacion sin punto y coma", "bring datos create_funk #declare_infinite_void# main() {}", 1, "error del parser"),
+    CASO("importacion dentro de funcion", "create_funk #declare_infinite_void# main() { bring datos; }", 1, "error del parser"),
+    CASO("miembro ausente", "create_funk #declare_infinite_void# main() { math.(1); }", 1, "error del parser"),
+    CASO("constante local", "create_funk #declare_infinite_void# main() { declare_const limite * declare_int : 5; }", 0, ""),
+    CASO("constante global", "declare_const limite * declare_int : 5; create_funk #declare_int# f() { give limite; }", 0, ""),
+    CASO("constante sin valor", "create_funk #declare_infinite_void# main() { declare_const limite * declare_int; }", 1, "error del parser"),
+    CASO("constante sin tipo", "create_funk #declare_infinite_void# main() { declare_const limite : 5; }", 1, "error del parser"),
+    CASO("seek seize", "create_funk #declare_infinite_void# main() { seek { n : f(); } seize (ErrorType e) { n : 0; } }", 0, ""),
+    CASO("varias capturas", "create_funk #declare_infinite_void# main() { seek {} seize (ErrorNumero e) {} seize (ErrorIndice otro) {} }", 0, ""),
+    CASO("seek anidado", "create_funk #declare_infinite_void# main() { seek { seek {} seize (ErrorType interno) {} } seize (ErrorType externo) {} }", 0, ""),
+    CASO("seek sin captura", "create_funk #declare_infinite_void# main() { seek {} }", 1, "error del parser"),
+    CASO("seize sin seek", "create_funk #declare_infinite_void# main() { seize (ErrorType e) {} }", 1, "error del parser"),
+    CASO("seize sin variable", "create_funk #declare_infinite_void# main() { seek {} seize (ErrorType) {} }", 1, "error del parser"),
+    CASO("seize sin bloque", "create_funk #declare_infinite_void# main() { seek {} seize (ErrorType e) give; }", 1, "error del parser"),
+    CASO("alif sin condicion sigue rechazado", "create_funk #declare_infinite_void# main() { whether (declare_true) {} alif {} }", 1, "error del parser"),
+    CASO("declare_float sigue rechazado", "create_funk #declare_infinite_void# main() { n * declare_float : 1; }", 1, "error del parser"),
     CASO("token aun no soportado", "create_funk #declare_infinite_void# main() { show(); }", 1, "token SHOW aún no admitido"),
     CASO("error lexico", "create_funk #declare_infinite_void# main() {\n@\n}\n", 1, ":2:1: error léxico"),
     CASO("posicion tras Unicode", "create_funk #declare_infinite_void# main() {\nt * declare_text : \"ñ\"; @\n}\n", 1, ":2:25: error léxico"),
@@ -135,13 +198,13 @@ static Resultado ejecutar(const char *archivo, int sintaxis, int verbose) {
         fclose(errores);
         char *argumentos[5];
         int n = 0;
-        argumentos[n++] = "./micomp";
+        argumentos[n++] = "./balc";
         if (verbose) argumentos[n++] = "-v";
         if (sintaxis) argumentos[n++] = "-t";
         argumentos[n++] = (char *)archivo;
         argumentos[n] = NULL;
         execv(argumentos[0], argumentos);
-        perror("execv micomp");
+        perror("execv balc");
         _exit(127);
     }
     int estado;
