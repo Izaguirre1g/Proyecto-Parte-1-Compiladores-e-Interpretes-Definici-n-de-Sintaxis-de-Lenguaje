@@ -1,8 +1,6 @@
 # Analizadores léxico y sintáctico
 
-El contenido de este directorio se coloca directamente en la raíz del repositorio:
-`src/`, `include/`, `tests/`, `examples/`, `docs/`, `Makefile` y este README.
-Todos los comandos de abajo se ejecutan desde esa raíz. Se necesita GCC para C11
+Todos los comandos de abajo se ejecutan desde la raíz del repositorio. Se necesita GCC para C11
 y Bison (probado con 3.8.2). El Makefile usa GNU Make 4.3 o posterior. Las pruebas del parser están en C
 y usan funciones POSIX disponibles en Ubuntu/WSL. También se puede compilar sin make.
 
@@ -86,3 +84,19 @@ las diferencias con el PDF del avance y los límites de esta fase están en
 Incluye declaraciones sin inicialización, lógica, residuo/potencia, cycle,
 colecciones, importaciones, constantes y seek/seize en el parser y AST.
 No incluye ejecución, carga/enlace de módulos ni generación de código.
+
+## Generación básica para integración
+
+Se añadió un módulo de traducción de expresiones puras, inicializaciones y
+asignaciones escalares al ensamblador de la ISA del equipo. Recibe referencias
+de memoria externas y no está conectado todavía a la CLI como compilador completo.
+
+```bash
+make test-generacion
+make test-cli
+./tests/test_generacion --ejemplo
+```
+
+El alcance, la conexión con símbolos y las limitaciones están en
+[docs/generacion_basica.md](docs/generacion_basica.md).
+`make test` incluye las pruebas nuevas. `-s` sigue reservado hasta integrar el backend.

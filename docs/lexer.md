@@ -130,9 +130,9 @@ sobre el procesador.** Se verificaron 64 tokens y cero errores léxicos.
 La representación sintáctica del programa requiere una función `main` con
 declaraciones y un condicional. La rama `also` contiene el ciclo, la
 multiplicación y el avance de `i`. Aún faltan la asignación de ámbitos y
-direcciones, así como la generación de ensamblador y binario. La ISA actual
-no define una instrucción de multiplicación para `pitagoras`; por eso el
-factorial no puede traducirse por completo. Los bundles VLIW tienen slots
+direcciones, así como la generación de ensamblador y binario. La ISA consultada
+no define una instrucción directa de multiplicación para `pitagoras`; falta
+acordar e implementar su traducción para completar el factorial. Los bundles VLIW tienen slots
 ALU, LSU, BRU y CRIPTO, y necesitan una planificación que respete dependencias.
 
 ## Trabajo pendiente
@@ -141,7 +141,8 @@ La conexión con el parser y el AST ya está implementada; las decisiones de
 sintaxis están registradas en `docs/lenguaje_actual.md`. Queda pendiente:
 
 1. Integrar símbolos y verificaciones semánticas sobre el AST.
-2. Generar y probar ensamblador de expresiones, asignaciones y accesos a
-   memoria cuando estén disponibles los símbolos y una ISA estable.
+2. Integrar el módulo parcial de generación básica con símbolos y backend;
+   ampliar las operaciones pendientes. Su alcance y pruebas se documentan en
+   `docs/generacion_basica.md`.
 3. Comprobar el factorial de principio a fin y documentar el ensamblador,
    binario y resultado obtenidos.

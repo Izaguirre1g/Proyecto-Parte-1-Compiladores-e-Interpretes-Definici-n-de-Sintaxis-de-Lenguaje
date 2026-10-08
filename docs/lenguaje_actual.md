@@ -13,6 +13,8 @@ No se admiten `declare_float`, literales decimales ni `show` por ahora.
 
 Todo lo siguiente está implementado como **reconocimiento sintáctico y nodos
 AST**. El compilador todavía no ejecuta los programas ni genera ensamblador.
+Existe además un módulo parcial de generación de expresiones y asignaciones,
+todavía sin integrar a la CLI; véase `docs/generacion_basica.md`.
 No carga archivos importados, asigna memoria a colecciones, implementa captura
 de excepciones en ejecución ni verifica tipos o símbolos. Estas tareas requieren
 las fases semánticas y de generación de código del equipo.

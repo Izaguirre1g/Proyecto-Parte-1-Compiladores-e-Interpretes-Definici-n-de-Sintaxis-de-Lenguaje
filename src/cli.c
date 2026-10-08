@@ -11,7 +11,6 @@
 
 typedef struct {
     const char *input;
-    const char *output;
     const char *pending_option;
     int verbose;
 
@@ -36,7 +35,6 @@ static int parse_args(int argc, char **argv, Options *opt) {
         if (!positional && strcmp(arg, "-h") == 0) { usage(stdout); return 1; }
         if (!positional && strcmp(arg, "-o") == 0) {
             if (++i >= argc) { fputs("-o necesita un archivo de salida\n", stderr); return -1; }
-            opt->output = argv[i];
             opt->pending_option = "-o";
             continue;
         }
@@ -172,17 +170,20 @@ int cli_run(int argc, char **argv) {
         if (kind == TOKEN_EOF) break;
     }
     if (opt.verbose)
-        printf("[léxico] %zu tokens, %zu errores; fases posteriores pendientes.\n",
+        printf("[léxico] %zu tokens, %zu errores.\n",
                count, errors);
-    else if (errors == 0)
+    else if (errors == 0 && !opt.syntax)
         fputs("Análisis léxico correcto. Fases posteriores pendientes; no se generó binario.\n",
               stderr);
 
     /*Se agrega la condicion para que si se pidio analizar sintaxis y no hubo errores léxicos, se ejecute el analisis sintactico*/
     int estado = errors ? 1 : 0;
     if (opt.syntax && errors == 0) {
+        puts("[sintáctico] Construyendo AST");
         estado = mostrar_ast(source, size, opt.input);
     }
+    if (opt.verbose && !opt.syntax && errors == 0)
+        puts("[estado] Solo análisis léxico; no se generó ensamblador ni binario.");
     free(source);
     return estado;
 }
