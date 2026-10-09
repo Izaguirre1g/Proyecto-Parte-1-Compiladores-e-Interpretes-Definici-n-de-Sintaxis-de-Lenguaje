@@ -1,9 +1,11 @@
+/* Pruebas automáticas del analizador léxico. */
 #include "lexer.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+/* Datos que esperamos recibir para cada token. */
 typedef struct {
     TokenType type;
     TokenError error;
@@ -13,22 +15,28 @@ typedef struct {
     size_t column;
 } Expected;
 
+/* E define un token válido y X uno que debe producir error. */
 #define E(type, str, ln, col) {type, TOKEN_NO_ERROR, str, sizeof(str)-1, ln, col}
 #define X(error, str, ln, col) {TOKEN_ERROR, error, str, sizeof(str)-1, ln, col}
+/* CHECK compara los tokens reales con los esperados. */
 #define CHECK(name, source, ...) do { \
     const Expected want[] = {__VA_ARGS__}; \
     check(name, source, sizeof(source)-1, want, sizeof(want)/sizeof(want[0])); \
 } while (0)
 
+/* Contadores para mostrar el resultado al final. */
 static size_t cases_run;
 static size_t failures;
 
+/* Ejecuta un caso y revisa tipo, error, texto y posición. */
 static void check(const char *name, const char *source, size_t length,
                   const Expected *want, size_t count) {
+    /* Inicializamos el lexer con el texto del caso. */
     Lexer l;
     lexer_init(&l, source, length, name);
     ++cases_run;
     for (size_t i = 0; i < count; ++i) {
+        /* Pedimos el siguiente token y comprobamos sus datos. */
         Token got = lexer_next(&l);
         if (!got.lexeme || got.type != want[i].type ||
             got.error != want[i].error || got.length != want[i].length ||
@@ -41,9 +49,10 @@ static void check(const char *name, const char *source, size_t length,
             token_dispose(&got);
             return;
         }
+        /* Liberamos la memoria del token antes de seguir. */
         token_dispose(&got);
     }
-    /* The expectations must include EOF; subsequent reads return EOF as well. */
+    /* El último token debe ser EOF, incluso si se vuelve a pedir. */
     if (want[count-1].type != TOKEN_EOF) {
         fprintf(stderr, "FAIL %s: caso sin EOF esperado\n", name);
         ++failures;
@@ -58,9 +67,10 @@ static void check(const char *name, const char *source, size_t length,
     }
 }
 
+/* Palabra reservada y token que le corresponde. */
 typedef struct { const char *text; TokenType type; } Word;
 
-/* This table follows the language specification, independently of lexer.c. */
+/* Lista de palabras reservadas para probarlas una por una. */
 static const Word words[] = {
     {"main",TOKEN_MAIN}, {"declare_const",TOKEN_DECLARE_CONST},
     {"create_funk",TOKEN_CREATE_FUNK}, {"give",TOKEN_GIVE},
@@ -82,6 +92,7 @@ static const Word words[] = {
     {"euler",TOKEN_EULER}, {"descartes",TOKEN_DESCARTES}
 };
 
+/* Arma un texto con todas las palabras reservadas y las verifica. */
 static void check_words(void) {
     char source[1024] = {0};
     size_t used = 0;
@@ -115,7 +126,9 @@ static void check_words(void) {
     token_dispose(&end);
 }
 
+/* Prueba el lexer con un archivo BAL real. */
 static void check_factorial(void) {
+    /* Abrimos el ejemplo de factorial para leer su contenido. */
     FILE *f = fopen("examples/factorial.bal", "rb");
     if (!f) { perror("examples/factorial.bal"); ++failures; return; }
     char source[4096];
@@ -130,11 +143,13 @@ static void check_factorial(void) {
     Lexer l;
     lexer_init(&l, source, n, "factorial.bal");
     ++cases_run;
+    /* Contamos los tokens principales que debe contener el ejemplo. */
     unsigned saw_main=0, saw_if=0, saw_else=0, saw_loop=0;
     unsigned saw_mul=0, saw_add=0, saw_stop=0;
     size_t count=0;
     for (;;) {
         Token t = lexer_next(&l);
+        /* Cualquier error léxico en el factorial se reporta. */
         if (t.type == TOKEN_ERROR) {
             fprintf(stderr, "FAIL factorial %zu:%zu: %s\n",
                     t.line, t.column, token_error_message(t.error));
@@ -152,6 +167,7 @@ static void check_factorial(void) {
         if (type == TOKEN_EOF) break;
         if (++count > sizeof(source)) { fputs("FAIL factorial: sin EOF\n",stderr); ++failures; break; }
     }
+    /* Revisamos que las estructuras esperadas aparezcan una vez. */
     if (saw_main != 1 || saw_if != 1 || saw_else != 1 || saw_loop != 1 ||
         saw_mul != 1 || saw_add != 1 || saw_stop != 1) {
         fputs("FAIL factorial: faltan tokens estructurales\n", stderr);
@@ -159,13 +175,18 @@ static void check_factorial(void) {
     }
 }
 
+/* Ejecutamos todos los casos de prueba. */
 int main(void) {
+    /* Todas las palabras reservadas. */
     check_words();
+    /* Un archivo sin contenido solo devuelve EOF. */
     CHECK("vacío", "", E(TOKEN_EOF,"",1,1));
+    /* Nombres válidos, con diferencias entre mayúsculas y minúsculas. */
     CHECK("identificadores", "main2 _cont x9 Main declare_float",
           E(TOKEN_IDENTIFIER,"main2",1,1), E(TOKEN_IDENTIFIER,"_cont",1,7),
           E(TOKEN_IDENTIFIER,"x9",1,13), E(TOKEN_IDENTIFIER,"Main",1,16),
           E(TOKEN_IDENTIFIER,"declare_float",1,21), E(TOKEN_EOF,"",1,34));
+    /* Comparaciones, operaciones lógicas y asignación. */
     CHECK("operadores", "== =/= < > <= >= && || ~ ^ : .",
           E(TOKEN_EQUAL,"==",1,1), E(TOKEN_NOT_EQUAL,"=/=",1,4),
           E(TOKEN_LESS,"<",1,8), E(TOKEN_GREATER,">",1,10),
@@ -174,6 +195,7 @@ int main(void) {
           E(TOKEN_NOT,"~",1,24), E(TOKEN_XOR,"^",1,26),
           E(TOKEN_ASSIGN,":",1,28), E(TOKEN_DOT,".",1,30),
           E(TOKEN_EOF,"",1,31));
+    /* Paréntesis, llaves, corchetes y signos del lenguaje. */
     CHECK("delimitadores", "()[]{} ,;*#",
           E(TOKEN_LPAREN,"(",1,1), E(TOKEN_RPAREN,")",1,2),
           E(TOKEN_LBRACKET,"[",1,3), E(TOKEN_RBRACKET,"]",1,4),
@@ -181,40 +203,50 @@ int main(void) {
           E(TOKEN_COMMA,",",1,8), E(TOKEN_SEMICOLON,";",1,9),
           E(TOKEN_STAR,"*",1,10), E(TOKEN_HASH,"#",1,11),
           E(TOKEN_EOF,"",1,12));
+    /* Enteros, cadenas, caracteres UTF-8 y booleanos. */
     CHECK("literales", "0 123 \"José\" $B$ $ñ$ declare_true declare_false",
           E(TOKEN_INTEGER,"0",1,1), E(TOKEN_INTEGER,"123",1,3),
           E(TOKEN_STRING,"\"José\"",1,7), E(TOKEN_CHARACTER,"$B$",1,14),
           E(TOKEN_CHARACTER,"$ñ$",1,18), E(TOKEN_DECLARE_TRUE,"declare_true",1,22),
           E(TOKEN_DECLARE_FALSE,"declare_false",1,35), E(TOKEN_EOF,"",1,48));
+    /* Los comentarios se omiten y no generan tokens. */
     CHECK("comentarios", "x%% línea\n%%// bloque\n á //%%y",
           E(TOKEN_IDENTIFIER,"x",1,1), E(TOKEN_IDENTIFIER,"y",3,8),
           E(TOKEN_EOF,"",3,9));
+    /* Comprobamos las posiciones al cambiar de línea. */
     CHECK("multilínea CRLF", "a:1;\r\nb:2;",
           E(TOKEN_IDENTIFIER,"a",1,1), E(TOKEN_ASSIGN,":",1,2),
           E(TOKEN_INTEGER,"1",1,3), E(TOKEN_SEMICOLON,";",1,4),
           E(TOKEN_IDENTIFIER,"b",2,1), E(TOKEN_ASSIGN,":",2,2),
           E(TOKEN_INTEGER,"2",2,3), E(TOKEN_SEMICOLON,";",2,4),
           E(TOKEN_EOF,"",2,5));
+    /* Los decimales y números con letras deben dar error. */
     CHECK("real descartado", "1.85 12abc",
           X(TOKEN_INVALID_NUMBER,"1.85",1,1),
           X(TOKEN_INVALID_NUMBER,"12abc",1,6), E(TOKEN_EOF,"",1,11));
+    /* Los identificadores no admiten letras acentuadas. */
     CHECK("identificador con acento", "tamaño:1;",
           E(TOKEN_IDENTIFIER,"tama",1,1), X(TOKEN_INVALID_CHARACTER,"ñ",1,5),
           E(TOKEN_IDENTIFIER,"o",1,6), E(TOKEN_ASSIGN,":",1,7),
           E(TOKEN_INTEGER,"1",1,8), E(TOKEN_SEMICOLON,";",1,9),
           E(TOKEN_EOF,"",1,10));
+    /* Una cadena sin comillas de cierre debe dar error. */
     CHECK("cadena sin cerrar", "\"texto\nx",
           X(TOKEN_UNTERMINATED_STRING,"\"texto",1,1),
           E(TOKEN_IDENTIFIER,"x",2,1), E(TOKEN_EOF,"",2,2));
+    /* Detectamos comentarios de bloque sin cierre. */
     CHECK("comentario sin cerrar", "%%// comentario\nx",
           X(TOKEN_UNTERMINATED_COMMENT,"%%// comentario\nx",1,1),
           E(TOKEN_EOF,"",2,2));
+    /* Detectamos literales de carácter sin el $ final. */
     CHECK("carácter sin cerrar", "$a\nx",
           X(TOKEN_UNTERMINATED_CHARACTER,"$a",1,1),
           E(TOKEN_IDENTIFIER,"x",2,1), E(TOKEN_EOF,"",2,2));
+    /* Un literal de carácter debe contener un solo carácter. */
     CHECK("caracteres mal formados", "$$ $ab$",
           X(TOKEN_INVALID_CHARACTER_LITERAL,"$$",1,1),
           X(TOKEN_INVALID_CHARACTER_LITERAL,"$ab$",1,4), E(TOKEN_EOF,"",1,8));
+    /* Los símbolos que no pertenecen al lenguaje dan error. */
     CHECK("símbolos ajenos", "@ !!! !? %?",
           X(TOKEN_INVALID_CHARACTER,"@",1,1),
           X(TOKEN_INVALID_CHARACTER,"!",1,3),
@@ -224,6 +256,7 @@ int main(void) {
           X(TOKEN_INVALID_CHARACTER,"?",1,8),
           X(TOKEN_INVALID_CHARACTER,"%",1,10),
           X(TOKEN_INVALID_CHARACTER,"?",1,11), E(TOKEN_EOF,"",1,12));
+    /* Probamos los tokens de una importación y una llamada. */
     CHECK("ejemplo de módulo", "bring matematicas aka math; math.suma(3,4);",
           E(TOKEN_BRING,"bring",1,1), E(TOKEN_IDENTIFIER,"matematicas",1,7),
           E(TOKEN_AKA,"aka",1,19), E(TOKEN_IDENTIFIER,"math",1,23),
@@ -234,17 +267,21 @@ int main(void) {
           E(TOKEN_RPAREN,")",1,42), E(TOKEN_SEMICOLON,";",1,43),
           E(TOKEN_EOF,"",1,44));
     {
+        /* Un byte NUL dentro del código también debe detectarse. */
         const char data[] = {'a','\0','b'};
         const Expected want[] = {E(TOKEN_IDENTIFIER,"a",1,1),
                                  X(TOKEN_INVALID_CHARACTER,"\0",1,2),
                                  E(TOKEN_IDENTIFIER,"b",1,3), E(TOKEN_EOF,"",1,4)};
         check("NUL en fuente", data, sizeof(data), want, sizeof(want)/sizeof(want[0]));
     }
+    /* Caso con el archivo factorial.bal. */
     check_factorial();
+    /* Si hubo fallos, terminamos con código de error. */
     if (failures) {
         fprintf(stderr, "%zu de %zu casos fallaron\n", failures, cases_run);
         return 1;
     }
+    /* Si todo salió bien, mostramos la cantidad de pruebas. */
     printf("OK: %zu casos del lexer, incluido factorial.bal\n", cases_run);
     return 0;
 }
