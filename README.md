@@ -48,6 +48,37 @@ gcc -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 tests/test_parser.c -o tests/t
 ./tests/test_parser
 ```
 
+## Archivos que genera Bison
+
+Bison lee las reglas de [Analisis_Sintactico/gramatica.y](Analisis_Sintactico/gramatica.y)
+y genera estos dos archivos:
+
+| Archivo generado | Para qué sirve |
+| --- | --- |
+| `Analisis_Sintactico/parser.c` | Contiene el analizador sintáctico generado a partir de la gramática y sus acciones para construir el AST. |
+| `Analisis_Sintactico/parser.h` | Declara los tokens y tipos que permiten conectar el parser con `puente_lexer.c`. |
+
+Para cambiar las reglas sintácticas, editen `gramatica.y` y ejecuten:
+
+```bash
+make balc
+```
+
+El Makefile ejecuta Bison cuando cambia la gramática o falta alguno de los archivos
+generados, y después compila el analizador. No editen directamente `parser.c` ni
+`parser.h`: sus cambios se perderían al regenerarlos.
+
+El comando de Bison usado es:
+
+```bash
+bison -Wall -Werror -d -o Analisis_Sintactico/parser.c Analisis_Sintactico/gramatica.y
+```
+
+`-o` indica dónde generar `parser.c` y `-d` solicita también `parser.h`.
+`gramatica.y`, `puente_lexer.c` y `ast.c` son archivos fuente del proyecto escritos
+por el equipo; Bison no los genera. El ejecutable `balc` lo produce el compilador
+de C al compilar y enlazar los archivos del proyecto.
+
 ## Resultado esperado
 
 Las pruebas terminan con `OK: 18 casos del lexer, incluido factorial.bal`.
