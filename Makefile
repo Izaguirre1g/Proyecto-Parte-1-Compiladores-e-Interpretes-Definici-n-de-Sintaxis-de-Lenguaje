@@ -3,11 +3,14 @@ CC ?= cc
 BISON ?= bison
 FLEX ?= flex
 
+# Evita que Make aplique reglas implicitas que sobrescriban lexer.c.
+.SUFFIXES:
+
 # Opciones de compilación: C11, advertencias y optimización.
 CFLAGS ?= -std=c11 -Wall -Wextra -Wpedantic -Werror -O2
 
 # Carpetas donde se buscan los archivos .h.
-CPPFLAGS ?= -Iinclude -Isrc
+CPPFLAGS ?= -Iinclude -Isrc 
 
 # Archivos del parser y del AST.
 PARSER_SRC := Analisis_Sintactico/parser.c Analisis_Sintactico/puente_lexer.c Analisis_Sintactico/ast.c
@@ -16,7 +19,7 @@ PARSER_SRC := Analisis_Sintactico/parser.c Analisis_Sintactico/puente_lexer.c An
 LEXER_GEN := src/lexer_flex.c
 
 # Archivos que forman el compilador.
-SRC := src/main.c src/cli.c src/lexer.c $(LEXER_GEN) src/token.c src/generacion_basica.c $(PARSER_SRC)
+SRC := src/main.c src/cli.c src/lexer.c $(LEXER_GEN) src/token.c src/generacion_basica.c $(PARSER_SRC) Analisis_Semantico/symbol_table.c
 
 # Estos nombres son comandos de Make, no archivos.
 .PHONY: all test test-parser test-ast test-cli test-generacion clean
@@ -43,7 +46,7 @@ tests/test_lexer: tests/test_lexer.c src/lexer.c $(LEXER_GEN) src/token.c includ
 	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_lexer.c src/lexer.c $(LEXER_GEN) src/token.c -o $@
 
 # Ejecuta las pruebas del proyecto y analiza el factorial.
-test: tests/test_lexer balc test-parser test-ast test-cli test-generacion
+test: tests/test_lexer balc test-parser test-ast test-cli test-generacion test-symbol-table
 	./tests/test_lexer
 	./balc -v examples/factorial.bal
 
@@ -83,3 +86,18 @@ test-generacion: tests/test_generacion
 # Sirve para volver a compilar todo desde cero.
 clean:
 	rm -f balc tests/test_lexer tests/test_parser tests/test_ast tests/test_cli tests/test_generacion $(LEXER_GEN)
+
+# Pruebas de la tabla de símbolos
+.PHONY: test-symbol-table
+
+tests/test_symbol_table: tests/test_symbol_table.c \
+                        Analisis_Semantico/symbol_table.c \
+                        include/symbol_table.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) \
+	    tests/test_symbol_table.c \
+	    Analisis_Semantico/symbol_table.c \
+	    -o $@
+
+# Ejecutar pruebas de la tabla de símbolos
+test-symbol-table: tests/test_symbol_table
+	./tests/test_symbol_table
