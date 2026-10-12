@@ -41,6 +41,31 @@ static int condicional(GfContexto *c, const AstNodo *n, int es_void, int *retorn
     return ok;
 }
 
+static int mientras(GfContexto *c, const AstNodo *n, int es_void)
+{
+    const AstNodo *cond = n->primer_hijo;
+    const AstNodo *cuerpo = cond ? cond->siguiente : NULL;
+    if (!cond || !cuerpo || cuerpo->tipo != AST_BLOQUE || cuerpo->siguiente)
+        return gf_fallo(c, n, "estructura de whale invalida");
+    if (c->bloques >= 256 || c->etiquetas == UINT_MAX)
+        return gf_fallo(c, n, "demasiadas estructuras de control anidadas");
+    unsigned etiqueta = c->etiquetas++;
+    if (fprintf(c->salida, "__gf_%s_while_cond_%u:\n", c->funcion, etiqueta) < 0 ||
+        !gf_condicion(c, cond) ||
+        fprintf(c->salida, "igualsi x4, x0, __gf_%s_while_fin_%u\n",
+                c->funcion, etiqueta) < 0) return 0;
+    int retorna = 0;
+    ++c->bloques;
+    int ok = gc_bloque(c, cuerpo, es_void, &retorna);
+    --c->bloques;
+    if (ok && !retorna)
+        ok = fprintf(c->salida, "sye x0, __gf_%s_while_cond_%u\n",
+                     c->funcion, etiqueta) >= 0;
+    if (ok) ok = fprintf(c->salida, "__gf_%s_while_fin_%u:\n",
+                         c->funcion, etiqueta) >= 0;
+    return ok;
+}
+
 int gc_bloque(GfContexto *c, const AstNodo *bloque, int es_void, int *retorna)
 {
     if (!bloque || bloque->tipo != AST_BLOQUE)
@@ -52,6 +77,11 @@ int gc_bloque(GfContexto *c, const AstNodo *bloque, int es_void, int *retorna)
             return gf_fallo(c, n, "declaracion en bloque anidado requiere resolvedor de ambitos");
         if (n->tipo == AST_SI) {
             if (!condicional(c, n, es_void, &retorno)) return 0;
+        } else if (n->tipo == AST_MIENTRAS) {
+            if (!mientras(c, n, es_void)) return 0;
+            /* Puede ejecutarse cero veces: give en el cuerpo no garantiza
+             * el retorno de toda la funcion. */
+            retorno = 0;
         } else if (!gf_sentencia(c, n, es_void, &retorno)) return 0;
     }
     *retorna = retorno;
