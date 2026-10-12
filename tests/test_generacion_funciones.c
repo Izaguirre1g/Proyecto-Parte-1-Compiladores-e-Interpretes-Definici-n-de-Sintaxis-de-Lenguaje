@@ -1,4 +1,5 @@
 #include "generacion_funciones.h"
+#include "modelo_control.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -166,69 +167,6 @@ static void llamadas_anidadas(void)
     fclose(f);
 }
 
-/* Modelo secuencial de las instrucciones usadas por estos casos.
- * Comprueba que se ejecuta la rama correcta y que se restaura sp/ra.
- * No modela bundles, latencias ni reemplaza la simulacion del procesador. */
-static int ejecutar_condicional(char *texto)
-{
-    char *lineas[256];
-    size_t cantidad = 0;
-    for (char *p = strtok(texto, "\n"); p; p = strtok(NULL, "\n")) {
-        assert(cantidad < 256);
-        lineas[cantidad++] = p;
-    }
-    int registros[32] = {0}, memoria[256] = {0};
-    registros[2] = 512;
-    registros[1] = 1232;
-    for (size_t pc = 0, pasos = 0; pc < cantidad && pasos < 1000; ++pc, ++pasos) {
-        char *linea = lineas[pc];
-        unsigned a, b, d;
-        int inmediato;
-        char etiqueta[128];
-        if (linea[strlen(linea) - 1] == ':') continue;
-        if (sscanf(linea, "sumai x%u, x%u, %d", &a, &b, &inmediato) == 3)
-            registros[a] = registros[b] + inmediato;
-        else if (sscanf(linea, "restai x%u, x%u, %d", &a, &b, &inmediato) == 3)
-            registros[a] = registros[b] - inmediato;
-        else if (sscanf(linea, "suma x%u, x%u, x%u", &a, &b, &d) == 3)
-            registros[a] = registros[b] + registros[d];
-        else if (sscanf(linea, "mrq x%u, x%u, x%u", &a, &b, &d) == 3)
-            registros[a] = registros[b] < registros[d];
-        else if (sscanf(linea, "guardap x%u, x%u, %d", &a, &b, &inmediato) == 3) {
-            int direccion = registros[a] + inmediato;
-            assert(direccion >= 0 && direccion < 1024 && direccion % 4 == 0);
-            memoria[direccion / 4] = registros[b];
-        } else if (sscanf(linea, "cargai x%u, x%u, %d", &a, &b, &inmediato) == 3) {
-            int direccion = registros[b] + inmediato;
-            assert(direccion >= 0 && direccion < 1024 && direccion % 4 == 0);
-            registros[a] = memoria[direccion / 4];
-        } else if (!strcmp(linea, "syer x0, x1, 0")) {
-            assert(registros[2] == 512 && registros[1] == 1232);
-            return registros[8];
-        } else {
-            int saltar = 0;
-            if (sscanf(linea, "igualsi x%u, x%u, %127s", &a, &b, etiqueta) == 3)
-                saltar = registros[a] == registros[b];
-            else {
-                assert(sscanf(linea, "sye x0, %127s", etiqueta) == 1);
-                saltar = 1;
-            }
-            if (saltar) {
-                size_t destino;
-                for (destino = 0; destino < cantidad; ++destino)
-                    if (strlen(lineas[destino]) == strlen(etiqueta) + 1 &&
-                        !strncmp(lineas[destino], etiqueta, strlen(etiqueta)) &&
-                        lineas[destino][strlen(etiqueta)] == ':') break;
-                assert(destino < cantidad);
-                pc = destino;
-            }
-        }
-        registros[0] = 0;
-    }
-    assert(!"la funcion no retorno");
-    return -1;
-}
-
 static void condicionales(void)
 {
     AstNodo fn = nodo(AST_FUNCION, NULL), id = nodo(AST_IDENTIFICADOR, "elegir");
@@ -255,7 +193,7 @@ static void condicionales(void)
         char texto[8192]; leer(f, texto, sizeof(texto)); fclose(f);
         assert(strstr(texto, "__gf_elegir_else_0:") != NULL);
         assert(strstr(texto, "__gf_elegir_else_1:") != NULL);
-        assert(ejecutar_condicional(texto) == (a ? 10 : b ? 20 : 30));
+        assert(ejecutar_control(texto) == (a ? 10 : b ? 20 : 30));
     }
     /* El mismo AST con whether anidado en un bloque. */
     AstNodo envoltura = nodo(AST_BLOQUE, NULL);
@@ -273,7 +211,7 @@ static void condicionales(void)
         assert(gf_generar_funcion(&fn, 4, referencia, destino, NULL, f, stderr) == 0);
         char texto[8192]; leer(f, texto, sizeof(texto)); fclose(f);
         assert(strstr(texto, "sye x0, __gf_elegir_fin_0\n") != NULL);
-        assert(ejecutar_condicional(texto) == (a ? 20 : 30));
+        assert(ejecutar_control(texto) == (a ? 20 : 30));
     }
     /* Sin also, una rama retorna y la otra continua hasta give 20. */
     verdadero.siguiente = NULL; verdadero.primer_hijo = &ret1;
@@ -284,7 +222,7 @@ static void condicionales(void)
         assert(gf_generar_funcion(&fn, 4, referencia, destino, NULL, f, stderr) == 0);
         char texto[8192]; leer(f, texto, sizeof(texto)); fclose(f);
         assert(strstr(texto, "__gf_otra_funcion_else_0:") != NULL);
-        assert(ejecutar_condicional(texto) == (a ? 10 : 20));
+        assert(ejecutar_control(texto) == (a ? 10 : 20));
     }
     /* Falta retorno en la ruta falsa: se conserva la salida previa. */
     si.siguiente = NULL;
@@ -347,7 +285,7 @@ static void ciclos(void)
         assert(strstr(texto, "__gf_contar_while_cond_0:"));
         assert(strstr(texto, "__gf_contar_while_cond_1:"));
         assert(strstr(texto, "__gf_contar_else_2:"));
-        assert(ejecutar_condicional(texto) == esperados[i]);
+        assert(ejecutar_control(texto) == esperados[i]);
     }
     /* Un give dentro del ciclo sale de la funcion; cero vueltas continua. */
     AstNodo retorno = nodo(AST_RETORNO, NULL), diez = nodo(AST_ENTERO, "10");
@@ -357,7 +295,7 @@ static void ciclos(void)
         FILE *f = tmpfile(); assert(f);
         assert(gf_generar_funcion(&fn, 12, referencia, destino, NULL, f, stderr) == 0);
         char texto[8192]; leer(f, texto, sizeof(texto)); fclose(f);
-        assert(ejecutar_condicional(texto) == (i ? 10 : 0));
+        assert(ejecutar_control(texto) == (i ? 10 : 0));
     }
     /* El retorno del cuerpo no cubre la ruta de cero vueltas. */
     ciclo.siguiente = NULL;

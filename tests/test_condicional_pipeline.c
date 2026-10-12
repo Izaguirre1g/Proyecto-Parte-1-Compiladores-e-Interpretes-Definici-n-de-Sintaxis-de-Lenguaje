@@ -17,7 +17,7 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--whale")) whale = 1;
         else assert(!"opcion desconocida");
     }
-    const char *archivo = whale ? "examples/whale_meibel.bal" : "examples/condicional_meibel.bal";
+    const char *archivo = whale ? "examples/whale.bal" : "examples/condicional.bal";
     FILE *entrada = fopen(archivo, "r");
     assert(entrada);
     char fuente[4096];
