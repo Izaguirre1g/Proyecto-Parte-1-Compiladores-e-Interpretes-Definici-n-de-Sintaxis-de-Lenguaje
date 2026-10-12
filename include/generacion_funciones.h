@@ -8,17 +8,26 @@
 typedef int (*GfResolverDestino)(void *datos, const AstNodo *identificador,
                                   unsigned *direccion);
 
-/* 3B-D2: AST_FUNCION -> codigo lineal de una funcion escalar.
- * Cuerpo: declaraciones inicializadas/asignaciones basicas, llamadas como
- * sentencia, un retorno final (give expresion; o give; en void).
- * Llamadas: maximo cuatro argumentos, cada uno una expresion basica sin
- * llamadas internas. Ahora permite llamadas anidadas en expresiones de
- * suma/resta y argumentos, salvando resultados intermedios en pila.
- * Las firmas de las llamadas deben estar validadas por el analizador
- * semantico; este subconjunto asume retornos escalares enteros.
- * x13 se carga con destino; retorno escalar en x8.
- * gb_generar permanece intacta; todo fallo de validacion deja salida intacta.
- * Devuelve 0 en exito y 1 en error. No emite bundles ni relocalizaciones. */
+/* AST_FUNCION -> instrucciones lineales con etiquetas simbolicas.
+ * Requiere AST validado semanticamente (tipos, condiciones y firmas).
+ * Cuerpo: declaraciones inicializadas, asignaciones, llamadas, whether/alif/also
+ * y whale anidados, y give. Admite declaraciones inicializadas en ramas y
+ * ciclos mediante un resolvedor de ambitos. No admite condiciones con llamadas.
+ * Cada give emite su epilogo; una funcion escalar debe retornar en todos los
+ * caminos. Rechaza sentencias tras un retorno incondicional.
+ * Etiquetas reservadas: __gf_<funcion>_else_<n> / __gf_<funcion>_fin_<n>.
+ * Ciclos: __gf_<funcion>_while_cond_<n> / __gf_<funcion>_while_fin_<n>.
+ * Un ciclo no garantiza retorno: su condicion puede ser falsa al entrar.
+ * Generar una sola vez cada funcion por unidad de salida evita colisiones.
+ * Llamadas: hasta cuatro argumentos; permite llamadas anidadas en argumentos,
+ * sumas/restas y negacion. Este subconjunto asume retornos de llamadas enteros.
+ * x13 contiene el destino de llamada; x8 contiene el retorno escalar.
+ * No calcula PC, no empaqueta bundles, no inserta NOP ni genera binario.
+ * El backend debe fijar bundles/latencias antes de resolver etiquetas; las
+ * direcciones absolutas de llamadas tambien deben corresponder a ese layout.
+ * Devuelve 0 en exito y 1 en error. Un fallo de generacion no publica salida;
+ * un fallo de E/S durante la copia final puede dejar salida parcial.
+ */
 int gf_generar_funcion(const AstNodo *funcion, size_t bytes_marco,
                        GbResolver resolver, GfResolverDestino destino,
                        void *datos, FILE *salida, FILE *diagnosticos);

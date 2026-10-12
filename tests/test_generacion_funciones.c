@@ -1,4 +1,5 @@
 #include "generacion_funciones.h"
+#include "modelo_control.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -166,12 +167,157 @@ static void llamadas_anidadas(void)
     fclose(f);
 }
 
+static void condicionales(void)
+{
+    AstNodo fn = nodo(AST_FUNCION, NULL), id = nodo(AST_IDENTIFICADOR, "elegir");
+    AstNodo tipo = nodo(AST_TIPO, "declare_int"), params = nodo(AST_PARAMETROS, NULL);
+    AstNodo bloque = nodo(AST_BLOQUE, NULL), si = nodo(AST_SI, NULL);
+    AstNodo cond = nodo(AST_BOOLEANO, "declare_true"), verdadero = nodo(AST_BLOQUE, NULL);
+    AstNodo alternativo = nodo(AST_SI, NULL), cond2 = nodo(AST_BOOLEANO, "declare_true");
+    AstNodo segundo = nodo(AST_BLOQUE, NULL), ultimo = nodo(AST_BLOQUE, NULL);
+    AstNodo ret1 = nodo(AST_RETORNO, NULL), uno = nodo(AST_ENTERO, "10");
+    AstNodo ret2 = nodo(AST_RETORNO, NULL), dos = nodo(AST_ENTERO, "20");
+    AstNodo ret3 = nodo(AST_RETORNO, NULL), tres = nodo(AST_ENTERO, "30");
+    hijos(&fn, &id); id.siguiente = &tipo; tipo.siguiente = &params;
+    params.siguiente = &bloque; hijos(&bloque, &si);
+    hijos(&si, &cond); cond.siguiente = &verdadero; verdadero.siguiente = &alternativo;
+    hijos(&verdadero, &ret1); hijos(&ret1, &uno);
+    hijos(&alternativo, &cond2); cond2.siguiente = &segundo; segundo.siguiente = &ultimo;
+    hijos(&segundo, &ret2); hijos(&ret2, &dos);
+    hijos(&ultimo, &ret3); hijos(&ret3, &tres);
+    for (int a = 0; a < 2; ++a) for (int b = 0; b < 2; ++b) {
+        cond.texto = a ? "declare_true" : "declare_false";
+        cond2.texto = b ? "declare_true" : "declare_false";
+        FILE *f = tmpfile(); assert(f);
+        assert(gf_generar_funcion(&fn, 4, referencia, destino, NULL, f, stderr) == 0);
+        char texto[8192]; leer(f, texto, sizeof(texto)); fclose(f);
+        assert(strstr(texto, "__gf_elegir_else_0:") != NULL);
+        assert(strstr(texto, "__gf_elegir_else_1:") != NULL);
+        assert(ejecutar_control(texto) == (a ? 10 : b ? 20 : 30));
+    }
+    /* El mismo AST con whether anidado en un bloque. */
+    AstNodo envoltura = nodo(AST_BLOQUE, NULL);
+    hijos(&envoltura, &alternativo); verdadero.siguiente = &envoltura;
+    FILE *f = tmpfile(); assert(f);
+    assert(gf_generar_funcion(&fn, 4, referencia, destino, NULL, f, stderr) == 0);
+    fclose(f);
+
+    /* Ramas que continuan: el salto a fin debe omitir el also. */
+    verdadero.siguiente = &ultimo; verdadero.primer_hijo = NULL;
+    si.siguiente = &ret2;
+    for (int a = 0; a < 2; ++a) {
+        cond.texto = a ? "declare_true" : "declare_false";
+        f = tmpfile(); assert(f);
+        assert(gf_generar_funcion(&fn, 4, referencia, destino, NULL, f, stderr) == 0);
+        char texto[8192]; leer(f, texto, sizeof(texto)); fclose(f);
+        assert(strstr(texto, "sye x0, __gf_elegir_fin_0\n") != NULL);
+        assert(ejecutar_control(texto) == (a ? 20 : 30));
+    }
+    /* Sin also, una rama retorna y la otra continua hasta give 20. */
+    verdadero.siguiente = NULL; verdadero.primer_hijo = &ret1;
+    for (int a = 0; a < 2; ++a) {
+        cond.texto = a ? "declare_true" : "declare_false";
+        id.texto = "otra_funcion";
+        f = tmpfile(); assert(f);
+        assert(gf_generar_funcion(&fn, 4, referencia, destino, NULL, f, stderr) == 0);
+        char texto[8192]; leer(f, texto, sizeof(texto)); fclose(f);
+        assert(strstr(texto, "__gf_otra_funcion_else_0:") != NULL);
+        assert(ejecutar_control(texto) == (a ? 10 : 20));
+    }
+    /* Falta retorno en la ruta falsa: se conserva la salida previa. */
+    si.siguiente = NULL;
+    f = tmpfile(); assert(f); fputs("previo\n", f);
+    assert(gf_generar_funcion(&fn, 4, referencia, destino, NULL, f, NULL) == 1);
+    char texto[8192]; leer(f, texto, sizeof(texto)); fclose(f);
+    assert(strcmp(texto, "previo\n") == 0);
+    /* Estructura incorrecta: tampoco publica el prologo parcial. */
+    cond.siguiente = NULL;
+    f = tmpfile(); assert(f);
+    assert(gf_generar_funcion(&fn, 4, referencia, destino, NULL, f, NULL) == 1);
+    assert(ftell(f) == 0); fclose(f);
+}
+
+static void ciclos(void)
+{
+    /* a=0; b=0; whale(a<limite) { a=a+1;
+     *   whale(b<a) { whether(true) { b=b+1; } }
+     * } give b; Usa los offsets del resolvedor real de esta prueba. */
+    AstNodo fn = nodo(AST_FUNCION, NULL), id = nodo(AST_IDENTIFICADOR, "contar");
+    AstNodo tipo = nodo(AST_TIPO, "declare_int"), params = nodo(AST_PARAMETROS, NULL);
+    AstNodo bloque = nodo(AST_BLOQUE, NULL);
+    AstNodo init = nodo(AST_ASIGNACION, NULL), ia = nodo(AST_IDENTIFICADOR, "a");
+    AstNodo cero = nodo(AST_ENTERO, "0"), initb = nodo(AST_ASIGNACION, NULL);
+    AstNodo ib = nodo(AST_IDENTIFICADOR, "b"), cerob = nodo(AST_ENTERO, "0");
+    AstNodo ciclo = nodo(AST_MIENTRAS, NULL), cond = nodo(AST_BINARIO, "<");
+    AstNodo ca = nodo(AST_IDENTIFICADOR, "a"), limite = nodo(AST_ENTERO, "4");
+    AstNodo cuerpo = nodo(AST_BLOQUE, NULL), asigna = nodo(AST_ASIGNACION, NULL);
+    AstNodo da = nodo(AST_IDENTIFICADOR, "a"), suma = nodo(AST_BINARIO, "gauss");
+    AstNodo sa = nodo(AST_IDENTIFICADOR, "a"), uno = nodo(AST_ENTERO, "1");
+    AstNodo interno = nodo(AST_MIENTRAS, NULL), cond2 = nodo(AST_BINARIO, "<");
+    AstNodo cb = nodo(AST_IDENTIFICADOR, "b"), ca2 = nodo(AST_IDENTIFICADOR, "a");
+    AstNodo cuerpo2 = nodo(AST_BLOQUE, NULL), si = nodo(AST_SI, NULL);
+    AstNodo verdad = nodo(AST_BOOLEANO, "declare_true"), rama = nodo(AST_BLOQUE, NULL);
+    AstNodo asignab = nodo(AST_ASIGNACION, NULL), db = nodo(AST_IDENTIFICADOR, "b");
+    AstNodo sumab = nodo(AST_BINARIO, "gauss"), sb = nodo(AST_IDENTIFICADOR, "b");
+    AstNodo unob = nodo(AST_ENTERO, "1"), ret = nodo(AST_RETORNO, NULL);
+    AstNodo rb = nodo(AST_IDENTIFICADOR, "b");
+    hijos(&fn, &id); id.siguiente = &tipo; tipo.siguiente = &params;
+    params.siguiente = &bloque; hijos(&bloque, &init);
+    hijos(&init, &ia); ia.siguiente = &cero; init.siguiente = &initb;
+    hijos(&initb, &ib); ib.siguiente = &cerob; initb.siguiente = &ciclo;
+    hijos(&ciclo, &cond); cond.siguiente = &cuerpo; ciclo.siguiente = &ret;
+    hijos(&cond, &ca); ca.siguiente = &limite;
+    hijos(&cuerpo, &asigna); hijos(&asigna, &da); da.siguiente = &suma;
+    hijos(&suma, &sa); sa.siguiente = &uno; asigna.siguiente = &interno;
+    hijos(&interno, &cond2); cond2.siguiente = &cuerpo2;
+    hijos(&cond2, &cb); cb.siguiente = &ca2;
+    hijos(&cuerpo2, &si); hijos(&si, &verdad); verdad.siguiente = &rama;
+    hijos(&rama, &asignab); hijos(&asignab, &db); db.siguiente = &sumab;
+    hijos(&sumab, &sb); sb.siguiente = &unob;
+    hijos(&ret, &rb);
+    char *limites[] = {"0", "1", "4"};
+    int esperados[] = {0, 1, 4};
+    for (unsigned i = 0; i < 3; ++i) {
+        limite.texto = limites[i];
+        FILE *f = tmpfile(); assert(f);
+        assert(gf_generar_funcion(&fn, 12, referencia, destino, NULL, f, stderr) == 0);
+        char texto[8192]; leer(f, texto, sizeof(texto)); fclose(f);
+        assert(strstr(texto, "__gf_contar_while_cond_0:"));
+        assert(strstr(texto, "__gf_contar_while_cond_1:"));
+        assert(strstr(texto, "__gf_contar_else_2:"));
+        assert(ejecutar_control(texto) == esperados[i]);
+    }
+    /* Un give dentro del ciclo sale de la funcion; cero vueltas continua. */
+    AstNodo retorno = nodo(AST_RETORNO, NULL), diez = nodo(AST_ENTERO, "10");
+    hijos(&retorno, &diez); cuerpo.primer_hijo = &retorno;
+    for (unsigned i = 0; i < 2; ++i) {
+        limite.texto = limites[i];
+        FILE *f = tmpfile(); assert(f);
+        assert(gf_generar_funcion(&fn, 12, referencia, destino, NULL, f, stderr) == 0);
+        char texto[8192]; leer(f, texto, sizeof(texto)); fclose(f);
+        assert(ejecutar_control(texto) == (i ? 10 : 0));
+    }
+    /* El retorno del cuerpo no cubre la ruta de cero vueltas. */
+    ciclo.siguiente = NULL;
+    FILE *f = tmpfile(); assert(f); fputs("previo\n", f);
+    assert(gf_generar_funcion(&fn, 12, referencia, destino, NULL, f, NULL) == 1);
+    char texto[8192]; leer(f, texto, sizeof(texto)); fclose(f);
+    assert(!strcmp(texto, "previo\n"));
+    /* Rechazo de ciclo sin cuerpo. */
+    cond.siguiente = NULL;
+    f = tmpfile(); assert(f);
+    assert(gf_generar_funcion(&fn, 12, referencia, destino, NULL, f, NULL) == 1);
+    assert(ftell(f) == 0); fclose(f);
+}
+
 int main(void)
 {
     cuerpo_simple();
     llamada_con_pila();
     rechazo_no_final();
     llamadas_anidadas();
-    puts("OK: 3B-D2 AST llamadas anidadas, temporales en pila y rollback");
+    condicionales();
+    ciclos();
+    puts("OK: funciones, llamadas, whether/alif/also, whale, rutas de retorno y rollback");
     return EXIT_SUCCESS;
 }
