@@ -20,6 +20,9 @@ typedef struct {
     void *datos;
     size_t bytes_marco;
     unsigned nivel;
+    const char *funcion;
+    unsigned etiquetas;
+    unsigned bloques;
 } Contexto;
 
 static int fallo(Contexto *c, const AstNodo *n, const char *mensaje)
@@ -179,17 +182,67 @@ static int asignacion_ext(Contexto *c, const AstNodo *n)
                    ref.desplazamiento) >= 0;
 }
 
-static int cuerpo(Contexto *c, const AstNodo *bloque, int es_void)
+/* Las etiquetas siguen siendo simbolicas hasta fijar bundles y NOP. */
+static int bloque_control(Contexto *c, const AstNodo *bloque, int es_void,
+                          int *retorna);
+
+static int condicional(Contexto *c, const AstNodo *n, int es_void, int *retorna)
+{
+    const AstNodo *cond = n->primer_hijo;
+    const AstNodo *si = cond ? cond->siguiente : NULL;
+    const AstNodo *no = si ? si->siguiente : NULL;
+    if (!cond || !si || si->tipo != AST_BLOQUE ||
+        (no && (no->siguiente ||
+                (no->tipo != AST_BLOQUE && no->tipo != AST_SI))))
+        return fallo(c, n, "estructura de whether/alif invalida");
+    if (c->bloques >= 256 || c->etiquetas == UINT_MAX)
+        return fallo(c, n, "demasiados condicionales anidados");
+    /* La semantica valida el tipo booleano antes de entrar al backend.
+     * Las condiciones con llamadas requieren ampliar expresion_ext. */
+    if (contiene_llamada(cond))
+        return fallo(c, cond, "condicion con llamadas aun no soportada");
+    unsigned etiqueta = c->etiquetas++;
+    if (!expresion_basica(c, cond, 0)) return 0;
+    if (fprintf(c->salida, "igualsi x4, x0, __gf_%s_else_%u\n",
+                c->funcion, etiqueta) < 0) return 0;
+    int retorna_si = 0, retorna_no = 0;
+    ++c->bloques;
+    int ok = bloque_control(c, si, es_void, &retorna_si);
+    if (ok && no && !retorna_si)
+        ok = fprintf(c->salida, "sye x0, __gf_%s_fin_%u\n",
+                     c->funcion, etiqueta) >= 0;
+    if (ok) ok = fprintf(c->salida, "__gf_%s_else_%u:\n",
+                         c->funcion, etiqueta) >= 0;
+    if (ok && no) {
+        if (no->tipo == AST_SI)
+            ok = condicional(c, no, es_void, &retorna_no);
+        else
+            ok = bloque_control(c, no, es_void, &retorna_no);
+    }
+    if (ok && no && !retorna_si)
+        ok = fprintf(c->salida, "__gf_%s_fin_%u:\n",
+                     c->funcion, etiqueta) >= 0;
+    --c->bloques;
+    *retorna = retorna_si && retorna_no;
+    return ok;
+}
+
+static int bloque_control(Contexto *c, const AstNodo *bloque, int es_void,
+                          int *retorna)
 {
     if (!bloque || bloque->tipo != AST_BLOQUE) return fallo(c, bloque, "bloque ausente");
     int retorno = 0;
     for (const AstNodo *n = bloque->primer_hijo; n; n = n->siguiente) {
         if (retorno) return fallo(c, n, "sentencias despues del retorno final");
+        if (n->tipo == AST_DECLARACION && c->bloques)
+            return fallo(c, n, "declaracion en bloque anidado requiere resolvedor de ambitos");
         if (n->tipo == AST_DECLARACION || n->tipo == AST_ASIGNACION) {
             if (contiene_llamada(n)) {
                 if (!asignacion_ext(c, n)) return 0;
             } else if (gb_generar(n, c->resolver, c->datos,
                                   c->salida, c->diagnosticos) != 0) return 0;
+        } else if (n->tipo == AST_SI) {
+            if (!condicional(c, n, es_void, &retorno)) return 0;
         } else if (n->tipo == AST_LLAMADA) {
             if (!llamada(c, n, 0)) return 0;
         } else if (n->tipo == AST_RETORNO) {
@@ -206,11 +259,12 @@ static int cuerpo(Contexto *c, const AstNodo *bloque, int es_void)
                     if (fprintf(c->salida, "sumai x8, x4, 0\n") < 0) return 0;
                 }
             }
+            if (fm_emitir_epilogo(c->salida, c->bytes_marco) != FM_OK) return 0;
             retorno = 1;
         } else return fallo(c, n, "sentencia fuera del subconjunto 3B-D1");
     }
-    if (!retorno && !es_void) return fallo(c, bloque, "falta retorno escalar final");
-    return fm_emitir_epilogo(c->salida, c->bytes_marco) == FM_OK;
+    *retorna = retorno;
+    return 1;
 }
 
 int gf_generar_funcion(const AstNodo *funcion, size_t bytes_marco,
@@ -222,7 +276,7 @@ int gf_generar_funcion(const AstNodo *funcion, size_t bytes_marco,
     const AstNodo *tipo = id ? id->siguiente : NULL;
     const AstNodo *params = tipo ? tipo->siguiente : NULL;
     const AstNodo *bloque = params ? params->siguiente : NULL;
-    if (!id || id->tipo != AST_IDENTIFICADOR || !tipo ||
+    if (!id || id->tipo != AST_IDENTIFICADOR || !id->texto || !*id->texto || !tipo ||
         tipo->tipo != AST_TIPO || !tipo->texto || !params ||
         params->tipo != AST_PARAMETROS || !bloque || bloque->siguiente ||
         bloque->tipo != AST_BLOQUE) return 1;
@@ -241,9 +295,15 @@ int gf_generar_funcion(const AstNodo *funcion, size_t bytes_marco,
     }
     FILE *temporal = tmpfile();
     if (!temporal) return 1;
-    Contexto c = {temporal, diagnosticos, resolver, destino, datos, bytes_marco, 0};
+    Contexto c = {temporal, diagnosticos, resolver, destino, datos, bytes_marco,
+                  0, id->texto, 0, 0};
+    int retorna = 0;
     int ok = fm_emitir_prologo(temporal, bytes_marco, cantidad) == FM_OK &&
-             cuerpo(&c, bloque, es_void);
+             bloque_control(&c, bloque, es_void, &retorna);
+    if (ok && !retorna) {
+        if (!es_void) ok = fallo(&c, bloque, "falta retorno escalar en algun camino");
+        else ok = fm_emitir_epilogo(temporal, bytes_marco) == FM_OK;
+    }
     if (ok && (fflush(temporal) != 0 || fseek(temporal, 0, SEEK_SET) != 0)) ok = 0;
     if (ok) {
         char buf[4096];

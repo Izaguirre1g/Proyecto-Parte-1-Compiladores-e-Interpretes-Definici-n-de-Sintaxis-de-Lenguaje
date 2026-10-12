@@ -1,5 +1,5 @@
 %% Demostracion del parser y AST: no se ejecuta ni se cargan modulos todavia.
-bring matematicas aka math;
+bring matematicas./ aka math;
 declare_const LIMITE * declare_int : 5;
 
 create_funk #declare_int# leer(m * declare_int[][], fila * declare_int, columna * declare_int) {
