@@ -1,0 +1,95 @@
+--- a/Makefile
++++ b/Makefile
+@@ -22,7 +22,7 @@
+ SRC := src/main.c src/cli.c src/lexer.c $(LEXER_GEN) src/token.c src/generacion_basica.c $(PARSER_SRC) Analisis_Semantico/symbol_table.c Analisis_Semantico/semantic.c Analisis_Semantico/semantic_modules.c Analisis_Semantico/memory.c
+ 
+ # Estos nombres son comandos de Make, no archivos.
+-.PHONY: all test test-parser test-ast test-cli test-generacion test-semantic-modules test-semantic-entry test-funciones-backend test-referencias-integracion test-m-simbolos test-auditoria-semantica clean
++.PHONY: all test test-parser test-ast test-cli test-generacion test-semantic-modules test-semantic-entry test-funciones-backend test-referencias-integracion test-m-simbolos test-auditoria-semantica test-ejercicio2-matriz clean
+ 
+ # Al ejecutar make, se construye balc.
+ all: balc
+@@ -46,7 +46,7 @@
+ 	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_lexer.c src/lexer.c $(LEXER_GEN) src/token.c -o $@
+ 
+ # Ejecuta las pruebas del proyecto y analiza el factorial.
+-test: tests/test_lexer balc test-parser test-ast test-cli test-generacion test-symbol-table test-semantic test-semantic-functions test-semantic-arrays test-semantic-matrix-cycle test-semantic-returns test-semantic-initializers test-semantic-dynamic-arrays test-semantic-lists test-semantic-list-indices test-semantic-composite-params test-semantic-pipeline test-semantic-modules test-semantic-entry test-funciones-backend test-referencias-integracion test-m-simbolos test-auditoria-semantica
++test: tests/test_lexer balc test-parser test-ast test-cli test-generacion test-symbol-table test-semantic test-semantic-functions test-semantic-arrays test-semantic-matrix-cycle test-semantic-returns test-semantic-initializers test-semantic-dynamic-arrays test-semantic-lists test-semantic-list-indices test-semantic-composite-params test-semantic-pipeline test-semantic-modules test-semantic-entry test-funciones-backend test-referencias-integracion test-m-simbolos test-auditoria-semantica test-ejercicio2-matriz
+ 	./tests/test_lexer
+ 	./balc -v examples/factorial.bal
+ 
+@@ -501,3 +501,8 @@
+ # Auditoria adicional: reglas seek/seize, ambitos y diagnosticos.
+ test-auditoria-semantica: balc
+ 	sh tests/test_auditoria_semantica.sh
++
++# Ejercicio 2: validacion del programa BAL sobre matriz 2D.
++.PHONY: test-ejercicio2-matriz
++test-ejercicio2-matriz: balc
++	sh tests/test_ejercicio2_matriz.sh
+--- a/examples/ejercicio2_busqueda_matriz.bal
++++ b/examples/ejercicio2_busqueda_matriz.bal
+@@ -0,0 +1,22 @@
++%% Ejercicio 2: buscar la primera aparicion de objetivo en una matriz 2x3.
++%% Al terminar: fila_encontrada, columna_encontrada = (-1, -1) si no existe.
++create_funk #declare_infinite_void# main() {
++    matriz * declare_int[2][3] : [[4, 7, 1], [9, 5, 7]];
++    objetivo * declare_int : 7;
++    fila * declare_int : 0;
++    columna * declare_int : 0;
++    fila_encontrada * declare_int : neumann 1;
++    columna_encontrada * declare_int : neumann 1;
++
++    whale (fila < 2) {
++        columna : 0;
++        whale (columna < 3) {
++            whether (matriz[fila][columna] == objetivo && fila_encontrada == neumann 1) {
++                fila_encontrada : fila;
++                columna_encontrada : columna;
++            }
++            columna : columna gauss 1;
++        } stop;
++        fila : fila gauss 1;
++    } stop;
++}
+--- a/tests/test_ejercicio2_matriz.sh
++++ b/tests/test_ejercicio2_matriz.sh
+@@ -0,0 +1,38 @@
++#!/bin/sh
++# Ejercicio 2: pruebas del frontend y de asignacion de memoria (no ejecucion BAL).
++set -eu
++salida=$(mktemp)
++error=$(mktemp)
++caso=$(mktemp --suffix=.bal)
++trap 'rm -f "$salida" "$error" "$caso"' EXIT HUP INT TERM
++fuente=examples/ejercicio2_busqueda_matriz.bal
++if ! ./balc --semantico "$fuente" >"$salida" 2>"$error"; then
++    echo 'FALLO: ejercicio 2 no supera analisis semantico' >&2
++    cat "$error" >&2
++    exit 1
++fi
++if ! ./balc -m "$fuente" >"$salida" 2>"$error"; then
++    echo 'FALLO: ejercicio 2 no supera asignacion de memoria' >&2
++    cat "$error" >&2
++    exit 1
++fi
++for patron in '[SIMBOLOS]' 'matriz | variable' 'objetivo | variable' 'fila_encontrada | variable' 'columna_encontrada | variable' '[MEMORIA]'; do
++    if ! grep -F "$patron" "$salida" >/dev/null; then
++        echo "FALLO: falta en -m: $patron" >&2
++        cat "$salida" >&2
++        exit 1
++    fi
++done
++# Mutacion negativa: indice estatico fuera de limite en primera dimension.
++# Se agrega dentro de main, reemplazando una instruccion existente sin alterar el resto.
++sed 's/columna : 0;/columna : matriz[2][0];/' "$fuente" > "$caso"
++if ./balc --semantico "$caso" >"$salida" 2>"$error"; then
++    echo 'FALLO: se acepto acceso matriz[2][0] fuera de rango' >&2
++    exit 1
++fi
++if ! grep -F 'fuera de rango' "$error" "$salida" >/dev/null 2>&1; then
++    echo 'FALLO: no se informo indice fuera de rango' >&2
++    cat "$error" >&2
++    exit 1
++fi
++printf '%s\n' 'OK: Ejercicio 2 - sintaxis, semantica, -m y rechazo de indices (sin ejecucion VLIW)'

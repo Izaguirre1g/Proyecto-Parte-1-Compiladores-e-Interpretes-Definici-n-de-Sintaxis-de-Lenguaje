@@ -213,12 +213,18 @@ static int cargar_normalizado(Cargador *c, const char *ruta, SemModo modo,
     size_t longitud = 0;
     int r = leer(ruta, &fuente, &longitud);
     if (r != 0) {
-        if (r == 1)
-            fprintf(c->diagnosticos, "%s:%zu:%zu: error semantico: "
-                    "no se pudo abrir modulo '%s'\n",
-                    importador ? importador : ruta,
-                    importacion ? importacion->ubicacion.first_line : 0,
-                    importacion ? importacion->ubicacion.first_column : 0, ruta);
+        if (r == 1) {
+            if (importacion) {
+                fprintf(c->diagnosticos, "%s:%zu:%zu: error semantico: "
+                        "no se pudo abrir modulo '%s'\n",
+                        importador ? importador : ruta,
+                        importacion->ubicacion.first_line,
+                        importacion->ubicacion.first_column, ruta);
+            } else {
+                fprintf(c->diagnosticos, "%s: error: "
+                        "no se pudo abrir el archivo principal\n", ruta);
+            }
+        }
         resultado = r;
         goto finalizar;
     }
@@ -262,6 +268,29 @@ static int cargar(Cargador *c, const char *ruta, SemModo modo,
                                       importador, importacion);
     free(normalizada);
     return resultado;
+}
+
+int sem_visitar_proyecto(const char *archivo_principal, FILE *diagnosticos,
+                        SemProyectoVisitante visitante, void *contexto)
+{
+    if (!archivo_principal || !*archivo_principal || !visitante) return 2;
+    Cargador c = {0};
+    c.diagnosticos = diagnosticos ? diagnosticos : stderr;
+    int r = cargar(&c, archivo_principal, SEM_PROGRAMA_PRINCIPAL, NULL, NULL);
+    if (r == 0) {
+        char *normalizada = normalizar_ruta(archivo_principal);
+        Modulo *principal = normalizada ? buscar(&c, normalizada) : NULL;
+        free(normalizada);
+        if (!principal || principal->estado != MOD_VALIDO)
+            r = 2;
+        else {
+            r = visitante(contexto, &principal->arbol, &principal->tabla,
+                          c.diagnosticos);
+            if (r != 0 && r != 1 && r != 2) r = 2;
+        }
+    }
+    liberar(&c);
+    return r;
 }
 
 int sem_analizar_proyecto(const char *archivo_principal, FILE *diagnosticos)

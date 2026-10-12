@@ -23,7 +23,7 @@ static const Caso casos[] = {
     {"salida sin argumento", {"./balc", "-o"}, 2, "necesita un archivo", "[AST]"},
     {"salida pendiente", {"./balc", "-o", "salida.bin", "examples/factorial.bal"}, 2, "aún no integrada", "[AST]"},
     {"ensamblador pendiente", {"./balc", "-s", "examples/factorial.bal"}, 2, "aún no integrada", "[AST]"},
-    {"simbolos pendientes", {"./balc", "-m", "examples/factorial.bal"}, 2, "aún no integrada", "[AST]"},
+    {"simbolos habilitados", {"./balc", "-m", "tests/fixtures/3bd3b_escalar.bal"}, 0, "[SIMBOLOS]", "aún no integrada"},
     {"ensamblado pendiente", {"./balc", "-x", "examples/factorial.bal"}, 2, "aún no integrada", "[AST]"},
     {"paquetes pendientes", {"./balc", "-p", "examples/factorial.bal"}, 2, "aún no integrada", "[AST]"},
     {"lexico", {"./balc", "examples/factorial.bal"}, 0, "Análisis léxico correcto", "[AST]"},

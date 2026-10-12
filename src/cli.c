@@ -3,6 +3,8 @@
 
 /*Se incluye interfaz del parser sintáctico, permite utilizar la funcion analizar_sintaxis() desde cli.c*/
 #include "sintactico.h"
+#include "semantic_modules.h"
+#include "memory.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -16,12 +18,14 @@ typedef struct {
 
     /*Bandera de sintaxis guarda si se pidio analizar sintaxis: 0 es desactivo y 1 es activado*/
     int syntax;
+    int symbols;
 } Options;
 
 static void usage(FILE *out) {
-    fputs("Uso: balc [-v] [-t] <archivo_fuente>\n"
+    fputs("Uso: balc [-v] [-t] [-m] <archivo_fuente>\n"
           "-t valida sintaxis e imprime el AST. Sin -t, solo analiza tokens.\n"
-          "Opciones del proyecto reservadas para integración: -o, -s, -m, -x, -p.\n", out);
+          "-m valida semantica, asigna memoria y muestra simbolos.\n"
+          "Opciones del proyecto reservadas para integración: -o, -s, -x, -p.\n", out);
 }
 
 static int parse_args(int argc, char **argv, Options *opt) {
@@ -32,6 +36,7 @@ static int parse_args(int argc, char **argv, Options *opt) {
         if (!positional && strcmp(arg, "-v") == 0) { opt->verbose = 1; continue; }
         /*Se agrega la opcion -t para validar sintaxis */
         if (!positional && strcmp(arg, "-t") == 0) { opt->syntax = 1; continue; }
+        if (!positional && strcmp(arg, "-m") == 0) { opt->symbols = 1; continue; }
         if (!positional && strcmp(arg, "-h") == 0) { usage(stdout); return 1; }
         if (!positional && strcmp(arg, "-o") == 0) {
             if (++i >= argc) { fputs("-o necesita un archivo de salida\n", stderr); return -1; }
@@ -39,7 +44,7 @@ static int parse_args(int argc, char **argv, Options *opt) {
             continue;
         }
         if (!positional && (strcmp(arg, "-s") == 0 ||
-                            strcmp(arg, "-m") == 0 || strcmp(arg, "-x") == 0 ||
+                            strcmp(arg, "-x") == 0 ||
                             strcmp(arg, "-p") == 0)) {
             opt->pending_option = arg;
             continue;
@@ -60,6 +65,10 @@ static int parse_args(int argc, char **argv, Options *opt) {
         return -1;
     }
     if (!opt->input) { usage(stderr); return -1; }
+    if (opt->symbols && (opt->syntax || opt->verbose)) {
+        fputs("-m no se combina con -t ni -v\n", stderr);
+        return -1;
+    }
     return 0;
 }
 
@@ -126,10 +135,87 @@ static int mostrar_ast(const char *fuente, size_t longitud, const char *nombre) 
     return estado;
 }
 
+/* Etapa 3B-D3F: reporte de datos, no mapa de codigo. */
+static const char *clase_sim(SimClase c)
+{
+    switch (c) {
+        case SIM_VARIABLE: return "variable";
+        case SIM_CONSTANTE: return "constante";
+        case SIM_FUNCION: return "funcion";
+        case SIM_PARAMETRO: return "parametro";
+        case SIM_LISTA: return "lista";
+        case SIM_MODULO: return "modulo";
+        case SIM_ETIQUETA: return "etiqueta";
+    }
+    return "desconocida";
+}
+
+static const char *tipo_sim(SimTipo t)
+{
+    switch (t) {
+        case SIM_TIPO_INT: return "declare_int";
+        case SIM_TIPO_BOOLEAN: return "declare_boolean";
+        case SIM_TIPO_TEXT: return "declare_text";
+        case SIM_TIPO_CHAR: return "declare_char";
+        case SIM_TIPO_VOID: return "declare_infinite_void";
+        case SIM_TIPO_ERROR: return "error";
+    }
+    return "desconocido";
+}
+
+static const char *almacen_sim(SimAlmacen a)
+{
+    switch (a) {
+        case SIM_ALMACEN_SIN_ASIGNAR: return "sin_asignar";
+        case SIM_ALMACEN_GLOBAL: return "global(gp)";
+        case SIM_ALMACEN_LOCAL: return "local(sp)";
+        case SIM_ALMACEN_PARAMETRO: return "parametro(sp)";
+        case SIM_ALMACEN_CODIGO: return "codigo";
+    }
+    return "desconocido";
+}
+
+static int reporte_simbolos(void *ctx, const Ast *arbol,
+                           SimTabla *tabla, FILE *diagnosticos)
+{
+    (void)ctx;
+    (void)arbol;
+    MemProyectoMapa mapa = {0};
+    MemProyectoResultado r = mem_asignar_proyecto(tabla, 0, 4096,
+                                                  1020, &mapa);
+    if (r != MEM_PROYECTO_OK) {
+        fprintf(diagnosticos, "-m: asignacion de memoria no disponible (codigo %d)\n", (int)r);
+        return 1;
+    }
+    /* Imprimir solo tras terminar la validacion y la asignacion. */
+    puts("[SIMBOLOS]");
+    puts("nombre | clase | tipo | ambito | nivel | almacen | bytes | desplazamiento | direccion_codigo");
+    for (const SimSimbolo *s = tabla->primero; s; s = s->siguiente_orden) {
+        const SimAmbito *a = s->ambito;
+        printf("%s | %s | %s | %s | %u | %s | %zu | ",
+               s->nombre ? s->nombre : "?", clase_sim(s->clase),
+               tipo_sim(s->tipo), a && a->nombre ? a->nombre : "?",
+               a ? a->nivel : 0, almacen_sim(s->almacen), s->bytes);
+        if (s->almacen == SIM_ALMACEN_GLOBAL ||
+            s->almacen == SIM_ALMACEN_LOCAL ||
+            s->almacen == SIM_ALMACEN_PARAMETRO)
+            printf("%ld", s->desplazamiento);
+        else
+            fputs("pendiente", stdout);
+        puts(" | pendiente");
+    }
+    printf("[MEMORIA] funciones=%zu marco_maximo_bytes=%zu\n",
+           mapa.funciones, mapa.marco_maximo_bytes);
+    return ferror(stdout) ? 2 : 0;
+}
+
 int cli_run(int argc, char **argv) {
     Options opt = {0};
     int parsed = parse_args(argc, argv, &opt);
     if (parsed != 0) return parsed == 1 ? 0 : 2;
+
+    if (opt.symbols)
+        return sem_visitar_proyecto(opt.input, stderr, reporte_simbolos, NULL);
 
     size_t size = 0;
     char *source = read_source(opt.input, &size);

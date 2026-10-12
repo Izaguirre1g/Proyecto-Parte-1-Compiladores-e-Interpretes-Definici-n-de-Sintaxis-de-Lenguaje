@@ -19,10 +19,10 @@ PARSER_SRC := Analisis_Sintactico/parser.c Analisis_Sintactico/puente_lexer.c An
 LEXER_GEN := src/lexer_flex.c
 
 # Archivos que forman el compilador.
-SRC := src/main.c src/cli.c src/lexer.c $(LEXER_GEN) src/token.c src/generacion_basica.c $(PARSER_SRC) Analisis_Semantico/symbol_table.c Analisis_Semantico/semantic.c
+SRC := src/main.c src/cli.c src/lexer.c $(LEXER_GEN) src/token.c src/generacion_basica.c $(PARSER_SRC) Analisis_Semantico/symbol_table.c Analisis_Semantico/semantic.c Analisis_Semantico/semantic_modules.c Analisis_Semantico/memory.c
 
 # Estos nombres son comandos de Make, no archivos.
-.PHONY: all test test-parser test-ast test-cli test-generacion test-semantic-modules clean
+.PHONY: all test test-parser test-ast test-cli test-generacion test-semantic-modules test-semantic-entry test-funciones-backend test-referencias-integracion test-m-simbolos test-auditoria-semantica test-ejercicio2-matriz clean
 
 # Al ejecutar make, se construye balc.
 all: balc
@@ -38,7 +38,7 @@ Analisis_Sintactico/parser.c Analisis_Sintactico/parser.h &: Analisis_Sintactico
 	$(BISON) -Wall -Werror -d -o Analisis_Sintactico/parser.c $<
 
 # Compila todos los módulos y crea el ejecutable balc.
-balc: $(SRC) include/cli.h include/lexer.h include/token.h include/sintactico.h include/ast.h include/generacion_basica.h Analisis_Sintactico/parser.h
+balc: $(SRC) include/cli.h include/lexer.h include/token.h include/sintactico.h include/ast.h include/generacion_basica.h include/semantic_modules.h include/semantic.h include/memory.h Analisis_Sintactico/parser.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(SRC) -o $@
 
 # Compila las pruebas del lexer, sin necesitar el parser.
@@ -46,7 +46,7 @@ tests/test_lexer: tests/test_lexer.c src/lexer.c $(LEXER_GEN) src/token.c includ
 	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_lexer.c src/lexer.c $(LEXER_GEN) src/token.c -o $@
 
 # Ejecuta las pruebas del proyecto y analiza el factorial.
-test: tests/test_lexer balc test-parser test-ast test-cli test-generacion test-symbol-table test-semantic test-semantic-functions test-semantic-arrays test-semantic-matrix-cycle test-semantic-returns test-semantic-initializers test-semantic-dynamic-arrays test-semantic-lists test-semantic-list-indices test-semantic-composite-params test-semantic-pipeline test-semantic-modules
+test: tests/test_lexer balc test-parser test-ast test-cli test-generacion test-symbol-table test-semantic test-semantic-functions test-semantic-arrays test-semantic-matrix-cycle test-semantic-returns test-semantic-initializers test-semantic-dynamic-arrays test-semantic-lists test-semantic-list-indices test-semantic-composite-params test-semantic-pipeline test-semantic-modules test-semantic-entry test-funciones-backend test-referencias-integracion test-m-simbolos test-auditoria-semantica test-ejercicio2-matriz
 	./tests/test_lexer
 	./balc -v examples/factorial.bal
 
@@ -86,7 +86,7 @@ test-generacion: tests/test_generacion
 # Sirve para volver a compilar todo desde cero.
 # Elimina los ejecutables y archivos generados.
 clean:
-	rm -f balc tests/test_lexer tests/test_parser tests/test_ast tests/test_cli tests/test_generacion tests/test_symbol_table tests/test_semantic tests/test_semantic_functions tests/test_semantic_arrays tests/test_semantic_matrix_cycle tests/test_semantic_returns test/test_semantic_dynamic_arrays test/test_semantic_lists test/test_semantic_list_indices test/test_semantic_composite_params test/test_semantic_pipeline tests/test_semantic_modules $(LEXER_GEN)
+	rm -f balc tests/test_lexer tests/test_parser tests/test_ast tests/test_cli tests/test_generacion tests/test_funciones_marco tests/test_funciones_llamada tests/test_funciones_integracion tests/test_generacion_funciones tests/test_semantic_visitante tests/test_generacion_adaptador tests/test_resolucion_referencias tests/test_referencias_integracion tests/test_symbol_table tests/test_semantic tests/test_semantic_functions tests/test_semantic_arrays tests/test_semantic_matrix_cycle tests/test_semantic_returns tests/test_semantic_dynamic_arrays test/test_semantic_lists test/test_semantic_list_indices test/test_semantic_composite_params test/test_semantic_pipeline tests/test_semantic_modules $(LEXER_GEN)
 
 # Pruebas de la tabla de símbolos
 .PHONY: test-symbol-table
@@ -402,3 +402,107 @@ test-semantic-modules: tests/test_semantic_modules
 	./tests/test_semantic_modules tests/modulos/./principal_llamada.bal 0
 	./tests/test_semantic_modules tests/modulos/./principal_ciclo.bal 1
 	@echo "OK: 20 escenarios de modulos BAL (sin offsets)"
+
+# Etapa 2O-D: validar salidas y diagnosticos del modo semantico de balc.
+# Las salidas negativas son esperadas: no deben hacer fallar la receta.
+test-semantic-entry: balc
+	@set -eu; \
+	 salida=$$(mktemp); \
+	 trap 'rm -f "$$salida"' EXIT HUP INT TERM; \
+	 verificar() { \
+	     etiqueta=$$1; esperado=$$2; patron=$$3; shift 3; \
+	     estado=0; ./balc --semantico "$$@" >"$$salida" 2>&1 || estado=$$?; \
+	     if [ "$$estado" -ne "$$esperado" ]; then \
+	         printf 'FALLO: %s: codigo %s (esperado %s)\n' "$$etiqueta" "$$estado" "$$esperado"; \
+	         cat "$$salida"; exit 1; \
+	     fi; \
+	     if [ -n "$$patron" ] && ! grep -F -q -- "$$patron" "$$salida"; then \
+	         printf 'FALLO: %s: falta diagnostico: %s\n' "$$etiqueta" "$$patron"; \
+	         cat "$$salida"; exit 1; \
+	     fi; \
+	     printf '[OK] %s (codigo %s)\n' "$$etiqueta" "$$esperado"; \
+	 }; \
+	 verificar 'proyecto valido' 0 'Integridad de tabla:' tests/modulos/principal_llamada.bal; \
+	 verificar 'error de tipos' 1 'argumento 2 de' tests/modulos/principal_tipo_error.bal; \
+	 verificar 'modulo inexistente' 1 "no se pudo abrir modulo 'tests/modulos/no_existe.bal'" tests/modulos/principal_inexistente.bal; \
+	 verificar 'principal inexistente' 1 'archivo_que_no_existe.bal: error: no se pudo abrir el archivo principal' tests/modulos/archivo_que_no_existe.bal; \
+	 verificar 'sin archivo' 2 'Uso:'; \
+	 verificar 'argumentos sobrantes' 2 'Uso:' tests/modulos/principal_llamada.bal otro.bal; \
+	 echo 'OK: 6 escenarios del modo --semantico (codigos y diagnosticos)'
+
+# Etapa 3B: pruebas aisladas del ABI y generacion desde AST.
+# No forman parte del ejecutable balc hasta integrar el resolvedor semantico.
+FUNCIONES_SRC := src/funciones_marco.c src/funciones_llamada.c
+
+tests/test_funciones_marco: tests/test_funciones_marco.c src/funciones_marco.c include/funciones_marco.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_funciones_marco.c src/funciones_marco.c -o $@
+
+tests/test_funciones_llamada: tests/test_funciones_llamada.c src/funciones_llamada.c include/funciones_llamada.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_funciones_llamada.c src/funciones_llamada.c -o $@
+
+tests/test_funciones_integracion: tests/test_funciones_integracion.c $(FUNCIONES_SRC) include/funciones_marco.h include/funciones_llamada.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_funciones_integracion.c $(FUNCIONES_SRC) -o $@
+
+tests/test_generacion_funciones: tests/test_generacion_funciones.c src/generacion_funciones.c src/generacion_basica.c $(FUNCIONES_SRC) include/generacion_funciones.h include/generacion_basica.h include/ast.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_generacion_funciones.c src/generacion_funciones.c src/generacion_basica.c $(FUNCIONES_SRC) -o $@
+
+.PHONY: test-funciones-backend
+test-funciones-backend: tests/test_funciones_marco tests/test_funciones_llamada tests/test_funciones_integracion tests/test_generacion_funciones
+	./tests/test_funciones_marco
+	./tests/test_funciones_llamada
+	./tests/test_funciones_integracion
+	./tests/test_generacion_funciones
+
+# 3B-D3B/D3C/D3D/D3E: fuentes aisladas del modulo y pruebas automatizadas.
+BACKEND_ESCALAR_SRC := src/generacion_adaptador.c src/generacion_funciones.c \
+                       src/generacion_basica.c $(FUNCIONES_SRC)
+
+# El visitante necesita el cargador, parser, lexer y asignador semantico.
+tests/test_semantic_visitante: tests/test_semantic_visitante.c $(MODULOS_SRC) \
+                              Analisis_Semantico/memory.c include/memory.h \
+                              include/semantic_modules.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_semantic_visitante.c \
+	      $(MODULOS_SRC) Analisis_Semantico/memory.c -o $@
+
+tests/test_generacion_adaptador: tests/test_generacion_adaptador.c \
+                                 $(BACKEND_ESCALAR_SRC) Analisis_Semantico/symbol_table.c \
+                                 include/generacion_adaptador.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_generacion_adaptador.c \
+	      $(BACKEND_ESCALAR_SRC) Analisis_Semantico/symbol_table.c -o $@
+
+tests/test_resolucion_referencias: tests/test_resolucion_referencias.c \
+                                   src/resolucion_referencias.c include/resolucion_referencias.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_resolucion_referencias.c \
+	      src/resolucion_referencias.c -o $@
+
+tests/test_referencias_integracion: tests/test_referencias_integracion.c \
+                                    src/referencias_integracion.c include/referencias_integracion.h \
+                                    src/resolucion_referencias.c $(BACKEND_ESCALAR_SRC) \
+                                    Analisis_Semantico/symbol_table.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_referencias_integracion.c \
+	      src/referencias_integracion.c src/resolucion_referencias.c \
+	      $(BACKEND_ESCALAR_SRC) Analisis_Semantico/symbol_table.c -o $@
+
+.PHONY: test-referencias-integracion
+test-referencias-integracion: tests/test_semantic_visitante \
+                              tests/test_generacion_adaptador \
+                              tests/test_resolucion_referencias \
+                              tests/test_referencias_integracion
+	./tests/test_semantic_visitante
+	./tests/test_generacion_adaptador
+	./tests/test_resolucion_referencias
+	./tests/test_referencias_integracion
+
+# 3B-D3F: comprueba el reporte de simbolos despues del analisis semantico.
+.PHONY: test-m-simbolos
+test-m-simbolos: balc
+	sh tests/test_m_simbolos.sh
+
+# Auditoria adicional: reglas seek/seize, ambitos y diagnosticos.
+test-auditoria-semantica: balc
+	sh tests/test_auditoria_semantica.sh
+
+# Ejercicio 2: validacion del programa BAL sobre matriz 2D.
+.PHONY: test-ejercicio2-matriz
+test-ejercicio2-matriz: balc
+	sh tests/test_ejercicio2_matriz.sh
