@@ -8,8 +8,11 @@
  * La tabla debe haber pasado por mem_asignar_proyecto().
  * bytes_marco corresponde a la funcion seleccionada, NO al maximo global.
  * El mapa de codigo pertenece al llamador: destinos no se inventan.
- * Solo variables/parametros enteros de la funcion (sin bloques anidados)
- * y constantes enteras globales. No produce bundles ni binarios.
+ * Variables/parametros enteros de la funcion y sus bloques, y constantes
+ * enteras globales. Conserva el alcance y orden de declaracion del AST.
+ * AST y tabla deben ser los mismos que valido semantica y permanecer vivos;
+ * el adaptador no posee sus datos. Tablas manuales sin enlaces solo admiten
+ * el ambito de funcion original. No produce bundles ni binarios.
  * 0 exito, 1 generacion o referencias no soportadas.
  */
 int gd_generar_funcion(const AstNodo *funcion, const SimTabla *tabla,

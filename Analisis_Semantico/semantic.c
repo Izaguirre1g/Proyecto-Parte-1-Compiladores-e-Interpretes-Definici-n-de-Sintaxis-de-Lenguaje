@@ -272,6 +272,7 @@ static int registrar(
         return 0;
     }
 
+    SimSimbolo *creado = NULL;
     SimResultado r = sim_insertar(
         s->tabla,
         nombre->texto,
@@ -279,8 +280,12 @@ static int registrar(
         tipo,
         nombre->ubicacion.first_line,
         nombre->ubicacion.first_column,
-        out
+        &creado
     );
+    if (r == SIM_OK) {
+        creado->declaracion = nombre;
+        if (out) *out = creado;
+    }
 
     if (r == SIM_DUPLICADO) {
 
@@ -2422,6 +2427,8 @@ static void bloque(
 
         entro = 1;
     }
+
+    s->tabla->actual->bloque = n;
 
     //Recorre las sentencias en orden
      

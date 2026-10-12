@@ -38,11 +38,12 @@ typedef enum {
 } SimAlmacen;
 
 //estructuras a utilizar
+struct AstNodo;
 typedef struct SimAmbito SimAmbito;
 typedef struct SimSimbolo SimSimbolo;
 typedef struct SimTabla SimTabla;
 
-//REsultados posibles de las operaciones
+//Resultados posibles de las operaciones
 typedef enum {
     SIM_OK = 0,
     SIM_DUPLICADO,
@@ -80,6 +81,10 @@ struct SimSimbolo {
     size_t linea;
     size_t columna;
 
+    /* Enlace prestado al identificador de declaracion. El AST debe vivir
+     * durante la generacion; la tabla nunca libera estos nodos. */
+    const struct AstNodo *declaracion;
+
     // Ámbito al que pertenece  
     SimAmbito *ambito;
 
@@ -97,6 +102,8 @@ struct SimSimbolo {
 // Por ambito entiendase el scope o alcance de una variable o constante
 
 struct SimAmbito {
+    /* Bloque AST que origino el ambito, prestado; NULL en tablas manuales. */
+    const struct AstNodo *bloque;
 
     char *nombre;
 

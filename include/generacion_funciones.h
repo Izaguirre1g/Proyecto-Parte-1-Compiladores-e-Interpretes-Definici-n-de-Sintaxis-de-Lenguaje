@@ -11,8 +11,8 @@ typedef int (*GfResolverDestino)(void *datos, const AstNodo *identificador,
 /* AST_FUNCION -> instrucciones lineales con etiquetas simbolicas.
  * Requiere AST validado semanticamente (tipos, condiciones y firmas).
  * Cuerpo: declaraciones inicializadas, asignaciones, llamadas, whether/alif/also
- * y whale anidados, y give. No admite condiciones con llamadas ni declaraciones
- * dentro de ramas o ciclos (pendiente el resolvedor de ambitos anidados).
+ * y whale anidados, y give. Admite declaraciones inicializadas en ramas y
+ * ciclos mediante un resolvedor de ambitos. No admite condiciones con llamadas.
  * Cada give emite su epilogo; una funcion escalar debe retornar en todos los
  * caminos. Rechaza sentencias tras un retorno incondicional.
  * Etiquetas reservadas: __gf_<funcion>_else_<n> / __gf_<funcion>_fin_<n>.

@@ -43,7 +43,7 @@ make test-funciones-backend test-referencias-integracion test-condicional-pipeli
 ./tests/test_condicional_pipeline --emitir
 ```
 
-`examples/condicional_meibel.bal` usa un `whether`, un `alif` y un `also`.
+`examples/condicional.bal` usa un `whether`, un `alif` y un `also`.
 Para `n = 5`, la rama correspondiente asigna 20 a `resultado`.
 El test de pipeline utiliza parser, semantica, tabla de simbolos, memoria y
 adaptador reales, y permite inspeccionar la salida lineal con `--emitir`.
@@ -76,8 +76,8 @@ que el mapa de funciones corresponda al layout final de bundles.
 - Admite `whale`; `AST_RECORRIDO` sigue pendiente.
 - No admite llamadas dentro de condiciones.
 - Se pueden usar variables de la funcion o globales admitidas por el adaptador.
-  Se rechazan declaraciones dentro de ramas para evitar resolver incorrectamente
-  nombres de ambitos anidados; esa integracion queda pendiente.
+  Admite declaraciones enteras inicializadas en ramas y ciclos, con resolucion
+  de ambitos y respeto del orden de declaracion.
 - No agrega opciones al CLI `balc`, empaquetado de bundles ni codificacion binaria.
 - Falta el arranque e integracion del programa completo y su ejecucion en el simulador RTL.
 
@@ -104,16 +104,48 @@ solo el retorno de una funcion escalar porque puede ejecutarse cero veces.
 
 Se permiten ciclos y condicionales anidados, asignaciones sobre variables del
 ambito de la funcion y retornos dentro del cuerpo. Se mantienen los limites:
-sin declaraciones dentro de bloques anidados ni llamadas en condiciones.
+sin llamadas en condiciones; las declaraciones enteras inicializadas dentro de
+bloques ya se admiten mediante el adaptador.
 
 ```sh
 make test-funciones-backend test-referencias-integracion test-whale-pipeline
 ./tests/test_condicional_pipeline --whale --emitir
 ```
 
-`examples/whale_meibel.bal` combina tres vueltas con un `whether / also`;
+`examples/whale.bal` combina tres vueltas con un `whether / also`;
 el resultado esperado es 21. La prueba del pipeline procesa ese BAL real hasta
 ensamblador lineal. Las pruebas del generador ejecutan en el modelo secuencial
 cero, una y cuatro vueltas, ciclos anidados con un condicional y retornos en el
 cuerpo. Tambien verifican rechazo sin publicar salida ante ciclos mal formados
 y funciones sin retorno fuera del ciclo. No se incorporan assembler ni bundler.
+
+## Variables de bloques anidados
+
+La semantica conserva enlaces prestados desde cada `SimAmbito` al bloque AST
+que lo origino y desde cada `SimSimbolo` al identificador de su declaracion.
+No modifica el AST ni reserva nuevas ubicaciones de memoria: `memory.c` ya
+asigna offsets diferentes a los locales de todos los bloques de una funcion.
+
+El adaptador busca el bloque del uso mediante los enlaces `padre` del AST,
+consulta ese ambito y asciende hasta funcion/global. Comprueba el orden del
+arbol: antes de una declaracion local el mismo nombre sigue refiriendose al
+simbolo externo. Desde la declaracion (incluido el inicializador, como hace
+semantica), se refiere al local. Al salir del bloque se recupera el externo;
+los bloques hermanos no comparten sus variables. No depende de `bloque_N`,
+lineas del fuente ni del orden global de insercion de simbolos.
+
+El AST y la tabla deben conservarse juntos hasta terminar la generacion.
+Los enlaces son prestados y no se liberan desde la tabla. Las tablas manuales
+sin estos enlaces conservan compatibilidad con la generacion simple de funcion.
+
+```sh
+make test-ambitos-generacion
+```
+
+La prueba utiliza parser, semantica y asignacion de memoria reales. Ejecuta el
+ensamblador lineal con el modelo secuencial de pruebas y comprueba sombras,
+uso anterior a la declaracion, bloques hermanos y un temporal de ciclo que se
+inicializa en cada vuelta. Tambien revisa offsets de parametros/globales,
+rechazo de nombres fuera de alcance y preservacion de la salida ante offsets
+invalidos. `examples/ambitos.bal` es un modulo de ejemplo cuya funcion
+`f` retorna 44; no tiene `main`. No se simulan bundles ni latencias de hardware.

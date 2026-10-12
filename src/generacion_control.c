@@ -73,9 +73,14 @@ int gc_bloque(GfContexto *c, const AstNodo *bloque, int es_void, int *retorna)
     int retorno = 0;
     for (const AstNodo *n = bloque->primer_hijo; n; n = n->siguiente) {
         if (retorno) return gf_fallo(c, n, "sentencias despues del retorno final");
-        if (n->tipo == AST_DECLARACION && c->bloques)
-            return gf_fallo(c, n, "declaracion en bloque anidado requiere resolvedor de ambitos");
-        if (n->tipo == AST_SI) {
+        if (n->tipo == AST_BLOQUE) {
+            if (c->bloques >= 256)
+                return gf_fallo(c, n, "demasiados bloques anidados");
+            ++c->bloques;
+            int ok = gc_bloque(c, n, es_void, &retorno);
+            --c->bloques;
+            if (!ok) return 0;
+        } else if (n->tipo == AST_SI) {
             if (!condicional(c, n, es_void, &retorno)) return 0;
         } else if (n->tipo == AST_MIENTRAS) {
             if (!mientras(c, n, es_void)) return 0;
