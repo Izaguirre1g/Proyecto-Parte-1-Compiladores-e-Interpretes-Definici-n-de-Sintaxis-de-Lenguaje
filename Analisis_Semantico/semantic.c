@@ -8,6 +8,52 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Etapa 2N-A: ruta de un modulo BAL relativa al archivo importador.
+ * El resultado es propiedad del llamador (free).
+ * No abre archivos ni registra simbolos.
+ */
+char *sem_ruta_modulo(const char *archivo_origen, const char *nombre_modulo)
+{
+    if (!archivo_origen || !*archivo_origen ||
+        !nombre_modulo || !*nombre_modulo) {
+        return NULL;
+    }
+
+    /* Los nombres de bring son identificadores, no rutas arbitrarias. */
+    for (const unsigned char *p = (const unsigned char *)nombre_modulo;
+         *p; ++p) {
+        if (!((*p >= 'a' && *p <= 'z') ||
+              (*p >= 'A' && *p <= 'Z') ||
+              (*p >= '0' && *p <= '9') || *p == '_')) {
+            return NULL;
+        }
+    }
+
+    const char *separador = strrchr(archivo_origen, '/');
+    size_t prefijo = separador
+        ? (size_t)(separador - archivo_origen + 1)
+        : 0;
+    size_t nombre = strlen(nombre_modulo);
+    const size_t sufijo = sizeof(".bal"); /* incluye NUL */
+
+    if (prefijo > SIZE_MAX - nombre ||
+        prefijo + nombre > SIZE_MAX - sufijo) {
+        return NULL;
+    }
+
+    char *ruta = malloc(prefijo + nombre + sufijo);
+    if (!ruta) {
+        return NULL;
+    }
+
+    if (prefijo) {
+        memcpy(ruta, archivo_origen, prefijo);
+    }
+    memcpy(ruta + prefijo, nombre_modulo, nombre);
+    memcpy(ruta + prefijo + nombre, ".bal", sufijo);
+    return ruta;
+}
+
 //Contexto del análisis semántico
 //Almacena la tabla de símbolos, el archivo actual y los errores
 typedef struct {
@@ -22,6 +68,8 @@ typedef struct {
     int fatal;
 
     unsigned bloques;
+    SemResolverModulo resolver;
+    void *contexto_modulos;
 
 
     //Información de la función que estamos analizando actualmente
@@ -267,6 +315,66 @@ static void analizar_intentar(
     Sem *s,
     const AstNodo *n
 );
+
+static const AstNodo *buscar_funcion_en(const Ast *arbol,
+                                           const char *nombre)
+{
+    if (!arbol || !arbol->raiz || !nombre) return NULL;
+    for (const AstNodo *n = arbol->raiz->primer_hijo; n; n = n->siguiente) {
+        const AstNodo *id = hijo(n, 0);
+        if (n->tipo == AST_FUNCION && id && id->texto &&
+            strcmp(id->texto, nombre) == 0) return n;
+    }
+    return NULL;
+}
+
+/* Resuelve una referencia alias.miembro, siempre en el ambito global
+ * del modulo importado. Nunca expone variables locales. */
+static const SimSimbolo *resolver_miembro(Sem *s, const AstNodo *n,
+                                        const Ast **modulo_ast)
+{
+    const AstNodo *base = hijo(n, 0);
+    const AstNodo *miembro = hijo(n, 1);
+    if (modulo_ast) *modulo_ast = NULL;
+    if (!base || base->tipo != AST_IDENTIFICADOR || !base->texto ||
+        !miembro || miembro->tipo != AST_IDENTIFICADOR || !miembro->texto) {
+        error(s, n, "acceso a miembro de modulo invalido");
+        return NULL;
+    }
+    SimSimbolo *alias = sim_buscar(s->tabla, base->texto);
+    if (!alias) {
+        error(s, base, "modulo '%s' no declarado", base->texto);
+        return NULL;
+    }
+    if (alias->clase != SIM_MODULO) {
+        error(s, base, "'%s' no es un modulo", base->texto);
+        return NULL;
+    }
+    const Ast *ast_remoto = NULL;
+    const SimTabla *tabla_remota = NULL;
+    if (!s->resolver || !s->resolver(s->contexto_modulos, s->archivo,
+                                     base->texto, &ast_remoto, &tabla_remota) ||
+        !ast_remoto || !tabla_remota || !tabla_remota->global) {
+        error(s, base, "modulo '%s' no disponible para resolver miembros",
+              base->texto);
+        return NULL;
+    }
+    const SimSimbolo *simbolo = NULL;
+    for (const SimSimbolo *p = tabla_remota->primero; p; p = p->siguiente_orden) {
+        if (p->ambito == tabla_remota->global &&
+            strcmp(p->nombre, miembro->texto) == 0) {
+            simbolo = p;
+            break;
+        }
+    }
+    if (!simbolo) {
+        error(s, miembro, "el modulo '%s' no exporta '%s'",
+              base->texto, miembro->texto);
+        return NULL;
+    }
+    if (modulo_ast) *modulo_ast = ast_remoto;
+    return simbolo;
+}
 
 static SimTipo analizar_acceso_miembro(
     Sem *s,
@@ -1999,92 +2107,36 @@ static SimTipo expresion(
             const AstNodo *dest = hijo(n, 0);
             const AstNodo *args = hijo(n, 1);
 
-            /*
-            * Por ahora trabajamos únicamente
-            * con llamadas directas:
-            *
-            * sumar(2, 3)
-            *
-            * Las llamadas a módulos como
-            * math.suma(2, 3) requieren
-            * implementar importaciones.
-            */
-            if (!dest ||
-                dest->tipo != AST_IDENTIFICADOR ||
-                !dest->texto) {
-
-                error(
-                    s,
-                    n,
-                    "llamadas a modulos pendientes "
-                    "de integracion"
-                );
-
-                /*
-                * Analizar igualmente los argumentos
-                * para detectar identificadores inválidos.
-                */
-                for (
-                    const AstNodo *a =
-                        args ? args->primer_hijo : NULL;
-                    a;
-                    a = a->siguiente
-                ) {
-                    (void)expresion(s, a);
-                }
-
-                return SIM_TIPO_ERROR;
+            const SimSimbolo *funcion = NULL;
+            const AstNodo *declaracion = NULL;
+            const char *nombre_funcion = NULL;
+            if (dest && dest->tipo == AST_IDENTIFICADOR && dest->texto) {
+                funcion = sim_buscar(s->tabla, dest->texto);
+                nombre_funcion = dest->texto;
+                if (funcion && funcion->clase == SIM_FUNCION)
+                    declaracion = buscar_funcion(s, nombre_funcion);
+            } else if (dest && dest->tipo == AST_ACCESO_MIEMBRO) {
+                const Ast *ast_remoto = NULL;
+                funcion = resolver_miembro(s, dest, &ast_remoto);
+                const AstNodo *id = hijo(dest, 1);
+                nombre_funcion = id ? id->texto : NULL;
+                if (funcion && funcion->clase == SIM_FUNCION)
+                    declaracion = buscar_funcion_en(ast_remoto, nombre_funcion);
+            } else {
+                error(s, n, "destino de llamada invalido");
             }
-
-            /*
-            * Buscar la función en la tabla.
-            */
-            SimSimbolo *funcion = sim_buscar(
-                s->tabla,
-                dest->texto
-            );
-
-            if (!funcion ||
-                funcion->clase != SIM_FUNCION) {
-
-                error(
-                    s,
-                    dest,
-                    "funcion '%s' no declarada",
-                    dest->texto
-                );
-
-                for (
-                    const AstNodo *a =
-                        args ? args->primer_hijo : NULL;
-                    a;
-                    a = a->siguiente
-                ) {
-                    (void)expresion(s, a);
-                }
-
-                return SIM_TIPO_ERROR;
-            }
-
-            /*
-            * Obtener la declaración original
-            * desde el AST.
-            */
-            const AstNodo *declaracion = buscar_funcion(
-                s,
-                dest->texto
-            );
-
-            if (!declaracion) {
-
-                error(
-                    s,
-                    dest,
-                    "no se encontro la firma "
-                    "de la funcion '%s'",
-                    dest->texto
-                );
-
+            if (!funcion || funcion->clase != SIM_FUNCION || !declaracion) {
+                if (funcion && funcion->clase != SIM_FUNCION)
+                    error(s, dest, "'%s' no es una funcion",
+                          nombre_funcion ? nombre_funcion : "<desconocido>");
+                else if (dest && dest->tipo == AST_IDENTIFICADOR)
+                    error(s, dest, "funcion '%s' no declarada o sin firma",
+                          nombre_funcion);
+                else if (funcion)
+                    error(s, dest, "no se encontro la firma de '%s'",
+                          nombre_funcion ? nombre_funcion : "<desconocido>");
+                for (const AstNodo *a = args ? args->primer_hijo : NULL;
+                     a; a = a->siguiente) (void)expresion(s, a);
                 return SIM_TIPO_ERROR;
             }
 
@@ -2114,7 +2166,7 @@ static SimTipo expresion(
                     n,
                     "funcion '%s' esperaba %zu "
                     "argumentos, pero recibio %zu",
-                    dest->texto,
+                    nombre_funcion,
                     esperados,
                     recibidos
                 );
@@ -2172,7 +2224,7 @@ static SimTipo expresion(
                         s,
                         argumento,
                         tipo_parametro,
-                        dest->texto,
+                        nombre_funcion,
                         posicion
                     );
 
@@ -2219,7 +2271,7 @@ static SimTipo expresion(
                                 "coleccion completa a un "
                                 "parametro escalar",
                                 posicion,
-                                dest->texto
+                                nombre_funcion
                             );
                         }
                     }
@@ -2235,7 +2287,7 @@ static SimTipo expresion(
                             "argumento %zu de '%s': "
                             "se esperaba %s, se obtuvo %s",
                             posicion,
-                            dest->texto,
+                            nombre_funcion,
                             sim_nombre_tipo(esperado),
                             sim_nombre_tipo(recibido)
                         );
@@ -3786,98 +3838,33 @@ static void registrar_importacion(
  * No intenta inventar los miembros de un
  * modulo cuya interfaz aun no esta cargada.
  */
-static SimTipo analizar_acceso_miembro(
-    Sem *s,
-    const AstNodo *n
-)
+static SimTipo analizar_acceso_miembro(Sem *s, const AstNodo *n)
 {
-    const AstNodo *base = hijo(n, 0);
-    const AstNodo *miembro = hijo(n, 1);
-
-    if (!base || !miembro ||
-        miembro->tipo != AST_IDENTIFICADOR ||
-        !miembro->texto) {
-
-        error(
-            s,
-            n,
-            "acceso a miembro invalido"
-        );
-
+    const SimSimbolo *simbolo = resolver_miembro(s, n, NULL);
+    if (!simbolo) return SIM_TIPO_ERROR;
+    if (simbolo->clase == SIM_FUNCION || simbolo->clase == SIM_MODULO) {
+        error(s, n, "un miembro funcion o modulo no es un valor escalar");
         return SIM_TIPO_ERROR;
     }
-
-    /*
-     * Por ahora admitimos como referencia
-     * de modulo un identificador simple.
-     */
-    if (base->tipo != AST_IDENTIFICADOR ||
-        !base->texto) {
-
-        error(
-            s,
-            n,
-            "accesos anidados a miembros "
-            "pendientes de implementacion"
-        );
-
+    if (simbolo->clase != SIM_CONSTANTE || simbolo->dimensiones != 0) {
+        error(s, n, "solo se admite el acceso escalar a constantes importadas");
         return SIM_TIPO_ERROR;
     }
-
-    SimSimbolo *simbolo = sim_buscar(
-        s->tabla,
-        base->texto
-    );
-
-    if (!simbolo) {
-
-        error(
-            s,
-            base,
-            "modulo '%s' no declarado",
-            base->texto
-        );
-
-        return SIM_TIPO_ERROR;
-    }
-
-    if (simbolo->clase != SIM_MODULO) {
-
-        error(
-            s,
-            base,
-            "'%s' no es un modulo",
-            base->texto
-        );
-
-        return SIM_TIPO_ERROR;
-    }
-
-    /*
-     * El modulo fue importado, pero
-     * todavia no contamos con su tabla
-     * de simbolos exportados.
-     */
-    error(
-        s,
-        miembro,
-        "no se puede resolver '%s.%s': "
-        "carga de modulos pendiente",
-        base->texto,
-        miembro->texto
-    );
-
-    return SIM_TIPO_ERROR;
+    return simbolo->tipo;
 }
+
 
 //Función principal del análisis semántico.
 //Recibe el AST construido por y registra los símbolos del programa
  
-int analizar_semantica(
+int analizar_semantica_con_modulos(
     const Ast *arbol,
     SimTabla *tabla,
     const char *archivo,
-    FILE *diagnosticos
+    FILE *diagnosticos,
+    SemModo modo,
+    SemResolverModulo resolver,
+    void *contexto
 ) {
     //Verifica argumentos y estado inicial
      
@@ -3894,6 +3881,8 @@ int analizar_semantica(
     Sem s = {0};
 
     s.tabla = tabla;
+    s.resolver = resolver;
+    s.contexto_modulos = contexto;
     s.archivo = archivo;
     s.diagnosticos = diagnosticos;
 
@@ -3905,10 +3894,14 @@ int analizar_semantica(
     //Contador de funciones main
     size_t cantidad_main = 0;
 
+    if (modo != SEM_PROGRAMA_PRINCIPAL &&
+        modo != SEM_MODULO_IMPORTADO) {
+        return 2;
+    }
+
     //PRIMERA PASADA:
     //Registra funciones globales antes de analizar sus cuerpos
     //Así se admiten llamadas a funciones declaradas posteriormente
-     
     for (
         const AstNodo *n =
             arbol->raiz->primer_hijo;
@@ -3927,6 +3920,20 @@ int analizar_semantica(
                 strcmp(nombre->texto, "main") == 0) {
 
                 ++cantidad_main;
+
+                /*
+                * Los modulos importados no pueden
+                * declarar el punto de entrada main.
+                */
+                if (modo == SEM_MODULO_IMPORTADO) {
+
+                    error(
+                        &s,
+                        nombre,
+                        "un modulo importado no puede "
+                        "declarar la funcion main"
+                    );
+                }
 
                 /*
                 * main debe retornar void.
@@ -4027,8 +4034,16 @@ int analizar_semantica(
         }
     }
 
-    //Verifica existencia y unicidad de la función principal.
-    //Esta política corresponde a programas ejecutables
+    /*
+    * Solamente el programa principal
+    * necesita exactamente una funcion main.
+    *
+    * Los modulos no necesitan main.
+    * Si la declaran, el error ya se
+    * informa durante la primera pasada.
+    */
+    if (modo == SEM_PROGRAMA_PRINCIPAL) {
+
         if (cantidad_main == 0) {
 
             error(
@@ -4046,7 +4061,7 @@ int analizar_semantica(
                 "funcion main"
             );
         }
-
+    }
 
     //SEGUNDA PASADA: Analizar parámetros y cuerpos de cada función
      
@@ -4198,4 +4213,35 @@ int analizar_semantica(
     }
 
     return s.errores ? 1 : 0;
+}
+
+int analizar_semantica_modo(const Ast *arbol, SimTabla *tabla,
+                            const char *archivo, FILE *diagnosticos,
+                            SemModo modo)
+{
+    return analizar_semantica_con_modulos(arbol, tabla, archivo,
+                                         diagnosticos, modo, NULL, NULL);
+}
+
+/*
+ * API original.
+ *
+ * Conserva el comportamiento anterior:
+ * analizar_semantica() siempre analiza
+ * un programa principal.
+ */
+int analizar_semantica(
+    const Ast *arbol,
+    SimTabla *tabla,
+    const char *archivo,
+    FILE *diagnosticos
+)
+{
+    return analizar_semantica_modo(
+        arbol,
+        tabla,
+        archivo,
+        diagnosticos,
+        SEM_PROGRAMA_PRINCIPAL
+    );
 }

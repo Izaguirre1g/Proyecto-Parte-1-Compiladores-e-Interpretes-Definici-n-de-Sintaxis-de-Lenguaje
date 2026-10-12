@@ -8,6 +8,7 @@
  *
  * ./tests/test_semantic_pipeline archivo.bal 0
  * ./tests/test_semantic_pipeline archivo.bal 1
+ * ./tests/test_semantic_pipeline archivo.bal 0 modulo
  *
  * 0 = programa semanticamente valido
  * 1 = programa con errores semanticos
@@ -31,6 +32,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 static char *leer_archivo(
     const char *ruta,
@@ -128,7 +130,8 @@ static char *leer_archivo(
 
 
 static int ejecutar_pipeline(
-    const char *ruta
+    const char *ruta,
+    SemModo modo
 )
 {
     size_t longitud = 0;
@@ -192,11 +195,12 @@ static int ejecutar_pipeline(
      * Tercera fase:
      * analisis semantico.
      */
-        estado = analizar_semantica(
+        estado = analizar_semantica_modo(
             &arbol,
             &tabla,
             ruta,
-            stderr
+            stderr,
+            modo
         );
 
         /*
@@ -234,16 +238,26 @@ int main(
     char **argv
 )
 {
-    if (argc != 3) {
+    if (argc != 3 && argc != 4) {
 
         fprintf(
             stderr,
             "Uso: %s <archivo.bal> "
-            "<resultado_esperado>\n",
+            "<resultado_esperado> [modulo]\n",
             argv[0]
         );
 
         return 2;
+    }
+
+    SemModo modo = SEM_PROGRAMA_PRINCIPAL;
+
+    if (argc == 4) {
+        if (strcmp(argv[3], "modulo") != 0) {
+            fprintf(stderr, "modo invalido: use 'modulo'\n");
+            return 2;
+        }
+        modo = SEM_MODULO_IMPORTADO;
     }
 
     /*
@@ -280,7 +294,8 @@ int main(
      * Ejecutar parser y semantica.
      */
     int obtenido = ejecutar_pipeline(
-        argv[1]
+        argv[1],
+        modo
     );
 
     fprintf(

@@ -1,5 +1,3 @@
-cc -Iinclude -Isrc  -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 tests/test_lexer.c src/lexer.c src/lexer_flex.c src/token.c -o tests/test_lexer
-cc -Iinclude -Isrc  -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 src/main.c src/cli.c src/lexer.c src/lexer_flex.c src/token.c src/generacion_basica.c Analisis_Sintactico/parser.c Analisis_Sintactico/puente_lexer.c Analisis_Sintactico/ast.c Analisis_Semantico/symbol_table.c Analisis_Semantico/semantic.c -o balc
 ./tests/test_parser
 
 --- Caso 1/132: bloque vacio ---
@@ -272,7 +270,7 @@ create_funk #declare_int# f(a *) {}
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:32: error del parser: syntax error, unexpected RPAREN
+/tmp/test_parser_jwpTvp/prueba.bal:1:32: error del parser: syntax error, unexpected RPAREN
 
 
 --- Caso 10/132: parametro sin nombre ---
@@ -282,7 +280,7 @@ create_funk #declare_int# f(* declare_int) {}
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:29: error del parser: syntax error, unexpected STAR, expecting IDENTIFIER or RPAREN
+/tmp/test_parser_jwpTvp/prueba.bal:1:29: error del parser: syntax error, unexpected STAR, expecting IDENTIFIER or RPAREN
 
 
 --- Caso 11/132: parametro sin estrella ---
@@ -292,7 +290,7 @@ create_funk #declare_int# f(a declare_int) {}
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:31: error del parser: syntax error, unexpected DECLARE_INT, expecting STAR
+/tmp/test_parser_jwpTvp/prueba.bal:1:31: error del parser: syntax error, unexpected DECLARE_INT, expecting STAR
 
 
 --- Caso 12/132: parametro void ---
@@ -302,7 +300,7 @@ create_funk #declare_int# f(a * declare_infinite_void) {}
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:33: error del parser: syntax error, unexpected DECLARE_INFINITE_VOID
+/tmp/test_parser_jwpTvp/prueba.bal:1:33: error del parser: syntax error, unexpected DECLARE_INFINITE_VOID
 
 
 --- Caso 13/132: parametro inicializado ---
@@ -312,7 +310,7 @@ create_funk #declare_int# f(a * declare_int : 1) {}
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:45: error del parser: syntax error, unexpected ASSIGN, expecting COMMA or LBRACKET or RPAREN
+/tmp/test_parser_jwpTvp/prueba.bal:1:45: error del parser: syntax error, unexpected ASSIGN, expecting COMMA or LBRACKET or RPAREN
 
 
 --- Caso 14/132: coma inicial ---
@@ -322,7 +320,7 @@ create_funk #declare_int# f(,a * declare_int) {}
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:29: error del parser: syntax error, unexpected COMMA, expecting IDENTIFIER or RPAREN
+/tmp/test_parser_jwpTvp/prueba.bal:1:29: error del parser: syntax error, unexpected COMMA, expecting IDENTIFIER or RPAREN
 
 
 --- Caso 15/132: coma final ---
@@ -332,7 +330,7 @@ create_funk #declare_int# f(a * declare_int,) {}
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:45: error del parser: syntax error, unexpected RPAREN, expecting IDENTIFIER
+/tmp/test_parser_jwpTvp/prueba.bal:1:45: error del parser: syntax error, unexpected RPAREN, expecting IDENTIFIER
 
 
 --- Caso 16/132: falta coma ---
@@ -342,7 +340,7 @@ create_funk #declare_int# f(a * declare_int b * declare_int) {}
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:45: error del parser: syntax error, unexpected IDENTIFIER, expecting COMMA or LBRACKET or RPAREN
+/tmp/test_parser_jwpTvp/prueba.bal:1:45: error del parser: syntax error, unexpected IDENTIFIER, expecting COMMA or LBRACKET or RPAREN
 
 
 --- Caso 17/132: comentarios ---
@@ -377,7 +375,7 @@ n * declare_int : 5
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:3:1: error del parser: syntax error, unexpected RBRACE
+/tmp/test_parser_jwpTvp/prueba.bal:3:1: error del parser: syntax error, unexpected RBRACE
 
 
 --- Caso 19/132: falta stop ---
@@ -389,7 +387,7 @@ whale (n > 0) {}
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:3:1: error del parser: syntax error, unexpected RBRACE, expecting STOP
+/tmp/test_parser_jwpTvp/prueba.bal:3:1: error del parser: syntax error, unexpected RBRACE, expecting STOP
 
 
 --- Caso 20/132: also suelto ---
@@ -401,7 +399,7 @@ also {}
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:2:1: error del parser: syntax error, unexpected ALSO
+/tmp/test_parser_jwpTvp/prueba.bal:2:1: error del parser: syntax error, unexpected ALSO
 
 
 --- Caso 21/132: comparacion encadenada ---
@@ -413,7 +411,7 @@ b * declare_boolean : 1 < 2 < 3;
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:2:29: error del parser: syntax error, unexpected LESS
+/tmp/test_parser_jwpTvp/prueba.bal:2:29: error del parser: syntax error, unexpected LESS
 
 
 --- Caso 22/132: falta llave ---
@@ -423,7 +421,7 @@ create_funk #declare_infinite_void# main() {
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:45: error del parser: syntax error, unexpected end of file
+/tmp/test_parser_jwpTvp/prueba.bal:1:45: error del parser: syntax error, unexpected end of file
 
 
 --- Caso 23/132: vacio ---
@@ -433,7 +431,7 @@ Código de entrada:
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:1: error del parser: syntax error, unexpected end of file, expecting BRING or DECLARE_CONST or CREATE_FUNK
+/tmp/test_parser_jwpTvp/prueba.bal:1:1: error del parser: syntax error, unexpected end of file, expecting BRING or DECLARE_CONST or CREATE_FUNK
 
 
 --- Caso 24/132: sentencia fuera de funcion ---
@@ -443,7 +441,7 @@ n * declare_int : 5;
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:1: error del parser: syntax error, unexpected IDENTIFIER, expecting BRING or DECLARE_CONST or CREATE_FUNK
+/tmp/test_parser_jwpTvp/prueba.bal:1:1: error del parser: syntax error, unexpected IDENTIFIER, expecting BRING or DECLARE_CONST or CREATE_FUNK
 
 
 --- Caso 25/132: retorno con valor ---
@@ -568,7 +566,7 @@ create_funk #declare_int# f() { give 1 }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:40: error del parser: syntax error, unexpected RBRACE
+/tmp/test_parser_jwpTvp/prueba.bal:1:40: error del parser: syntax error, unexpected RBRACE
 
 
 --- Caso 31/132: retorno vacio sin punto y coma ---
@@ -578,7 +576,7 @@ create_funk #declare_infinite_void# main() { give }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:51: error del parser: syntax error, unexpected RBRACE
+/tmp/test_parser_jwpTvp/prueba.bal:1:51: error del parser: syntax error, unexpected RBRACE
 
 
 --- Caso 32/132: retorno con expresion incompleta ---
@@ -588,7 +586,7 @@ create_funk #declare_int# f() { give 1 gauss; }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:45: error del parser: syntax error, unexpected SEMICOLON
+/tmp/test_parser_jwpTvp/prueba.bal:1:45: error del parser: syntax error, unexpected SEMICOLON
 
 
 --- Caso 33/132: retorno fuera de funcion ---
@@ -598,7 +596,7 @@ give 1;
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:1: error del parser: syntax error, unexpected GIVE, expecting BRING or DECLARE_CONST or CREATE_FUNK
+/tmp/test_parser_jwpTvp/prueba.bal:1:1: error del parser: syntax error, unexpected GIVE, expecting BRING or DECLARE_CONST or CREATE_FUNK
 
 
 --- Caso 34/132: retorno no es expresion ---
@@ -608,7 +606,7 @@ create_funk #declare_int# f() { n * declare_int : give 1; }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:51: error del parser: syntax error, unexpected GIVE
+/tmp/test_parser_jwpTvp/prueba.bal:1:51: error del parser: syntax error, unexpected GIVE
 
 
 --- Caso 35/132: llamada sin argumentos ---
@@ -817,7 +815,7 @@ create_funk #declare_infinite_void# main() { f(,1); }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:48: error del parser: syntax error, unexpected COMMA
+/tmp/test_parser_jwpTvp/prueba.bal:1:48: error del parser: syntax error, unexpected COMMA
 
 
 --- Caso 41/132: llamada coma final ---
@@ -827,7 +825,7 @@ create_funk #declare_infinite_void# main() { f(1,); }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:50: error del parser: syntax error, unexpected RPAREN
+/tmp/test_parser_jwpTvp/prueba.bal:1:50: error del parser: syntax error, unexpected RPAREN
 
 
 --- Caso 42/132: llamada argumento ausente ---
@@ -837,7 +835,7 @@ create_funk #declare_infinite_void# main() { f(1,,2); }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:50: error del parser: syntax error, unexpected COMMA
+/tmp/test_parser_jwpTvp/prueba.bal:1:50: error del parser: syntax error, unexpected COMMA
 
 
 --- Caso 43/132: llamada falta coma ---
@@ -847,7 +845,7 @@ create_funk #declare_infinite_void# main() { f(1 2); }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:50: error del parser: syntax error, unexpected INTEGER
+/tmp/test_parser_jwpTvp/prueba.bal:1:50: error del parser: syntax error, unexpected INTEGER
 
 
 --- Caso 44/132: llamada falta parentesis ---
@@ -857,7 +855,7 @@ create_funk #declare_infinite_void# main() { f(1; }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:49: error del parser: syntax error, unexpected SEMICOLON
+/tmp/test_parser_jwpTvp/prueba.bal:1:49: error del parser: syntax error, unexpected SEMICOLON
 
 
 --- Caso 45/132: llamada falta punto y coma ---
@@ -867,7 +865,7 @@ create_funk #declare_infinite_void# main() { f() }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:50: error del parser: syntax error, unexpected RBRACE, expecting SEMICOLON
+/tmp/test_parser_jwpTvp/prueba.bal:1:50: error del parser: syntax error, unexpected RBRACE, expecting SEMICOLON
 
 
 --- Caso 46/132: llamada fuera de funcion ---
@@ -877,7 +875,7 @@ f();
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:1: error del parser: syntax error, unexpected IDENTIFIER, expecting BRING or DECLARE_CONST or CREATE_FUNK
+/tmp/test_parser_jwpTvp/prueba.bal:1:1: error del parser: syntax error, unexpected IDENTIFIER, expecting BRING or DECLARE_CONST or CREATE_FUNK
 
 
 --- Caso 47/132: argumento expresion incompleta ---
@@ -887,7 +885,7 @@ create_funk #declare_infinite_void# main() { f(1 gauss); }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:55: error del parser: syntax error, unexpected RPAREN
+/tmp/test_parser_jwpTvp/prueba.bal:1:55: error del parser: syntax error, unexpected RPAREN
 
 
 --- Caso 48/132: argumento no es parametro ---
@@ -897,7 +895,7 @@ create_funk #declare_infinite_void# main() { f(a * declare_int); }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:50: error del parser: syntax error, unexpected STAR
+/tmp/test_parser_jwpTvp/prueba.bal:1:50: error del parser: syntax error, unexpected STAR
 
 
 --- Caso 49/132: alif sin also ---
@@ -1151,7 +1149,7 @@ create_funk #declare_infinite_void# main() { alif (n == 0) {} }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:46: error del parser: syntax error, unexpected ALIF
+/tmp/test_parser_jwpTvp/prueba.bal:1:46: error del parser: syntax error, unexpected ALIF
 
 
 --- Caso 57/132: alif despues de also ---
@@ -1161,7 +1159,7 @@ create_funk #declare_infinite_void# main() { whether (n < 0) {} also {} alif (n 
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:73: error del parser: syntax error, unexpected ALIF
+/tmp/test_parser_jwpTvp/prueba.bal:1:73: error del parser: syntax error, unexpected ALIF
 
 
 --- Caso 58/132: also duplicado ---
@@ -1171,7 +1169,7 @@ create_funk #declare_infinite_void# main() { whether (n < 0) {} alif (n == 0) {}
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:90: error del parser: syntax error, unexpected ALSO
+/tmp/test_parser_jwpTvp/prueba.bal:1:90: error del parser: syntax error, unexpected ALSO
 
 
 --- Caso 59/132: alif sin condicion ---
@@ -1181,7 +1179,7 @@ create_funk #declare_infinite_void# main() { whether (n < 0) {} alif () {} }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:71: error del parser: syntax error, unexpected RPAREN
+/tmp/test_parser_jwpTvp/prueba.bal:1:71: error del parser: syntax error, unexpected RPAREN
 
 
 --- Caso 60/132: alif sin parentesis ---
@@ -1191,7 +1189,7 @@ create_funk #declare_infinite_void# main() { whether (n < 0) {} alif n == 0 {} }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:70: error del parser: syntax error, unexpected IDENTIFIER, expecting LPAREN
+/tmp/test_parser_jwpTvp/prueba.bal:1:70: error del parser: syntax error, unexpected IDENTIFIER, expecting LPAREN
 
 
 --- Caso 61/132: alif sin bloque ---
@@ -1201,7 +1199,7 @@ create_funk #declare_infinite_void# main() { whether (n < 0) {} alif (n == 0) gi
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:79: error del parser: syntax error, unexpected GIVE, expecting LBRACE
+/tmp/test_parser_jwpTvp/prueba.bal:1:79: error del parser: syntax error, unexpected GIVE, expecting LBRACE
 
 
 --- Caso 62/132: alif separado por sentencia ---
@@ -1211,7 +1209,7 @@ create_funk #declare_infinite_void# main() { whether (n < 0) {} n : 1; alif (n =
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:72: error del parser: syntax error, unexpected ALIF
+/tmp/test_parser_jwpTvp/prueba.bal:1:72: error del parser: syntax error, unexpected ALIF
 
 
 --- Caso 63/132: alif con punto y coma previo ---
@@ -1221,7 +1219,7 @@ create_funk #declare_infinite_void# main() { whether (n < 0) {}; alif (n == 0) {
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:64: error del parser: syntax error, unexpected SEMICOLON
+/tmp/test_parser_jwpTvp/prueba.bal:1:64: error del parser: syntax error, unexpected SEMICOLON
 
 
 --- Caso 64/132: declaracion sin inicializar ---
@@ -1299,7 +1297,7 @@ create_funk #declare_infinite_void# main() { n * declare_int : ; }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:64: error del parser: syntax error, unexpected SEMICOLON
+/tmp/test_parser_jwpTvp/prueba.bal:1:64: error del parser: syntax error, unexpected SEMICOLON
 
 
 --- Caso 68/132: declaracion sin punto y coma ---
@@ -1309,7 +1307,7 @@ create_funk #declare_infinite_void# main() { n * declare_int }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:62: error del parser: syntax error, unexpected RBRACE, expecting ASSIGN or SEMICOLON or COMMA or LBRACKET
+/tmp/test_parser_jwpTvp/prueba.bal:1:62: error del parser: syntax error, unexpected RBRACE, expecting ASSIGN or SEMICOLON or COMMA or LBRACKET
 
 
 --- Caso 69/132: declaracion coma final ---
@@ -1319,7 +1317,7 @@ create_funk #declare_infinite_void# main() { a * declare_int,; }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:62: error del parser: syntax error, unexpected SEMICOLON, expecting IDENTIFIER
+/tmp/test_parser_jwpTvp/prueba.bal:1:62: error del parser: syntax error, unexpected SEMICOLON, expecting IDENTIFIER
 
 
 --- Caso 70/132: logica completa ---
@@ -1420,7 +1418,7 @@ create_funk #declare_infinite_void# main() { b * declare_boolean : declare_true 
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:83: error del parser: syntax error, unexpected SEMICOLON
+/tmp/test_parser_jwpTvp/prueba.bal:1:83: error del parser: syntax error, unexpected SEMICOLON
 
 
 --- Caso 74/132: not sin operando ---
@@ -1430,7 +1428,7 @@ create_funk #declare_infinite_void# main() { b * declare_boolean : ~; }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:69: error del parser: syntax error, unexpected SEMICOLON
+/tmp/test_parser_jwpTvp/prueba.bal:1:69: error del parser: syntax error, unexpected SEMICOLON
 
 
 --- Caso 75/132: potencia sin operando ---
@@ -1440,7 +1438,7 @@ create_funk #declare_infinite_void# main() { n * declare_int : 2 descartes; }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:75: error del parser: syntax error, unexpected SEMICOLON
+/tmp/test_parser_jwpTvp/prueba.bal:1:75: error del parser: syntax error, unexpected SEMICOLON
 
 
 --- Caso 76/132: cycle paso por defecto ---
@@ -1570,7 +1568,7 @@ create_funk #declare_infinite_void# main() { cycle(i let 0 until 5) {} endgame; 
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:51: error del parser: syntax error, unexpected LPAREN, expecting IDENTIFIER
+/tmp/test_parser_jwpTvp/prueba.bal:1:51: error del parser: syntax error, unexpected LPAREN, expecting IDENTIFIER
 
 
 --- Caso 82/132: cycle formato anterior rechazado ---
@@ -1580,7 +1578,7 @@ create_funk #declare_infinite_void# main() { cycle(let i:0; until 5) {} endgame;
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:51: error del parser: syntax error, unexpected LPAREN, expecting IDENTIFIER
+/tmp/test_parser_jwpTvp/prueba.bal:1:51: error del parser: syntax error, unexpected LPAREN, expecting IDENTIFIER
 
 
 --- Caso 83/132: cycle sin endgame ---
@@ -1590,7 +1588,7 @@ create_funk #declare_infinite_void# main() { cycle i let 0 until 5 {} }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:71: error del parser: syntax error, unexpected RBRACE, expecting ENDGAME
+/tmp/test_parser_jwpTvp/prueba.bal:1:71: error del parser: syntax error, unexpected RBRACE, expecting ENDGAME
 
 
 --- Caso 84/132: cycle sin punto y coma ---
@@ -1600,7 +1598,7 @@ create_funk #declare_infinite_void# main() { cycle i let 0 until 5 {} endgame }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:79: error del parser: syntax error, unexpected RBRACE, expecting SEMICOLON
+/tmp/test_parser_jwpTvp/prueba.bal:1:79: error del parser: syntax error, unexpected RBRACE, expecting SEMICOLON
 
 
 --- Caso 85/132: cycle step sin valor ---
@@ -1610,7 +1608,7 @@ create_funk #declare_infinite_void# main() { cycle i let 0 until 5 step {} endga
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:73: error del parser: syntax error, unexpected LBRACE
+/tmp/test_parser_jwpTvp/prueba.bal:1:73: error del parser: syntax error, unexpected LBRACE
 
 
 --- Caso 86/132: arreglo sin inicializar ---
@@ -1855,7 +1853,7 @@ create_funk #declare_infinite_void# main() { a * declare_int[]; }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:62: error del parser: syntax error, unexpected RBRACKET
+/tmp/test_parser_jwpTvp/prueba.bal:1:62: error del parser: syntax error, unexpected RBRACKET
 
 
 --- Caso 94/132: indice vacio ---
@@ -1865,7 +1863,7 @@ create_funk #declare_infinite_void# main() { a[] : 1; }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:48: error del parser: syntax error, unexpected RBRACKET
+/tmp/test_parser_jwpTvp/prueba.bal:1:48: error del parser: syntax error, unexpected RBRACKET
 
 
 --- Caso 95/132: matriz falta corchete ---
@@ -1875,7 +1873,7 @@ create_funk #declare_infinite_void# main() { a * declare_int[2][3; }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:66: error del parser: syntax error, unexpected SEMICOLON
+/tmp/test_parser_jwpTvp/prueba.bal:1:66: error del parser: syntax error, unexpected SEMICOLON
 
 
 --- Caso 96/132: literal coma final ---
@@ -1885,7 +1883,7 @@ create_funk #declare_infinite_void# main() { a * declare_int[2] : [1,]; }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:70: error del parser: syntax error, unexpected RBRACKET
+/tmp/test_parser_jwpTvp/prueba.bal:1:70: error del parser: syntax error, unexpected RBRACKET
 
 
 --- Caso 97/132: literal falta separador ---
@@ -1895,7 +1893,7 @@ create_funk #declare_infinite_void# main() { a * declare_int[2] : [1 2]; }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:70: error del parser: syntax error, unexpected INTEGER
+/tmp/test_parser_jwpTvp/prueba.bal:1:70: error del parser: syntax error, unexpected INTEGER
 
 
 --- Caso 98/132: literal no asignable ---
@@ -1905,7 +1903,7 @@ create_funk #declare_infinite_void# main() { [1,2] : 3; }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:46: error del parser: syntax error, unexpected LBRACKET
+/tmp/test_parser_jwpTvp/prueba.bal:1:46: error del parser: syntax error, unexpected LBRACKET
 
 
 --- Caso 99/132: listas y operaciones ---
@@ -2007,7 +2005,7 @@ create_funk #declare_infinite_void# main() { add(a); }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:51: error del parser: syntax error, unexpected RPAREN
+/tmp/test_parser_jwpTvp/prueba.bal:1:51: error del parser: syntax error, unexpected RPAREN
 
 
 --- Caso 103/132: remove argumento extra ---
@@ -2017,7 +2015,7 @@ create_funk #declare_infinite_void# main() { remove(a,1,2); }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:56: error del parser: syntax error, unexpected COMMA
+/tmp/test_parser_jwpTvp/prueba.bal:1:56: error del parser: syntax error, unexpected COMMA
 
 
 --- Caso 104/132: size sin argumento ---
@@ -2027,7 +2025,7 @@ create_funk #declare_infinite_void# main() { size(); }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:51: error del parser: syntax error, unexpected RPAREN
+/tmp/test_parser_jwpTvp/prueba.bal:1:51: error del parser: syntax error, unexpected RPAREN
 
 
 --- Caso 105/132: size varios argumentos ---
@@ -2037,7 +2035,7 @@ create_funk #declare_infinite_void# main() { size(a,b); }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:52: error del parser: syntax error, unexpected COMMA
+/tmp/test_parser_jwpTvp/prueba.bal:1:52: error del parser: syntax error, unexpected COMMA
 
 
 --- Caso 106/132: lista sin tipo ---
@@ -2047,7 +2045,7 @@ create_funk #declare_infinite_void# main() { declare_list a : []; }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:61: error del parser: syntax error, unexpected ASSIGN, expecting STAR
+/tmp/test_parser_jwpTvp/prueba.bal:1:61: error del parser: syntax error, unexpected ASSIGN, expecting STAR
 
 
 --- Caso 107/132: importacion con alias ---
@@ -2145,7 +2143,7 @@ bring datos aka; create_funk #declare_infinite_void# main() {}
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:16: error del parser: syntax error, unexpected SEMICOLON, expecting IDENTIFIER
+/tmp/test_parser_jwpTvp/prueba.bal:1:16: error del parser: syntax error, unexpected SEMICOLON, expecting IDENTIFIER
 
 
 --- Caso 111/132: importacion sin punto y coma ---
@@ -2155,7 +2153,7 @@ bring datos create_funk #declare_infinite_void# main() {}
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:13: error del parser: syntax error, unexpected CREATE_FUNK, expecting SEMICOLON or AKA
+/tmp/test_parser_jwpTvp/prueba.bal:1:13: error del parser: syntax error, unexpected CREATE_FUNK, expecting SEMICOLON or AKA
 
 
 --- Caso 112/132: importacion dentro de funcion ---
@@ -2165,7 +2163,7 @@ create_funk #declare_infinite_void# main() { bring datos; }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:46: error del parser: syntax error, unexpected BRING
+/tmp/test_parser_jwpTvp/prueba.bal:1:46: error del parser: syntax error, unexpected BRING
 
 
 --- Caso 113/132: miembro ausente ---
@@ -2175,7 +2173,7 @@ create_funk #declare_infinite_void# main() { math.(1); }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:51: error del parser: syntax error, unexpected LPAREN, expecting IDENTIFIER
+/tmp/test_parser_jwpTvp/prueba.bal:1:51: error del parser: syntax error, unexpected LPAREN, expecting IDENTIFIER
 
 
 --- Caso 114/132: constante local ---
@@ -2225,7 +2223,7 @@ create_funk #declare_infinite_void# main() { declare_const limite * declare_int;
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:80: error del parser: syntax error, unexpected SEMICOLON, expecting ASSIGN or LBRACKET
+/tmp/test_parser_jwpTvp/prueba.bal:1:80: error del parser: syntax error, unexpected SEMICOLON, expecting ASSIGN or LBRACKET
 
 
 --- Caso 117/132: constante sin tipo ---
@@ -2235,7 +2233,7 @@ create_funk #declare_infinite_void# main() { declare_const limite : 5; }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:67: error del parser: syntax error, unexpected ASSIGN, expecting STAR
+/tmp/test_parser_jwpTvp/prueba.bal:1:67: error del parser: syntax error, unexpected ASSIGN, expecting STAR
 
 
 --- Caso 118/132: seek seize ---
@@ -2330,7 +2328,7 @@ create_funk #declare_infinite_void# main() { seek {} }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:54: error del parser: syntax error, unexpected RBRACE, expecting SEIZE
+/tmp/test_parser_jwpTvp/prueba.bal:1:54: error del parser: syntax error, unexpected RBRACE, expecting SEIZE
 
 
 --- Caso 122/132: seize sin seek ---
@@ -2340,7 +2338,7 @@ create_funk #declare_infinite_void# main() { seize (ErrorType e) {} }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:46: error del parser: syntax error, unexpected SEIZE
+/tmp/test_parser_jwpTvp/prueba.bal:1:46: error del parser: syntax error, unexpected SEIZE
 
 
 --- Caso 123/132: seize sin variable ---
@@ -2350,7 +2348,7 @@ create_funk #declare_infinite_void# main() { seek {} seize (ErrorType) {} }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:70: error del parser: syntax error, unexpected RPAREN, expecting IDENTIFIER
+/tmp/test_parser_jwpTvp/prueba.bal:1:70: error del parser: syntax error, unexpected RPAREN, expecting IDENTIFIER
 
 
 --- Caso 124/132: seize sin bloque ---
@@ -2360,7 +2358,7 @@ create_funk #declare_infinite_void# main() { seek {} seize (ErrorType e) give; }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:74: error del parser: syntax error, unexpected GIVE, expecting LBRACE
+/tmp/test_parser_jwpTvp/prueba.bal:1:74: error del parser: syntax error, unexpected GIVE, expecting LBRACE
 
 
 --- Caso 125/132: alif sin condicion sigue rechazado ---
@@ -2370,7 +2368,7 @@ create_funk #declare_infinite_void# main() { whether (declare_true) {} alif {} }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:77: error del parser: syntax error, unexpected LBRACE, expecting LPAREN
+/tmp/test_parser_jwpTvp/prueba.bal:1:77: error del parser: syntax error, unexpected LBRACE, expecting LPAREN
 
 
 --- Caso 126/132: declare_float sigue rechazado ---
@@ -2380,7 +2378,7 @@ create_funk #declare_infinite_void# main() { n * declare_float : 1; }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:50: error del parser: syntax error, unexpected IDENTIFIER, expecting DECLARE_INT or DECLARE_BOOLEAN or DECLARE_TEXT or DECLARE_CHAR
+/tmp/test_parser_jwpTvp/prueba.bal:1:50: error del parser: syntax error, unexpected IDENTIFIER, expecting DECLARE_INT or DECLARE_BOOLEAN or DECLARE_TEXT or DECLARE_CHAR
 
 
 --- Caso 127/132: token aun no soportado ---
@@ -2390,7 +2388,7 @@ create_funk #declare_infinite_void# main() { show(); }
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: token SHOW aún no admitido
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:46: token SHOW aún no admitido por la gramática
+/tmp/test_parser_jwpTvp/prueba.bal:1:46: token SHOW aún no admitido por la gramática
 
 
 --- Caso 128/132: error lexico ---
@@ -2402,7 +2400,7 @@ create_funk #declare_infinite_void# main() {
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: :2:1: error léxico
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:2:1: error léxico: carácter no permitido
+/tmp/test_parser_jwpTvp/prueba.bal:2:1: error léxico: carácter no permitido
 
 
 --- Caso 129/132: posicion tras Unicode ---
@@ -2414,7 +2412,7 @@ t * declare_text : "ñ"; @
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: :2:25: error léxico
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:2:25: error léxico: carácter no permitido
+/tmp/test_parser_jwpTvp/prueba.bal:2:25: error léxico: carácter no permitido
 
 
 --- Caso 130/132: decimal invalido ---
@@ -2426,7 +2424,7 @@ n * declare_int : 1.5;
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error léxico
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:2:19: error léxico: literal numérico inválido (solo enteros)
+/tmp/test_parser_jwpTvp/prueba.bal:2:19: error léxico: literal numérico inválido (solo enteros)
 
 
 --- Caso 131/132: NUL ---
@@ -2438,7 +2436,7 @@ create_funk #declare_infinite_void# main() {
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error léxico
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:2:1: error léxico: carácter no permitido
+/tmp/test_parser_jwpTvp/prueba.bal:2:1: error léxico: carácter no permitido
 
 
 --- Caso 132/132: texto sobrante ---
@@ -2451,7 +2449,7 @@ n
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnóstico esperado: error del parser
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:4:1: error del parser: syntax error, unexpected IDENTIFIER, expecting end of file or BRING or DECLARE_CONST or CREATE_FUNK
+/tmp/test_parser_jwpTvp/prueba.bal:4:1: error del parser: syntax error, unexpected IDENTIFIER, expecting end of file or BRING or DECLARE_CONST or CREATE_FUNK
 
 
 --- Comparación entre modo léxico y sintáctico ---
@@ -2464,13 +2462,13 @@ Análisis léxico correcto. Fases posteriores pendientes; no se generó binario.
 [OK] modo sintactico — código esperado: 1; obtenido: 1
 Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
 Diagnósticos:
-/tmp/test_parser_gdPWkf/prueba.bal:1:1: error del parser: syntax error, unexpected IDENTIFIER, expecting BRING or DECLARE_CONST or CREATE_FUNK
+/tmp/test_parser_jwpTvp/prueba.bal:1:1: error del parser: syntax error, unexpected IDENTIFIER, expecting BRING or DECLARE_CONST or CREATE_FUNK
 
 
 --- Archivo inexistente ---
 [OK] archivo inexistente — código esperado: 2; obtenido: 2
 Diagnósticos:
-/tmp/test_parser_gdPWkf/no_existe.bal: No such file or directory
+/tmp/test_parser_jwpTvp/no_existe.bal: No such file or directory
 
 
 --- examples/factorial.bal (-t) ---
@@ -2639,7 +2637,6 @@ Programa @2:1
 Análisis sintáctico correcto. Generación de código pendiente.
 
 OK: 132 casos del parser, modos de CLI y factorial con/sin -v
-cc -Iinclude -Isrc  -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 tests/test_ast.c Analisis_Sintactico/parser.c Analisis_Sintactico/puente_lexer.c Analisis_Sintactico/ast.c src/lexer.c src/lexer_flex.c src/token.c -o tests/test_ast
 ./tests/test_ast
 [OK AST] logica, residuo, potencia y precedencia de negacion
 [OK AST] inicializacion opcional, matrices, parametros, indices y listas
@@ -2669,7 +2666,6 @@ OK: 8 grupos de pruebas estructurales del AST
 [OK CLI] fin de opciones
 [OK CLI] expresiones
 OK: 17 casos de CLI
-cc -Iinclude -Isrc  -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 tests/test_generacion.c src/generacion_basica.c Analisis_Sintactico/parser.c Analisis_Sintactico/puente_lexer.c Analisis_Sintactico/ast.c src/lexer.c src/lexer_flex.c src/token.c -o tests/test_generacion
 ./tests/test_generacion
 OK: 29 casos de traducción y resultado
 OK: 22 rechazos con diagnóstico y sin salida parcial
@@ -2677,20 +2673,8 @@ OK: cargas y almacenamiento relativos a sp
 Modelo secuencial validado; no prueba bundles, binario ni procesador.
 ./tests/test_symbol_table
 Prueba exitosa
-cc -Iinclude -Isrc  -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 \
-    tests/test_semantic.c \
-    Analisis_Semantico/semantic.c \
-    Analisis_Semantico/symbol_table.c \
-    Analisis_Sintactico/ast.c \
-    -o tests/test_semantic
 ./tests/test_semantic
 OK: semantic AST, variable no declarada, tipos y duplicados
-cc -Iinclude -Isrc  -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 \
-    tests/test_semantic_functions.c \
-    Analisis_Semantico/semantic.c \
-    Analisis_Semantico/symbol_table.c \
-    Analisis_Sintactico/ast.c \
-    -o tests/test_semantic_functions
 ./tests/test_semantic_functions
 CASO 0: esperado=0, obtenido=0
 funciones.bal:1:1: error semantico: argumento 1 de 'identidad': se esperaba declare_int, se obtuvo declare_boolean
@@ -2705,12 +2689,6 @@ CASO 4: esperado=1, obtenido=1
 funciones.bal:1:1: error semantico: no se encontro la funcion main
 CASO 5: esperado=1, obtenido=1
 OK: funciones, argumentos, retornos y main
-cc -Iinclude -Isrc  -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 \
-    tests/test_semantic_arrays.c \
-    Analisis_Semantico/semantic.c \
-    Analisis_Semantico/symbol_table.c \
-    Analisis_Sintactico/ast.c \
-    -o tests/test_semantic_arrays
 ./tests/test_semantic_arrays
 CASO 0: esperado=0, obtenido=0
 arreglos.bal:1:1: error semantico: indice 8 fuera de rango en dimension 1 de 'numeros' (longitud 5)
@@ -2720,12 +2698,6 @@ CASO 2: esperado=1, obtenido=1
 arreglos.bal:1:1: error semantico: la dimension 1 debe ser mayor que cero
 CASO 3: esperado=1, obtenido=1
 OK: dimensiones, indices y limites de arreglos
-cc -Iinclude -Isrc  -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 \
-    tests/test_semantic_matrix_cycle.c \
-    Analisis_Semantico/semantic.c \
-    Analisis_Semantico/symbol_table.c \
-    Analisis_Sintactico/ast.c \
-    -o tests/test_semantic_matrix_cycle
 ./tests/test_semantic_matrix_cycle
 CASO 0: esperado=0, obtenido=0
 matrix_cycle.bal:1:1: error semantico: indice 2 fuera de rango en dimension 1 de 'matriz' (longitud 2)
@@ -2743,12 +2715,6 @@ CASO 7: esperado=0, obtenido=0
 matrix_cycle.bal:1:1: error semantico: identificador 'i' no declarado
 CASO 8: esperado=1, obtenido=1
 OK: matrices bidimensionales, cycle y ambitos
-cc -Iinclude -Isrc  -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 \
-    tests/test_semantic_returns.c \
-    Analisis_Semantico/semantic.c \
-    Analisis_Semantico/symbol_table.c \
-    Analisis_Sintactico/ast.c \
-    -o tests/test_semantic_returns
 ./tests/test_semantic_returns
 CASO 0: esperado=0, obtenido=0
 retornos.bal:1:1: error semantico: la funcion 'calcular' debe retornar un valor de tipo declare_int en todos los caminos
@@ -2763,12 +2729,6 @@ retornos.bal:1:1: error semantico: la funcion 'calcular' debe retornar un valor 
 CASO 6: esperado=1, obtenido=1
 CASO 7: esperado=0, obtenido=0
 OK: retornos obligatorios y rutas de ejecucion
-cc -Iinclude -Isrc  -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 \
-    tests/test_semantic_initializers.c \
-    Analisis_Semantico/semantic.c \
-    Analisis_Semantico/symbol_table.c \
-    Analisis_Sintactico/ast.c \
-    -o tests/test_semantic_initializers
 ./tests/test_semantic_initializers
 CASO 0: esperado=0, obtenido=0
 inicializadores.bal:1:1: error semantico: dimension 1: se esperaban 2 elementos, se encontraron 1
@@ -2778,12 +2738,6 @@ CASO 2: esperado=1, obtenido=1
 inicializadores.bal:1:1: error semantico: elemento de arreglo incompatible: se esperaba declare_int, se obtuvo declare_boolean
 CASO 3: esperado=1, obtenido=1
 OK: inicializadores de matrices y tipos de elementos
-cc -Iinclude -Isrc  -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 \
-    tests/test_semantic_dynamic_arrays.c \
-    Analisis_Semantico/semantic.c \
-    Analisis_Semantico/symbol_table.c \
-    Analisis_Sintactico/ast.c \
-    -o tests/test_semantic_dynamic_arrays
 ./tests/test_semantic_dynamic_arrays
 CASO 0: esperado=0, obtenido=0
 CASO 1: esperado=0, obtenido=0
@@ -2800,12 +2754,6 @@ CASO 7: esperado=1, obtenido=1
 dimensiones_dinamicas.bal:1:1: error semantico: la dimension 1 debe ser de tipo declare_int
 CASO 8: esperado=1, obtenido=1
 OK: dimensiones estaticas y dinamicas
-cc -Iinclude -Isrc  -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 \
-    tests/test_semantic_lists.c \
-    Analisis_Semantico/semantic.c \
-    Analisis_Semantico/symbol_table.c \
-    Analisis_Sintactico/ast.c \
-    -o tests/test_semantic_lists
 ./tests/test_semantic_lists
 CASO 0: esperado=0, obtenido=0
 listas.bal:1:1: error semantico: elemento de lista incompatible: se esperaba declare_int, se obtuvo declare_boolean
@@ -2824,12 +2772,6 @@ CASO 8: esperado=1, obtenido=1
 listas.bal:1:1: error semantico: identificador 'inexistente' no declarado
 CASO 9: esperado=1, obtenido=1
 OK: listas, inicializadores, add, remove y size
-cc -Iinclude -Isrc  -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 \
-    tests/test_semantic_list_indices.c \
-    Analisis_Semantico/semantic.c \
-    Analisis_Semantico/symbol_table.c \
-    Analisis_Sintactico/ast.c \
-    -o tests/test_semantic_list_indices
 ./tests/test_semantic_list_indices
 CASO 0: esperado=0, obtenido=0
 CASO 1: esperado=0, obtenido=0
@@ -2842,12 +2784,6 @@ CASO 4: esperado=1, obtenido=1
 indices_listas.bal:1:1: error semantico: identificador 'desconocida' no declarado
 CASO 5: esperado=1, obtenido=1
 OK: indices de listas y tipos de elementos
-cc -Iinclude -Isrc  -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 \
-    tests/test_semantic_composite_params.c \
-    Analisis_Semantico/semantic.c \
-    Analisis_Semantico/symbol_table.c \
-    Analisis_Sintactico/ast.c \
-    -o tests/test_semantic_composite_params
 ./tests/test_semantic_composite_params
 CASO 0: esperado=0, obtenido=0
 parametros_compuestos.bal:1:1: error semantico: argumento 1 de 'procesar': tipo de elemento incompatible (se esperaba declare_int, se obtuvo declare_boolean)
@@ -2864,6 +2800,103 @@ CASO 7: esperado=0, obtenido=0
 OK: parametros de arreglos, matrices y listas
 Pipeline compilado correctamente.
 Ejecuta el programa con un archivo BAL y su resultado esperado.
+./tests/test_semantic_modules tests/modulos/principal_valido.bal 0
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+MODULOS: esperado=0 obtenido=0
+./tests/test_semantic_modules tests/modulos/principal_inexistente.bal 1
+tests/modulos/principal_inexistente.bal:1:1: error semantico: no se pudo abrir modulo 'tests/modulos/no_existe.bal'
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/principal_ciclo.bal 1
+tests/modulos/b.bal:1:1: error semantico: importacion circular detectada hacia 'tests/modulos/a.bal'
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/principal_modulo_invalido.bal 1
+tests/modulos/modulo_con_main.bal:1:37: error semantico: un modulo importado no puede declarar la funcion main
+[OK] Integridad de tabla: 1 simbolos, sin offsets
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/principal_llamada.bal 0
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+MODULOS: esperado=0 obtenido=0
+./tests/test_semantic_modules tests/modulos/principal_funcion_inexistente.bal 1
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+tests/modulos/principal_funcion_inexistente.bal:4:36: error semantico: el modulo 'math' no exporta 'no_existe'
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/principal_argumentos_error.bal 1
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+tests/modulos/principal_argumentos_error.bal:4:31: error semantico: funcion 'sumar' esperaba 2 argumentos, pero recibio 1
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/principal_tipo_error.bal 1
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+tests/modulos/principal_tipo_error.bal:4:45: error semantico: argumento 2 de 'sumar': se esperaba declare_int, se obtuvo declare_boolean
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/principal_doble_importacion.bal 0
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+[OK] Integridad de tabla: 5 simbolos, sin offsets
+MODULOS: esperado=0 obtenido=0
+./tests/test_semantic_modules tests/modulos/principal_alias_duplicado.bal 1
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+tests/modulos/principal_alias_duplicado.bal:2:23: error semantico: 'math' ya fue declarado en este ambito
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/principal_constante.bal 0
+[OK] Integridad de tabla: 1 simbolos, sin offsets
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+MODULOS: esperado=0 obtenido=0
+./tests/test_semantic_modules tests/modulos/principal_alias_inexistente.bal 1
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+tests/modulos/principal_alias_inexistente.bal:4:28: error semantico: modulo 'otro' no declarado
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/principal_anidado.bal 0
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+MODULOS: esperado=0 obtenido=0
+./tests/test_semantic_modules tests/modulos/principal_compartido.bal 0
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+[OK] Integridad de tabla: 5 simbolos, sin offsets
+MODULOS: esperado=0 obtenido=0
+./tests/test_semantic_modules tests/modulos/principal_dependencia_error.bal 1
+tests/modulos/operaciones_error.bal:2:10: error semantico: retorno incompatible: se esperaba declare_int, se obtuvo declare_boolean
+[OK] Integridad de tabla: 1 simbolos, sin offsets
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/principal_privacidad.bal 1
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+tests/modulos/principal_privacidad.bal:4:36: error semantico: el modulo 'priv' no exporta 'secreto'
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/principal_arreglo_importado.bal 0
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+[OK] Integridad de tabla: 4 simbolos, sin offsets
+MODULOS: esperado=0 obtenido=0
+./tests/test_semantic_modules tests/modulos/principal_arreglo_error.bal 1
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+tests/modulos/principal_arreglo_error.bal:5:43: error semantico: argumento 1 de 'primero': tipo de elemento incompatible (se esperaba declare_int, se obtuvo declare_boolean)
+[OK] Integridad de tabla: 4 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/./principal_llamada.bal 0
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+MODULOS: esperado=0 obtenido=0
+./tests/test_semantic_modules tests/modulos/./principal_ciclo.bal 1
+tests/modulos/b.bal:1:1: error semantico: importacion circular detectada hacia 'tests/modulos/a.bal'
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+OK: 20 escenarios de modulos BAL (sin offsets)
 ./tests/test_lexer
 OK: 18 casos del lexer, incluido factorial.bal
 ./balc -v examples/factorial.bal

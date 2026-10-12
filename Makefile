@@ -22,7 +22,7 @@ LEXER_GEN := src/lexer_flex.c
 SRC := src/main.c src/cli.c src/lexer.c $(LEXER_GEN) src/token.c src/generacion_basica.c $(PARSER_SRC) Analisis_Semantico/symbol_table.c Analisis_Semantico/semantic.c
 
 # Estos nombres son comandos de Make, no archivos.
-.PHONY: all test test-parser test-ast test-cli test-generacion clean
+.PHONY: all test test-parser test-ast test-cli test-generacion test-semantic-modules clean
 
 # Al ejecutar make, se construye balc.
 all: balc
@@ -46,7 +46,7 @@ tests/test_lexer: tests/test_lexer.c src/lexer.c $(LEXER_GEN) src/token.c includ
 	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_lexer.c src/lexer.c $(LEXER_GEN) src/token.c -o $@
 
 # Ejecuta las pruebas del proyecto y analiza el factorial.
-test: tests/test_lexer balc test-parser test-ast test-cli test-generacion test-symbol-table test-semantic test-semantic-functions test-semantic-arrays test-semantic-matrix-cycle test-semantic-returns test-semantic-initializers test-semantic-dynamic-arrays test-semantic-lists test-semantic-list-indices test-semantic-composite-params test-semantic-pipeline
+test: tests/test_lexer balc test-parser test-ast test-cli test-generacion test-symbol-table test-semantic test-semantic-functions test-semantic-arrays test-semantic-matrix-cycle test-semantic-returns test-semantic-initializers test-semantic-dynamic-arrays test-semantic-lists test-semantic-list-indices test-semantic-composite-params test-semantic-pipeline test-semantic-modules
 	./tests/test_lexer
 	./balc -v examples/factorial.bal
 
@@ -86,7 +86,7 @@ test-generacion: tests/test_generacion
 # Sirve para volver a compilar todo desde cero.
 # Elimina los ejecutables y archivos generados.
 clean:
-	rm -f balc tests/test_lexer tests/test_parser tests/test_ast tests/test_cli tests/test_generacion tests/test_symbol_table tests/test_semantic tests/test_semantic_functions test/test_semantic_arrays test/test_semantic_matrix_cycle tests/test_semantic_returns test/test_semantic_dynamic_arrays test/test_semantic_lists test/test_semantic_list_indices test/test_semantic_composite_params test/test_semantic_pipeline $(LEXER_GEN)
+	rm -f balc tests/test_lexer tests/test_parser tests/test_ast tests/test_cli tests/test_generacion tests/test_symbol_table tests/test_semantic tests/test_semantic_functions tests/test_semantic_arrays tests/test_semantic_matrix_cycle tests/test_semantic_returns test/test_semantic_dynamic_arrays test/test_semantic_lists test/test_semantic_list_indices test/test_semantic_composite_params test/test_semantic_pipeline tests/test_semantic_modules $(LEXER_GEN)
 
 # Pruebas de la tabla de símbolos
 .PHONY: test-symbol-table
@@ -361,3 +361,44 @@ tests/test_semantic_pipeline: \
 test-semantic-pipeline: tests/test_semantic_pipeline
 	@echo "Pipeline compilado correctamente."
 	@echo "Ejecuta el programa con un archivo BAL y su resultado esperado."
+
+# ===========================================
+# ETAPA 2N-F: integracion de pruebas de modulos
+# ===========================================
+
+MODULOS_SRC := Analisis_Semantico/semantic_modules.c \
+               Analisis_Semantico/semantic.c \
+               Analisis_Semantico/symbol_table.c \
+               $(PARSER_SRC) src/lexer.c $(LEXER_GEN) src/token.c
+
+# Compilacion independiente: el CLI y el backend no participan.
+tests/test_semantic_modules: tests/test_semantic_modules.c $(MODULOS_SRC) \
+                             include/semantic_modules.h include/semantic.h \
+                             include/symbol_table.h include/ast.h \
+                             include/sintactico.h Analisis_Sintactico/parser.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_semantic_modules.c $(MODULOS_SRC) -o $@
+
+# Casos positivos, negativos, transitivos, compartidos y rutas equivalentes.
+# El ejecutable compara el codigo real (0, 1 o 2) con el esperado.
+test-semantic-modules: tests/test_semantic_modules
+	./tests/test_semantic_modules tests/modulos/principal_valido.bal 0
+	./tests/test_semantic_modules tests/modulos/principal_inexistente.bal 1
+	./tests/test_semantic_modules tests/modulos/principal_ciclo.bal 1
+	./tests/test_semantic_modules tests/modulos/principal_modulo_invalido.bal 1
+	./tests/test_semantic_modules tests/modulos/principal_llamada.bal 0
+	./tests/test_semantic_modules tests/modulos/principal_funcion_inexistente.bal 1
+	./tests/test_semantic_modules tests/modulos/principal_argumentos_error.bal 1
+	./tests/test_semantic_modules tests/modulos/principal_tipo_error.bal 1
+	./tests/test_semantic_modules tests/modulos/principal_doble_importacion.bal 0
+	./tests/test_semantic_modules tests/modulos/principal_alias_duplicado.bal 1
+	./tests/test_semantic_modules tests/modulos/principal_constante.bal 0
+	./tests/test_semantic_modules tests/modulos/principal_alias_inexistente.bal 1
+	./tests/test_semantic_modules tests/modulos/principal_anidado.bal 0
+	./tests/test_semantic_modules tests/modulos/principal_compartido.bal 0
+	./tests/test_semantic_modules tests/modulos/principal_dependencia_error.bal 1
+	./tests/test_semantic_modules tests/modulos/principal_privacidad.bal 1
+	./tests/test_semantic_modules tests/modulos/principal_arreglo_importado.bal 0
+	./tests/test_semantic_modules tests/modulos/principal_arreglo_error.bal 1
+	./tests/test_semantic_modules tests/modulos/./principal_llamada.bal 0
+	./tests/test_semantic_modules tests/modulos/./principal_ciclo.bal 1
+	@echo "OK: 20 escenarios de modulos BAL (sin offsets)"
