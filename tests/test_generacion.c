@@ -48,6 +48,10 @@ static int64_t con_signo(uint32_t n) {
     return n <= INT32_MAX ? (int64_t)n : (int64_t)n - INT64_C(4294967296);
 }
 
+static int temporal(unsigned r) {
+    return (r >= 4 && r <= 7) || (r >= 12 && r <= 15);
+}
+
 static void ejecutar(FILE *asmfile, uint32_t registros[32], uint32_t memoria[512]) {
     rewind(asmfile);
     char linea[128], op[16];
@@ -56,7 +60,7 @@ static void ejecutar(FILE *asmfile, uint32_t registros[32], uint32_t memoria[512
     while (fgets(linea, sizeof(linea), asmfile)) {
         uint32_t resultado = 0;
         if (sscanf(linea, "%15s x%u, x%u, x%u", op, &d, &a, &b) == 4) {
-            exigir(d >= 4 && d <= 7 && a < 32 && b < 32, "registro R");
+            exigir(temporal(d) && a < 32 && b < 32, "registro R");
             uint32_t x = registros[a], y = registros[b];
             if (!strcmp(op, "suma")) resultado = x + y;
             else if (!strcmp(op, "resta")) resultado = x - y;
@@ -83,9 +87,11 @@ static void ejecutar(FILE *asmfile, uint32_t registros[32], uint32_t memoria[512
             } else if (!strcmp(op, "sumai")) resultado = registros[a] + (uint32_t)inmediato;
             else if (!strcmp(op, "cizqi")) resultado = registros[a] << (inmediato & 31);
             else if (!strcmp(op, "ori")) resultado = registros[a] | (uint32_t)inmediato;
+            else if (!strcmp(op, "andi")) resultado = registros[a] & (uint32_t)inmediato;
+            else if (!strcmp(op, "cderi")) resultado = registros[a] >> (inmediato & 31);
             else if (!strcmp(op, "xori")) resultado = registros[a] ^ (uint32_t)inmediato;
             else exigir(0, "instrucción inmediata desconocida");
-            exigir(d >= 4 && d <= 7, "destino fuera de los temporales");
+            exigir(temporal(d), "destino fuera de los temporales");
         }
         registros[d] = resultado;
     }
@@ -99,6 +105,13 @@ typedef struct {
 } Caso;
 
 static const Caso casos[] = {
+    {"r : a pitagoras b;", 6, 7, 42, GB_ENTERO, GB_ENTERO},
+    {"r : a pitagoras b;", UINT32_MAX, 7, UINT32_C(4294967289), GB_ENTERO, GB_ENTERO},
+    {"r : a pitagoras b;", UINT32_MAX, UINT32_MAX, 1, GB_ENTERO, GB_ENTERO},
+    {"r : a pitagoras b;", UINT32_C(2147483648), 1, UINT32_C(2147483648), GB_ENTERO, GB_ENTERO},
+    {"r : a pitagoras b;", UINT32_C(2147483648), 2, 0, GB_ENTERO, GB_ENTERO},
+    {"r : (a pitagoras b) gauss (b pitagoras a);", 6, 7, 84, GB_ENTERO, GB_ENTERO},
+    {"r : a pitagoras (b pitagoras a);", 3, 4, 36, GB_ENTERO, GB_ENTERO},
     {"r : a gauss b;", 8, 3, 11, GB_ENTERO, GB_ENTERO},
     {"r : a gauss (b gauss (a gauss b));", 8, 3, 22, GB_ENTERO, GB_ENTERO},
     {"r : a neumann b;", 3, 8, UINT32_C(4294967291), GB_ENTERO, GB_ENTERO},
@@ -168,9 +181,9 @@ static void rechazar(const char *texto, Entorno e, const char *mensaje) {
 
 static void negativos(void) {
     Entorno e = {GB_ENTERO, GB_ENTERO, 3, 0, 1};
-    const char *no_soportados[] = {"r : a pitagoras b;", "r : a euclides b;",
+    const char *no_soportados[] = {"r : a euclides b;",
         "r : a euler b;", "r : a descartes b;"};
-    for (size_t i = 0; i < 4; ++i) rechazar(no_soportados[i], e, "sin traducción acordada");
+    for (size_t i = 0; i < 3; ++i) rechazar(no_soportados[i], e, "sin traducción acordada");
     rechazar("r : f();", e, "fuera del subconjunto");
     rechazar("r : a[0];", e, "fuera del subconjunto");
     rechazar("r : \"hola\";", e, "fuera del subconjunto");
@@ -197,7 +210,35 @@ static void negativos(void) {
     for (int i = 0; i < 257; ++i) strcat(unarios, "neumann ");
     strcat(unarios, "1;");
     rechazar(unarios, e, "demasiado profunda");
-    puts("OK: 22 rechazos con diagnóstico y sin salida parcial");
+    puts("OK: 21 rechazos con diagnóstico y sin salida parcial");
+}
+
+static void productos(void) {
+    Ast ast = {0};
+    const AstNodo *n = sentencia(&ast, "r : a pitagoras b;");
+    FILE *salida = tmpfile();
+    exigir(salida != NULL, "tmpfile");
+    Entorno e = {GB_ENTERO, GB_ENTERO, 3, 0, 1};
+    exigir(gb_generar(n, resolver, &e, salida, stderr) == 0, "producto");
+    uint32_t estado = UINT32_C(2022321746);
+    for (unsigned i = 0; i < 128; ++i) {
+        estado = estado * UINT32_C(1664525) + UINT32_C(1013904223);
+        uint32_t a = estado;
+        estado = estado * UINT32_C(1664525) + UINT32_C(1013904223);
+        uint32_t b = estado;
+        uint32_t registros[32], memoria[512] = {0};
+        for (unsigned j = 0; j < 32; ++j) registros[j] = UINT32_C(0x5a000000) + j;
+        registros[0] = 0; registros[3] = 256;
+        uint32_t originales[32];
+        memcpy(originales, registros, sizeof(registros));
+        memoria[64] = a; memoria[65] = b;
+        ejecutar(salida, registros, memoria);
+        exigir(memoria[66] == (uint32_t)((uint64_t)a * b), "producto modulo 2^32");
+        for (unsigned j = 0; j < 32; ++j)
+            if (!temporal(j)) exigir(registros[j] == originales[j], "preservar registros");
+    }
+    fclose(salida); ast_liberar(&ast);
+    puts("OK: 128 productos de 32 bits y registros preservados");
 }
 
 static void accesos(void) {
@@ -225,7 +266,7 @@ int main(int argc, char **argv) {
         return estado;
     }
     exigir(argc == 1, "uso: test_generacion [--ejemplo]");
-    positivos(); negativos(); accesos();
+    positivos(); negativos(); accesos(); productos();
     puts("Modelo secuencial validado; no prueba bundles, binario ni procesador.");
     return EXIT_SUCCESS;
 }

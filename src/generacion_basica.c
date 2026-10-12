@@ -66,6 +66,24 @@ static void constante(Generador *g, unsigned r, uint32_t v) {
     }
 }
 
+/* Producto de 32 bits por sumas y desplazamientos; no necesita MUL.
+ * x12-x15 son temporales y se reutilizan después de evaluar ambos operandos. */
+static void multiplicar(Generador *g, unsigned r) {
+    fprintf(g->salida, "sumai x12, x%u, 0\n"
+                       "sumai x13, x%u, 0\n"
+                       "sumai x14, x0, 0\n", r, r + 1);
+    for (unsigned bit = 0; bit < 32; ++bit) {
+        fprintf(g->salida, "andi x15, x13, 1\n"
+                           "resta x15, x0, x15\n"
+                           "and x15, x12, x15\n"
+                           "suma x14, x14, x15\n");
+        if (bit != 31)
+            fprintf(g->salida, "cizqi x12, x12, 1\n"
+                               "cderi x13, x13, 1\n");
+    }
+    fprintf(g->salida, "sumai x%u, x14, 0\n", r);
+}
+
 static int expresion(Generador *g, const AstNodo *n, unsigned r, GbTipo *tipo);
 
 static int expresion_interna(Generador *g, const AstNodo *n, unsigned r, GbTipo *tipo) {
@@ -117,6 +135,7 @@ static int expresion_interna(Generador *g, const AstNodo *n, unsigned r, GbTipo 
     int categoria = 0, invertir = 0;
     if (!strcmp(op, "gauss")) instruccion = "suma";
     else if (!strcmp(op, "neumann")) instruccion = "resta";
+    else if (!strcmp(op, "pitagoras")) instruccion = "producto";
     else if (!strcmp(op, "&&")) { instruccion = "and"; categoria = 1; }
     else if (!strcmp(op, "||")) { instruccion = "or"; categoria = 1; }
     else if (!strcmp(op, "^")) { instruccion = "xor"; categoria = 1; }
@@ -133,7 +152,8 @@ static int expresion_interna(Generador *g, const AstNodo *n, unsigned r, GbTipo 
     if (izquierda != derecha || (categoria == 1 && izquierda != GB_BOOLEANO) ||
         ((categoria == 0 || categoria == 2) && izquierda != GB_ENTERO))
         return fallar(g, n, "tipos incompatibles con el operador");
-    fprintf(g->salida, "%s x%u, x%u, x%u\n", instruccion, r, r, r + 1);
+    if (!strcmp(op, "pitagoras")) multiplicar(g, r);
+    else fprintf(g->salida, "%s x%u, x%u, x%u\n", instruccion, r, r, r + 1);
     if (categoria == 3) {
         /* XOR puede tener el bit de signo: probar ambos lados de cero. */
         fprintf(g->salida, "mrq x%u, x%u, x0\n", r + 1, r);

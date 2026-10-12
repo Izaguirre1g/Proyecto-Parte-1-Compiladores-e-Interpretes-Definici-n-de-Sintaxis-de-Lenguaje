@@ -5,17 +5,36 @@ Admite expresiones escalares, asignaciones y declaraciones con inicializador.
 
 ## Operaciones
 
-Se traducen suma, resta, negación, comparaciones y lógica booleana. Los valores
+Se traducen suma, resta, multiplicación, negación, comparaciones y lógica booleana. Los valores
 se cargan con `cargai` y las asignaciones se guardan con `guardap`. Los enteros
 son de 32 bits con signo; los booleanos se representan con 0 y 1.
 
 Se evalúa primero el operando izquierdo, después el derecho y finalmente la
-operación. Se usan x4–x7; el resultado queda en x4. Si hacen falta más registros
+operación. Se usan x4–x7; la multiplicación también modifica los temporales x12–x15.
+El resultado queda en x4. Los registros x8–x11 de argumentos se conservan. Si hacen falta más registros
 o la expresión supera 256 niveles, se informa un error. Las constantes grandes
 se construyen con `sumai`, `cizqi` y `ori`, usando inmediatos de 11 bits.
 
 La lógica evalúa ambos operandos. Las llamadas y otras expresiones con efectos
 no están admitidas en este módulo.
+
+## Multiplicación
+
+`pitagoras` calcula los 32 bits bajos del producto mediante sumas y
+desplazamientos, usando instrucciones existentes del procesador. Los negativos
+usan complemento a dos; el desbordamiento conserva el resultado módulo 2^32,
+ igual que suma y resta. No se agrega un opcode MUL.
+
+El generador expande 32 pasos sin saltos ni etiquetas. El producto agrega 194
+instrucciones, además de evaluar sus operandos. Con el adaptador conservador de
+Arquitectura ocupa 580 bundles por producto; un programa con varios productos
+puede exceder los 1024 bundles de la memoria actual. El ensamblador debe rechazar
+ese caso. Esta expansión prioriza compatibilidad con el generador lineal; una
+rutina compartida y su calendarización requieren coordinación con el backend.
+
+Las pruebas incluyen negativos, límites de 32 bits, productos anidados y
+128 pares reproducibles. También se comprobó `-7 * 6 = -42` desde fuente BAL
+hasta la memoria del procesador, sin precargar las variables.
 
 ## Interfaz
 
@@ -58,18 +77,19 @@ referencias usada en ellas sirve únicamente para probar el módulo.
 
 ## Pendientes
 
-Falta conectar la tabla real de símbolos, generar control de flujo, organizar
+El adaptador `generacion_adaptador.c` conecta referencias de la tabla real de
+símbolos para su subconjunto escalar. Falta completar control de flujo, organizar
 las instrucciones en paquetes VLIW y producir el binario. El fragmento anterior
 presupone datos y x3 inicializados; todavía no se puede ejecutar directamente.
 
-Multiplicación, división, residuo y potencia aún no tienen traducción.
+División, residuo y potencia aún no tienen traducción.
 Tampoco se admiten llamadas, índices, colecciones, cadenas ni caracteres.
-El factorial requiere completar la multiplicación y su integración con el resto
-del compilador.
+El factorial dispone de multiplicación, pero todavía necesita generación de
+condicionales/ciclos y la integración final para producir un programa ejecutable.
 
-La propuesta de ISA y el mapa nuevo difieren en el uso de x8–x15; por eso se
-usan x4–x7, temporales en ambos documentos. El mapa de memoria sigue pendiente
-de confirmación. El empaquetador deberá respetar las dependencias del pipeline.
+El contrato actual reserva x4–x15 como temporales y x16–x31 como preservados.
+La convención escalar de funciones usa x8–x11 para argumentos y x8 para retorno.
+El empaquetador debe respetar que una escritura del bundle N se lea desde N+3.
 
 ## Referencias
 
@@ -77,5 +97,5 @@ de confirmación. El empaquetador deberá respetar las dependencias del pipeline
   AST, generación de código, registros y memoria.
 - Jason Leitón Jiménez. *Proyecto: Compilador para Código Binario*, II semestre
   2026. Secciones 2.4, 3 y 8.
-- [ISA del equipo](https://github.com/Izaguirre1g/Proyecto1_Arquitectura1/blob/eb9e5eee2184ab6afb51b739d42ac1247cef4e7d/ISA_Proyecto.md).
-- [Mapa de memoria y registros](https://github.com/Izaguirre1g/Proyecto1_Arquitectura1/blob/ba1b49edc4f0b621552998cdc8bdf8b2c2c40cbf/docs/mapa_memoria.md).
+- [ISA vigente](https://github.com/Izaguirre1g/Proyecto1_Arquitectura1/blob/818e1de/docs/isa.md).
+- [Contrato de integración](https://github.com/Izaguirre1g/Proyecto1_Arquitectura1/blob/818e1de/docs/compiler-integration.md).

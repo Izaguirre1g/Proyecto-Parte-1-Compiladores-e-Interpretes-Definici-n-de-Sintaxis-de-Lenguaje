@@ -19,7 +19,8 @@ typedef int (*GbResolver)(void *datos, const AstNodo *identificador,
 
 /* Recibe una expresion pura, asignacion o declaracion escalar inicializada.
  * Emite instrucciones lineales; NO bundles ni un programa ejecutable.
- * Usa x4-x7; una expresion deja el resultado en x4.
+ * Usa x4-x7; multiplicacion tambien modifica x12-x15.
+ * Una expresion deja el resultado en x4.
  * Retorna 0 en exito y 1 en error, con diagnostico opcional.
  * No escribe instrucciones si falla la validacion/generacion. Un error de E/S
  * al copiar al destino puede dejar una salida parcial, que debe descartarse.
