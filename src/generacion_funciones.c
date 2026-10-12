@@ -1,4 +1,4 @@
-#include "generacion_funciones.h"
+#include "generacion_interna.h"
 #include "funciones_llamada.h"
 #include "funciones_marco.h"
 
@@ -12,20 +12,7 @@ typedef struct {
     size_t reserva;
 } Referencias;
 
-typedef struct {
-    FILE *salida;
-    FILE *diagnosticos;
-    GbResolver resolver;
-    GfResolverDestino destino;
-    void *datos;
-    size_t bytes_marco;
-    unsigned nivel;
-    const char *funcion;
-    unsigned etiquetas;
-    unsigned bloques;
-} Contexto;
-
-static int fallo(Contexto *c, const AstNodo *n, const char *mensaje)
+int gf_fallo(GfContexto *c, const AstNodo *n, const char *mensaje)
 {
     if (c->diagnosticos)
         fprintf(c->diagnosticos, "%zu:%zu: generacion funciones: %s\n",
@@ -61,7 +48,7 @@ static int emitir_constante(FILE *f, unsigned reg, uint32_t v)
     return 1;
 }
 
-static int expresion_basica(Contexto *c, const AstNodo *n, size_t reserva)
+static int expresion_basica(GfContexto *c, const AstNodo *n, size_t reserva)
 {
     Referencias ref = {c->resolver, c->datos, reserva};
     return gb_generar(n, referencia_desplazada, &ref, c->salida,
@@ -69,7 +56,7 @@ static int expresion_basica(Contexto *c, const AstNodo *n, size_t reserva)
 }
 
 /* Las expresiones con llamadas se procesan usando la pila para valores vivos. */
-static int expresion_ext(Contexto *c, const AstNodo *n, size_t reserva);
+static int expresion_ext(GfContexto *c, const AstNodo *n, size_t reserva);
 
 static int contiene_llamada(const AstNodo *n)
 {
@@ -80,23 +67,23 @@ static int contiene_llamada(const AstNodo *n)
     return 0;
 }
 
-static int llamada(Contexto *c, const AstNodo *n, size_t reserva)
+static int llamada(GfContexto *c, const AstNodo *n, size_t reserva)
 {
     if (!n || n->tipo != AST_LLAMADA || !n->primer_hijo)
-        return fallo(c, n, "llamada invalida");
+        return gf_fallo(c, n, "llamada invalida");
     const AstNodo *id = n->primer_hijo;
     const AstNodo *args = id->siguiente;
     if (id->tipo != AST_IDENTIFICADOR || !args ||
         args->tipo != AST_ARGUMENTOS || args->siguiente)
-        return fallo(c, n, "solo llamadas directas del ABI escalar");
+        return gf_fallo(c, n, "solo llamadas directas del ABI escalar");
     unsigned direccion;
     if (!c->destino || !c->destino(c->datos, id, &direccion) ||
         (direccion & 15u) != 0)
-        return fallo(c, id, "funcion sin direccion alineada");
+        return gf_fallo(c, id, "funcion sin direccion alineada");
     size_t cantidad = 0;
     for (const AstNodo *a = args->primer_hijo; a; a = a->siguiente) {
         if (++cantidad > 4)
-            return fallo(c, n, "maximo cuatro argumentos en integracion AST inicial");
+            return gf_fallo(c, n, "maximo cuatro argumentos en integracion AST inicial");
     }
     size_t i = 0;
     for (const AstNodo *a = args->primer_hijo; a; a = a->siguiente, ++i) {
@@ -104,7 +91,7 @@ static int llamada(Contexto *c, const AstNodo *n, size_t reserva)
          * posteriores compensan los slots temporales ya reservados. */
         if (reserva > SIZE_MAX - 4 * i ||
             !expresion_ext(c, a, reserva + 4 * i))
-            return fallo(c, a, "argumento fuera del subconjunto escalar");
+            return gf_fallo(c, a, "argumento fuera del subconjunto escalar");
         if (fprintf(c->salida, "restai x2, x2, 4\n"
                                "guardap x2, x4, 0\n") < 0) return 0;
     }
@@ -121,10 +108,10 @@ static int llamada(Contexto *c, const AstNodo *n, size_t reserva)
     return 1;
 }
 
-static int expresion_ext(Contexto *c, const AstNodo *n, size_t reserva)
+static int expresion_ext(GfContexto *c, const AstNodo *n, size_t reserva)
 {
-    if (!n) return fallo(c, n, "expresion ausente");
-    if (c->nivel >= 256) return fallo(c, n, "expresion demasiado profunda");
+    if (!n) return gf_fallo(c, n, "expresion ausente");
+    if (c->nivel >= 256) return gf_fallo(c, n, "expresion demasiado profunda");
     ++c->nivel;
     int ok = 0;
     if (!contiene_llamada(n)) {
@@ -150,119 +137,74 @@ static int expresion_ext(Contexto *c, const AstNodo *n, size_t reserva)
                        !strcmp(n->texto, "gauss") ? "suma" : "resta") >= 0;
         }
     } else {
-        ok = fallo(c, n, "operador con llamadas aun no soportado");
+        ok = gf_fallo(c, n, "operador con llamadas aun no soportado");
     }
     --c->nivel;
     return ok;
 }
 
-static int asignacion_ext(Contexto *c, const AstNodo *n)
+static int asignacion_ext(GfContexto *c, const AstNodo *n)
 {
     int declaracion = n->tipo == AST_DECLARACION;
     const AstNodo *id = n->primer_hijo;
     const AstNodo *valor = id ? id->siguiente : NULL;
     if (!id || !valor || id->tipo != AST_IDENTIFICADOR)
-        return fallo(c, n, "asignacion invalida");
+        return gf_fallo(c, n, "asignacion invalida");
     GbReferencia ref;
     if (!c->resolver || !c->resolver(c->datos, id, &ref) ||
         (ref.tipo != GB_ENTERO && ref.tipo != GB_BOOLEANO) ||
         (ref.base != 2 && ref.base != 3 && ref.base != 0) ||
         ref.desplazamiento < -1024 || ref.desplazamiento > 1023 ||
         ref.desplazamiento % 4 || !ref.escribible)
-        return fallo(c, id, "referencia escalar no valida");
+        return gf_fallo(c, id, "referencia escalar no valida");
     if (declaracion) {
         const char *esperado = ref.tipo == GB_ENTERO ? "declare_int" : "declare_boolean";
         if (valor->tipo != AST_TIPO || !valor->texto || strcmp(valor->texto, esperado))
-            return fallo(c, valor, "tipo declarado incompatible");
+            return gf_fallo(c, valor, "tipo declarado incompatible");
         valor = valor->siguiente;
     }
-    if (!valor || valor->siguiente) return fallo(c, n, "asignacion invalida");
+    if (!valor || valor->siguiente) return gf_fallo(c, n, "asignacion invalida");
     if (!expresion_ext(c, valor, 0)) return 0;
     return fprintf(c->salida, "guardap x%u, x4, %d\n", ref.base,
                    ref.desplazamiento) >= 0;
 }
 
-/* Las etiquetas siguen siendo simbolicas hasta fijar bundles y NOP. */
-static int bloque_control(Contexto *c, const AstNodo *bloque, int es_void,
-                          int *retorna);
-
-static int condicional(Contexto *c, const AstNodo *n, int es_void, int *retorna)
+/* La semantica verifica el booleano; las llamadas en condiciones quedan
+ * fuera del subconjunto inicial. El resultado se entrega en x4. */
+int gf_condicion(GfContexto *c, const AstNodo *n)
 {
-    const AstNodo *cond = n->primer_hijo;
-    const AstNodo *si = cond ? cond->siguiente : NULL;
-    const AstNodo *no = si ? si->siguiente : NULL;
-    if (!cond || !si || si->tipo != AST_BLOQUE ||
-        (no && (no->siguiente ||
-                (no->tipo != AST_BLOQUE && no->tipo != AST_SI))))
-        return fallo(c, n, "estructura de whether/alif invalida");
-    if (c->bloques >= 256 || c->etiquetas == UINT_MAX)
-        return fallo(c, n, "demasiados condicionales anidados");
-    /* La semantica valida el tipo booleano antes de entrar al backend.
-     * Las condiciones con llamadas requieren ampliar expresion_ext. */
-    if (contiene_llamada(cond))
-        return fallo(c, cond, "condicion con llamadas aun no soportada");
-    unsigned etiqueta = c->etiquetas++;
-    if (!expresion_basica(c, cond, 0)) return 0;
-    if (fprintf(c->salida, "igualsi x4, x0, __gf_%s_else_%u\n",
-                c->funcion, etiqueta) < 0) return 0;
-    int retorna_si = 0, retorna_no = 0;
-    ++c->bloques;
-    int ok = bloque_control(c, si, es_void, &retorna_si);
-    if (ok && no && !retorna_si)
-        ok = fprintf(c->salida, "sye x0, __gf_%s_fin_%u\n",
-                     c->funcion, etiqueta) >= 0;
-    if (ok) ok = fprintf(c->salida, "__gf_%s_else_%u:\n",
-                         c->funcion, etiqueta) >= 0;
-    if (ok && no) {
-        if (no->tipo == AST_SI)
-            ok = condicional(c, no, es_void, &retorna_no);
-        else
-            ok = bloque_control(c, no, es_void, &retorna_no);
-    }
-    if (ok && no && !retorna_si)
-        ok = fprintf(c->salida, "__gf_%s_fin_%u:\n",
-                     c->funcion, etiqueta) >= 0;
-    --c->bloques;
-    *retorna = retorna_si && retorna_no;
-    return ok;
+    if (contiene_llamada(n))
+        return gf_fallo(c, n, "condicion con llamadas aun no soportada");
+    return expresion_basica(c, n, 0);
 }
 
-static int bloque_control(Contexto *c, const AstNodo *bloque, int es_void,
-                          int *retorna)
+int gf_sentencia(GfContexto *c, const AstNodo *n, int es_void, int *retorna)
 {
-    if (!bloque || bloque->tipo != AST_BLOQUE) return fallo(c, bloque, "bloque ausente");
     int retorno = 0;
-    for (const AstNodo *n = bloque->primer_hijo; n; n = n->siguiente) {
-        if (retorno) return fallo(c, n, "sentencias despues del retorno final");
-        if (n->tipo == AST_DECLARACION && c->bloques)
-            return fallo(c, n, "declaracion en bloque anidado requiere resolvedor de ambitos");
-        if (n->tipo == AST_DECLARACION || n->tipo == AST_ASIGNACION) {
-            if (contiene_llamada(n)) {
-                if (!asignacion_ext(c, n)) return 0;
-            } else if (gb_generar(n, c->resolver, c->datos,
-                                  c->salida, c->diagnosticos) != 0) return 0;
-        } else if (n->tipo == AST_SI) {
-            if (!condicional(c, n, es_void, &retorno)) return 0;
-        } else if (n->tipo == AST_LLAMADA) {
-            if (!llamada(c, n, 0)) return 0;
-        } else if (n->tipo == AST_RETORNO) {
-            const AstNodo *valor = n->primer_hijo;
-            if (valor && (es_void || valor->siguiente))
-                return fallo(c, n, "retorno incompatible con void");
-            if (!valor && !es_void)
-                return fallo(c, n, "retorno escalar sin valor");
-            if (valor) {
-                if (valor->tipo == AST_LLAMADA) {
-                    if (!llamada(c, valor, 0)) return 0;
-                } else {
-                    if (!expresion_ext(c, valor, 0)) return 0;
-                    if (fprintf(c->salida, "sumai x8, x4, 0\n") < 0) return 0;
-                }
+    if (n->tipo == AST_DECLARACION || n->tipo == AST_ASIGNACION) {
+        if (contiene_llamada(n)) {
+            if (!asignacion_ext(c, n)) return 0;
+        } else if (gb_generar(n, c->resolver, c->datos,
+                              c->salida, c->diagnosticos) != 0) return 0;
+    } else if (n->tipo == AST_LLAMADA) {
+        if (!llamada(c, n, 0)) return 0;
+    } else if (n->tipo == AST_RETORNO) {
+        const AstNodo *valor = n->primer_hijo;
+        if (valor && (es_void || valor->siguiente))
+            return gf_fallo(c, n, "retorno incompatible con void");
+        if (!valor && !es_void)
+            return gf_fallo(c, n, "retorno escalar sin valor");
+        if (valor) {
+            if (valor->tipo == AST_LLAMADA) {
+                if (!llamada(c, valor, 0)) return 0;
+            } else {
+                if (!expresion_ext(c, valor, 0)) return 0;
+                if (fprintf(c->salida, "sumai x8, x4, 0\n") < 0) return 0;
             }
-            if (fm_emitir_epilogo(c->salida, c->bytes_marco) != FM_OK) return 0;
-            retorno = 1;
-        } else return fallo(c, n, "sentencia fuera del subconjunto 3B-D1");
-    }
+        }
+        if (fm_emitir_epilogo(c->salida, c->bytes_marco) != FM_OK) return 0;
+        retorno = 1;
+    } else return gf_fallo(c, n, "sentencia fuera del subconjunto 3B-D1");
     *retorna = retorno;
     return 1;
 }
@@ -295,13 +237,13 @@ int gf_generar_funcion(const AstNodo *funcion, size_t bytes_marco,
     }
     FILE *temporal = tmpfile();
     if (!temporal) return 1;
-    Contexto c = {temporal, diagnosticos, resolver, destino, datos, bytes_marco,
+    GfContexto c = {temporal, diagnosticos, resolver, destino, datos, bytes_marco,
                   0, id->texto, 0, 0};
     int retorna = 0;
     int ok = fm_emitir_prologo(temporal, bytes_marco, cantidad) == FM_OK &&
-             bloque_control(&c, bloque, es_void, &retorna);
+             gc_bloque(&c, bloque, es_void, &retorna);
     if (ok && !retorna) {
-        if (!es_void) ok = fallo(&c, bloque, "falta retorno escalar en algun camino");
+        if (!es_void) ok = gf_fallo(&c, bloque, "falta retorno escalar en algun camino");
         else ok = fm_emitir_epilogo(temporal, bytes_marco) == FM_OK;
     }
     if (ok && (fflush(temporal) != 0 || fseek(temporal, 0, SEEK_SET) != 0)) ok = 0;

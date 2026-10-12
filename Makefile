@@ -443,8 +443,8 @@ tests/test_funciones_llamada: tests/test_funciones_llamada.c src/funciones_llama
 tests/test_funciones_integracion: tests/test_funciones_integracion.c $(FUNCIONES_SRC) include/funciones_marco.h include/funciones_llamada.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_funciones_integracion.c $(FUNCIONES_SRC) -o $@
 
-tests/test_generacion_funciones: tests/test_generacion_funciones.c src/generacion_funciones.c src/generacion_basica.c $(FUNCIONES_SRC) include/generacion_funciones.h include/generacion_basica.h include/ast.h
-	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_generacion_funciones.c src/generacion_funciones.c src/generacion_basica.c $(FUNCIONES_SRC) -o $@
+tests/test_generacion_funciones: tests/test_generacion_funciones.c src/generacion_funciones.c src/generacion_control.c src/generacion_basica.c $(FUNCIONES_SRC) include/generacion_funciones.h include/generacion_basica.h include/ast.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_generacion_funciones.c src/generacion_funciones.c src/generacion_control.c src/generacion_basica.c $(FUNCIONES_SRC) -o $@
 
 .PHONY: test-funciones-backend
 test-funciones-backend: tests/test_funciones_marco tests/test_funciones_llamada tests/test_funciones_integracion tests/test_generacion_funciones
@@ -454,7 +454,7 @@ test-funciones-backend: tests/test_funciones_marco tests/test_funciones_llamada 
 	./tests/test_generacion_funciones
 
 # 3B-D3B/D3C/D3D/D3E: fuentes aisladas del modulo y pruebas automatizadas.
-BACKEND_ESCALAR_SRC := src/generacion_adaptador.c src/generacion_funciones.c \
+BACKEND_ESCALAR_SRC := src/generacion_adaptador.c src/generacion_funciones.c src/generacion_control.c \
                        src/generacion_basica.c $(FUNCIONES_SRC)
 
 # El visitante necesita el cargador, parser, lexer y asignador semantico.
@@ -514,3 +514,6 @@ tests/test_condicional_pipeline: tests/test_condicional_pipeline.c $(MODULOS_SRC
 .PHONY: test-condicional-pipeline
 test-condicional-pipeline: tests/test_condicional_pipeline
 	./tests/test_condicional_pipeline
+
+# Contrato privado compartido por los dos generadores.
+tests/test_generacion_funciones tests/test_generacion_adaptador tests/test_referencias_integracion tests/test_condicional_pipeline: src/generacion_interna.h
