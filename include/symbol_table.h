@@ -58,6 +58,12 @@ struct SimSimbolo {
     SimClase clase;
     SimTipo tipo;
 
+    /*
+    * Propiedades logicas del simbolo.
+    * No son direcciones de memoria.
+    */
+    int es_parametro;
+
     //Arreglos y matrices
     unsigned dimensiones;
     size_t *longitudes;
@@ -191,5 +197,18 @@ void sim_imprimir(
 const char *sim_nombre_tipo(SimTipo tipo);
 
 const char *sim_nombre_clase(SimClase clase);
+
+/*
+ * Comprueba la integridad de la tabla
+ * antes de asignar memoria.
+ *
+ * Retorna:
+ * 1: tabla consistente y sin memoria asignada.
+ * 0: tabla invalida.
+ */
+int sim_verificar_pre_memoria(
+    const SimTabla *tabla,
+    FILE *diagnosticos
+);
 
 #endif

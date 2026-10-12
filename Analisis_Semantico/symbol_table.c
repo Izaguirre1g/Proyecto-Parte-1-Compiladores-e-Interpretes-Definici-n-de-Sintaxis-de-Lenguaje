@@ -481,6 +481,257 @@ void sim_imprimir(
     }
 }
 
+//INTEGRIDAD DE LA TABLA ANTES DE MEMORIA
+
+int sim_verificar_pre_memoria(
+    const SimTabla *tabla,
+    FILE *diagnosticos
+)
+{
+    if (!tabla ||
+        !tabla->global ||
+        !tabla->actual ||
+        !tabla->ambitos_ultimo) {
+
+        if (diagnosticos) {
+            fputs(
+                "tabla de simbolos no inicializada\n",
+                diagnosticos
+            );
+        }
+
+        return 0;
+    }
+
+    /*
+     * El analisis semantico debe terminar
+     * nuevamente en el ambito global.
+     */
+    if (tabla->actual != tabla->global) {
+
+        if (diagnosticos) {
+            fputs(
+                "el analisis no termino "
+                "en el ambito global\n",
+                diagnosticos
+            );
+        }
+
+        return 0;
+    }
+
+    /*
+     * Comprobar la estructura basica
+     * del ambito global.
+     */
+    if (tabla->global->padre != NULL ||
+        tabla->global->nivel != 0) {
+
+        if (diagnosticos) {
+            fputs(
+                "ambito global invalido\n",
+                diagnosticos
+            );
+        }
+
+        return 0;
+    }
+
+    /*
+     * Verificar relaciones entre ambitos.
+     */
+    for (
+        const SimAmbito *ambito = tabla->global;
+        ambito;
+        ambito = ambito->siguiente_creacion
+    ) {
+
+        if (!ambito->nombre ||
+            !ambito->nombre[0]) {
+
+            if (diagnosticos) {
+                fputs(
+                    "ambito sin nombre\n",
+                    diagnosticos
+                );
+            }
+
+            return 0;
+        }
+
+        if (ambito != tabla->global) {
+
+            if (!ambito->padre ||
+                ambito->nivel !=
+                    ambito->padre->nivel + 1) {
+
+                if (diagnosticos) {
+                    fprintf(
+                        diagnosticos,
+                        "jerarquia invalida "
+                        "en ambito '%s'\n",
+                        ambito->nombre
+                    );
+                }
+
+                return 0;
+            }
+        }
+    }
+
+    size_t cantidad = 0;
+
+    const SimSimbolo *ultimo = NULL;
+
+    /*
+     * Recorrer todos los simbolos,
+     * incluso los pertenecientes
+     * a ambitos ya cerrados.
+     */
+    for (
+        const SimSimbolo *simbolo =
+            tabla->primero;
+        simbolo;
+        simbolo = simbolo->siguiente_orden
+    ) {
+
+        if (!simbolo->nombre ||
+            !simbolo->nombre[0] ||
+            !simbolo->ambito) {
+
+            if (diagnosticos) {
+                fputs(
+                    "simbolo incompleto\n",
+                    diagnosticos
+                );
+            }
+
+            return 0;
+        }
+
+        /*
+         * El simbolo debe encontrarse
+         * en la tabla hash de su ambito.
+         */
+        SimSimbolo *encontrado = NULL;
+
+        HASH_FIND_STR(
+            simbolo->ambito->simbolos,
+            simbolo->nombre,
+            encontrado
+        );
+
+        if (encontrado != simbolo) {
+
+            if (diagnosticos) {
+                fprintf(
+                    diagnosticos,
+                    "simbolo '%s' no coincide "
+                    "con su ambito\n",
+                    simbolo->nombre
+                );
+            }
+
+            return 0;
+        }
+
+        /*
+         * Verificar coherencia entre
+         * numero de dimensiones y
+         * arreglo de longitudes.
+         */
+        if ((simbolo->dimensiones == 0 &&
+             simbolo->longitudes != NULL) ||
+            (simbolo->dimensiones > 0 &&
+             simbolo->longitudes == NULL)) {
+
+            if (diagnosticos) {
+                fprintf(
+                    diagnosticos,
+                    "dimensiones inconsistentes "
+                    "en '%s'\n",
+                    simbolo->nombre
+                );
+            }
+
+            return 0;
+        }
+
+        /*
+         * Ninguna ubicacion fisica debe
+         * haber sido asignada.
+         */
+        if (simbolo->almacen !=
+                SIM_ALMACEN_SIN_ASIGNAR ||
+            simbolo->desplazamiento != 0 ||
+            simbolo->bytes != 0) {
+
+            if (diagnosticos) {
+                fprintf(
+                    diagnosticos,
+                    "el simbolo '%s' ya tiene "
+                    "memoria asignada\n",
+                    simbolo->nombre
+                );
+            }
+
+            return 0;
+        }
+
+        /*
+         * Un simbolo de clase SIM_PARAMETRO
+         * siempre debe estar marcado
+         * como parametro.
+         */
+        if (simbolo->clase == SIM_PARAMETRO &&
+            !simbolo->es_parametro) {
+
+            if (diagnosticos) {
+                fprintf(
+                    diagnosticos,
+                    "parametro '%s' sin "
+                    "clasificacion correcta\n",
+                    simbolo->nombre
+                );
+            }
+
+            return 0;
+        }
+
+        ultimo = simbolo;
+        ++cantidad;
+    }
+
+    /*
+     * Comprobar la cantidad de simbolos
+     * almacenados.
+     */
+    if (cantidad != tabla->cantidad ||
+        ultimo != tabla->ultimo) {
+
+        if (diagnosticos) {
+            fputs(
+                "cantidad u orden de "
+                "simbolos inconsistente\n",
+                diagnosticos
+            );
+        }
+
+        return 0;
+    }
+
+    if (diagnosticos) {
+        fprintf(
+            diagnosticos,
+            "[OK] Integridad de tabla: "
+            "%zu simbolos, sin offsets\n",
+            cantidad
+        );
+    }
+
+    return 1;
+}
+
 //Libera la tabla completa
 //HASH_DEL elimina cada simbolo de uthash antes de liberar su memoria
  

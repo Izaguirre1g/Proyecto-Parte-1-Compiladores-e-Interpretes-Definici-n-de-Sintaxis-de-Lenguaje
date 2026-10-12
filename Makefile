@@ -19,7 +19,7 @@ PARSER_SRC := Analisis_Sintactico/parser.c Analisis_Sintactico/puente_lexer.c An
 LEXER_GEN := src/lexer_flex.c
 
 # Archivos que forman el compilador.
-SRC := src/main.c src/cli.c src/lexer.c $(LEXER_GEN) src/token.c src/generacion_basica.c $(PARSER_SRC) Analisis_Semantico/symbol_table.c
+SRC := src/main.c src/cli.c src/lexer.c $(LEXER_GEN) src/token.c src/generacion_basica.c $(PARSER_SRC) Analisis_Semantico/symbol_table.c Analisis_Semantico/semantic.c
 
 # Estos nombres son comandos de Make, no archivos.
 .PHONY: all test test-parser test-ast test-cli test-generacion clean
@@ -46,7 +46,7 @@ tests/test_lexer: tests/test_lexer.c src/lexer.c $(LEXER_GEN) src/token.c includ
 	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_lexer.c src/lexer.c $(LEXER_GEN) src/token.c -o $@
 
 # Ejecuta las pruebas del proyecto y analiza el factorial.
-test: tests/test_lexer balc test-parser test-ast test-cli test-generacion test-symbol-table
+test: tests/test_lexer balc test-parser test-ast test-cli test-generacion test-symbol-table test-semantic test-semantic-functions test-semantic-arrays test-semantic-matrix-cycle test-semantic-returns test-semantic-initializers test-semantic-dynamic-arrays test-semantic-lists test-semantic-list-indices test-semantic-composite-params test-semantic-pipeline
 	./tests/test_lexer
 	./balc -v examples/factorial.bal
 
@@ -84,8 +84,9 @@ test-generacion: tests/test_generacion
 
 # Elimina los ejecutables y el archivo generado por Flex.
 # Sirve para volver a compilar todo desde cero.
+# Elimina los ejecutables y archivos generados.
 clean:
-	rm -f balc tests/test_lexer tests/test_parser tests/test_ast tests/test_cli tests/test_generacion $(LEXER_GEN)
+	rm -f balc tests/test_lexer tests/test_parser tests/test_ast tests/test_cli tests/test_generacion tests/test_symbol_table tests/test_semantic tests/test_semantic_functions test/test_semantic_arrays test/test_semantic_matrix_cycle tests/test_semantic_returns test/test_semantic_dynamic_arrays test/test_semantic_lists test/test_semantic_list_indices test/test_semantic_composite_params test/test_semantic_pipeline $(LEXER_GEN)
 
 # Pruebas de la tabla de símbolos
 .PHONY: test-symbol-table
@@ -101,3 +102,262 @@ tests/test_symbol_table: tests/test_symbol_table.c \
 # Ejecutar pruebas de la tabla de símbolos
 test-symbol-table: tests/test_symbol_table
 	./tests/test_symbol_table
+
+# Compilar pruebas del análisis semántico.
+tests/test_semantic: tests/test_semantic.c \
+                     Analisis_Semantico/semantic.c \
+                     Analisis_Semantico/symbol_table.c \
+                     Analisis_Sintactico/ast.c \
+                     include/semantic.h \
+                     include/symbol_table.h \
+                     include/ast.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) \
+	    tests/test_semantic.c \
+	    Analisis_Semantico/semantic.c \
+	    Analisis_Semantico/symbol_table.c \
+	    Analisis_Sintactico/ast.c \
+	    -o $@
+
+# Ejecutar pruebas del análisis semántico.
+.PHONY: test-semantic
+
+test-semantic: tests/test_semantic
+	./tests/test_semantic
+
+# Compilar pruebas semánticas de funciones.
+tests/test_semantic_functions: tests/test_semantic_functions.c \
+                               Analisis_Semantico/semantic.c \
+                               Analisis_Semantico/symbol_table.c \
+                               Analisis_Sintactico/ast.c \
+                               include/semantic.h \
+                               include/symbol_table.h \
+                               include/ast.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) \
+	    tests/test_semantic_functions.c \
+	    Analisis_Semantico/semantic.c \
+	    Analisis_Semantico/symbol_table.c \
+	    Analisis_Sintactico/ast.c \
+	    -o $@
+
+# Ejecutar pruebas de funciones.
+.PHONY: test-semantic-functions
+
+test-semantic-functions: tests/test_semantic_functions
+	./tests/test_semantic_functions
+
+# Compilar pruebas de arreglos.
+tests/test_semantic_arrays: tests/test_semantic_arrays.c \
+                            Analisis_Semantico/semantic.c \
+                            Analisis_Semantico/symbol_table.c \
+                            Analisis_Sintactico/ast.c \
+                            include/semantic.h \
+                            include/symbol_table.h \
+                            include/ast.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) \
+	    tests/test_semantic_arrays.c \
+	    Analisis_Semantico/semantic.c \
+	    Analisis_Semantico/symbol_table.c \
+	    Analisis_Sintactico/ast.c \
+	    -o $@
+
+.PHONY: test-semantic-arrays
+
+test-semantic-arrays: tests/test_semantic_arrays
+	./tests/test_semantic_arrays
+
+# =============================================
+# Pruebas de matrices bidimensionales y cycle
+# =============================================
+
+tests/test_semantic_matrix_cycle: tests/test_semantic_matrix_cycle.c \
+                                  Analisis_Semantico/semantic.c \
+                                  Analisis_Semantico/symbol_table.c \
+                                  Analisis_Sintactico/ast.c \
+                                  include/semantic.h \
+                                  include/symbol_table.h \
+                                  include/ast.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) \
+	    tests/test_semantic_matrix_cycle.c \
+	    Analisis_Semantico/semantic.c \
+	    Analisis_Semantico/symbol_table.c \
+	    Analisis_Sintactico/ast.c \
+	    -o $@
+
+.PHONY: test-semantic-matrix-cycle
+
+test-semantic-matrix-cycle: tests/test_semantic_matrix_cycle
+	./tests/test_semantic_matrix_cycle
+
+# ==========================================
+# Pruebas de retornos obligatorios
+# ==========================================
+
+tests/test_semantic_returns: tests/test_semantic_returns.c \
+                             Analisis_Semantico/semantic.c \
+                             Analisis_Semantico/symbol_table.c \
+                             Analisis_Sintactico/ast.c \
+                             include/semantic.h \
+                             include/symbol_table.h \
+                             include/ast.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) \
+	    tests/test_semantic_returns.c \
+	    Analisis_Semantico/semantic.c \
+	    Analisis_Semantico/symbol_table.c \
+	    Analisis_Sintactico/ast.c \
+	    -o $@
+
+.PHONY: test-semantic-returns
+
+test-semantic-returns: tests/test_semantic_returns
+	./tests/test_semantic_returns
+
+# ===========================================
+# Pruebas de inicializadores de matrices
+# ===========================================
+
+tests/test_semantic_initializers: tests/test_semantic_initializers.c \
+                                  Analisis_Semantico/semantic.c \
+                                  Analisis_Semantico/symbol_table.c \
+                                  Analisis_Sintactico/ast.c \
+                                  include/semantic.h \
+                                  include/symbol_table.h \
+                                  include/ast.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) \
+	    tests/test_semantic_initializers.c \
+	    Analisis_Semantico/semantic.c \
+	    Analisis_Semantico/symbol_table.c \
+	    Analisis_Sintactico/ast.c \
+	    -o $@
+
+.PHONY: test-semantic-initializers
+
+test-semantic-initializers: tests/test_semantic_initializers
+	./tests/test_semantic_initializers
+
+# ===========================================
+# Pruebas de dimensiones dinamicas
+# ===========================================
+
+tests/test_semantic_dynamic_arrays: tests/test_semantic_dynamic_arrays.c \
+                                    Analisis_Semantico/semantic.c \
+                                    Analisis_Semantico/symbol_table.c \
+                                    Analisis_Sintactico/ast.c \
+                                    include/semantic.h \
+                                    include/symbol_table.h \
+                                    include/ast.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) \
+	    tests/test_semantic_dynamic_arrays.c \
+	    Analisis_Semantico/semantic.c \
+	    Analisis_Semantico/symbol_table.c \
+	    Analisis_Sintactico/ast.c \
+	    -o $@
+
+.PHONY: test-semantic-dynamic-arrays
+
+test-semantic-dynamic-arrays: tests/test_semantic_dynamic_arrays
+	./tests/test_semantic_dynamic_arrays
+
+# ===========================================
+# Pruebas semanticas de listas
+# ===========================================
+
+tests/test_semantic_lists: tests/test_semantic_lists.c \
+                           Analisis_Semantico/semantic.c \
+                           Analisis_Semantico/symbol_table.c \
+                           Analisis_Sintactico/ast.c \
+                           include/semantic.h \
+                           include/symbol_table.h \
+                           include/ast.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) \
+	    tests/test_semantic_lists.c \
+	    Analisis_Semantico/semantic.c \
+	    Analisis_Semantico/symbol_table.c \
+	    Analisis_Sintactico/ast.c \
+	    -o $@
+
+.PHONY: test-semantic-lists
+
+test-semantic-lists: tests/test_semantic_lists
+	./tests/test_semantic_lists
+
+# ===========================================
+# Pruebas de indices de listas
+# ===========================================
+
+tests/test_semantic_list_indices: tests/test_semantic_list_indices.c \
+                                  Analisis_Semantico/semantic.c \
+                                  Analisis_Semantico/symbol_table.c \
+                                  Analisis_Sintactico/ast.c \
+                                  include/semantic.h \
+                                  include/symbol_table.h \
+                                  include/ast.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) \
+	    tests/test_semantic_list_indices.c \
+	    Analisis_Semantico/semantic.c \
+	    Analisis_Semantico/symbol_table.c \
+	    Analisis_Sintactico/ast.c \
+	    -o $@
+
+.PHONY: test-semantic-list-indices
+
+test-semantic-list-indices: tests/test_semantic_list_indices
+	./tests/test_semantic_list_indices
+
+# ===========================================
+# Pruebas de parametros compuestos
+# ===========================================
+
+tests/test_semantic_composite_params: tests/test_semantic_composite_params.c \
+                                      Analisis_Semantico/semantic.c \
+                                      Analisis_Semantico/symbol_table.c \
+                                      Analisis_Sintactico/ast.c \
+                                      include/semantic.h \
+                                      include/symbol_table.h \
+                                      include/ast.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) \
+	    tests/test_semantic_composite_params.c \
+	    Analisis_Semantico/semantic.c \
+	    Analisis_Semantico/symbol_table.c \
+	    Analisis_Sintactico/ast.c \
+	    -o $@
+
+.PHONY: test-semantic-composite-params
+
+test-semantic-composite-params: tests/test_semantic_composite_params
+	./tests/test_semantic_composite_params
+
+# ===========================================
+# ETAPA 2K
+# Integracion parser + analisis semantico
+# ===========================================
+
+tests/test_semantic_pipeline: \
+    tests/test_semantic_pipeline.c \
+    Analisis_Sintactico/parser.c \
+    Analisis_Sintactico/puente_lexer.c \
+    Analisis_Sintactico/ast.c \
+    Analisis_Semantico/semantic.c \
+    Analisis_Semantico/symbol_table.c \
+    src/lexer.c \
+    src/lexer_flex.c \
+    src/token.c \
+    include/semantic.h \
+    include/symbol_table.h \
+    include/ast.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) \
+	    tests/test_semantic_pipeline.c \
+	    Analisis_Sintactico/parser.c \
+	    Analisis_Sintactico/puente_lexer.c \
+	    Analisis_Sintactico/ast.c \
+	    Analisis_Semantico/semantic.c \
+	    Analisis_Semantico/symbol_table.c \
+	    src/lexer.c \
+	    src/lexer_flex.c \
+	    src/token.c \
+	    -o $@
+
+.PHONY: test-semantic-pipeline
+
+test-semantic-pipeline: tests/test_semantic_pipeline
+	@echo "Pipeline compilado correctamente."
+	@echo "Ejecuta el programa con un archivo BAL y su resultado esperado."
