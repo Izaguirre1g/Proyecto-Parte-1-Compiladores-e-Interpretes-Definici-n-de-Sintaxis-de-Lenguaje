@@ -182,7 +182,7 @@ static int ejecutar_condicional(char *texto)
     registros[1] = 1232;
     for (size_t pc = 0, pasos = 0; pc < cantidad && pasos < 1000; ++pc, ++pasos) {
         char *linea = lineas[pc];
-        unsigned a, b;
+        unsigned a, b, d;
         int inmediato;
         char etiqueta[128];
         if (linea[strlen(linea) - 1] == ':') continue;
@@ -190,6 +190,10 @@ static int ejecutar_condicional(char *texto)
             registros[a] = registros[b] + inmediato;
         else if (sscanf(linea, "restai x%u, x%u, %d", &a, &b, &inmediato) == 3)
             registros[a] = registros[b] - inmediato;
+        else if (sscanf(linea, "suma x%u, x%u, x%u", &a, &b, &d) == 3)
+            registros[a] = registros[b] + registros[d];
+        else if (sscanf(linea, "mrq x%u, x%u, x%u", &a, &b, &d) == 3)
+            registros[a] = registros[b] < registros[d];
         else if (sscanf(linea, "guardap x%u, x%u, %d", &a, &b, &inmediato) == 3) {
             int direccion = registros[a] + inmediato;
             assert(direccion >= 0 && direccion < 1024 && direccion % 4 == 0);
@@ -295,6 +299,79 @@ static void condicionales(void)
     assert(ftell(f) == 0); fclose(f);
 }
 
+static void ciclos(void)
+{
+    /* a=0; b=0; whale(a<limite) { a=a+1;
+     *   whale(b<a) { whether(true) { b=b+1; } }
+     * } give b; Usa los offsets del resolvedor real de esta prueba. */
+    AstNodo fn = nodo(AST_FUNCION, NULL), id = nodo(AST_IDENTIFICADOR, "contar");
+    AstNodo tipo = nodo(AST_TIPO, "declare_int"), params = nodo(AST_PARAMETROS, NULL);
+    AstNodo bloque = nodo(AST_BLOQUE, NULL);
+    AstNodo init = nodo(AST_ASIGNACION, NULL), ia = nodo(AST_IDENTIFICADOR, "a");
+    AstNodo cero = nodo(AST_ENTERO, "0"), initb = nodo(AST_ASIGNACION, NULL);
+    AstNodo ib = nodo(AST_IDENTIFICADOR, "b"), cerob = nodo(AST_ENTERO, "0");
+    AstNodo ciclo = nodo(AST_MIENTRAS, NULL), cond = nodo(AST_BINARIO, "<");
+    AstNodo ca = nodo(AST_IDENTIFICADOR, "a"), limite = nodo(AST_ENTERO, "4");
+    AstNodo cuerpo = nodo(AST_BLOQUE, NULL), asigna = nodo(AST_ASIGNACION, NULL);
+    AstNodo da = nodo(AST_IDENTIFICADOR, "a"), suma = nodo(AST_BINARIO, "gauss");
+    AstNodo sa = nodo(AST_IDENTIFICADOR, "a"), uno = nodo(AST_ENTERO, "1");
+    AstNodo interno = nodo(AST_MIENTRAS, NULL), cond2 = nodo(AST_BINARIO, "<");
+    AstNodo cb = nodo(AST_IDENTIFICADOR, "b"), ca2 = nodo(AST_IDENTIFICADOR, "a");
+    AstNodo cuerpo2 = nodo(AST_BLOQUE, NULL), si = nodo(AST_SI, NULL);
+    AstNodo verdad = nodo(AST_BOOLEANO, "declare_true"), rama = nodo(AST_BLOQUE, NULL);
+    AstNodo asignab = nodo(AST_ASIGNACION, NULL), db = nodo(AST_IDENTIFICADOR, "b");
+    AstNodo sumab = nodo(AST_BINARIO, "gauss"), sb = nodo(AST_IDENTIFICADOR, "b");
+    AstNodo unob = nodo(AST_ENTERO, "1"), ret = nodo(AST_RETORNO, NULL);
+    AstNodo rb = nodo(AST_IDENTIFICADOR, "b");
+    hijos(&fn, &id); id.siguiente = &tipo; tipo.siguiente = &params;
+    params.siguiente = &bloque; hijos(&bloque, &init);
+    hijos(&init, &ia); ia.siguiente = &cero; init.siguiente = &initb;
+    hijos(&initb, &ib); ib.siguiente = &cerob; initb.siguiente = &ciclo;
+    hijos(&ciclo, &cond); cond.siguiente = &cuerpo; ciclo.siguiente = &ret;
+    hijos(&cond, &ca); ca.siguiente = &limite;
+    hijos(&cuerpo, &asigna); hijos(&asigna, &da); da.siguiente = &suma;
+    hijos(&suma, &sa); sa.siguiente = &uno; asigna.siguiente = &interno;
+    hijos(&interno, &cond2); cond2.siguiente = &cuerpo2;
+    hijos(&cond2, &cb); cb.siguiente = &ca2;
+    hijos(&cuerpo2, &si); hijos(&si, &verdad); verdad.siguiente = &rama;
+    hijos(&rama, &asignab); hijos(&asignab, &db); db.siguiente = &sumab;
+    hijos(&sumab, &sb); sb.siguiente = &unob;
+    hijos(&ret, &rb);
+    char *limites[] = {"0", "1", "4"};
+    int esperados[] = {0, 1, 4};
+    for (unsigned i = 0; i < 3; ++i) {
+        limite.texto = limites[i];
+        FILE *f = tmpfile(); assert(f);
+        assert(gf_generar_funcion(&fn, 12, referencia, destino, NULL, f, stderr) == 0);
+        char texto[8192]; leer(f, texto, sizeof(texto)); fclose(f);
+        assert(strstr(texto, "__gf_contar_while_cond_0:"));
+        assert(strstr(texto, "__gf_contar_while_cond_1:"));
+        assert(strstr(texto, "__gf_contar_else_2:"));
+        assert(ejecutar_condicional(texto) == esperados[i]);
+    }
+    /* Un give dentro del ciclo sale de la funcion; cero vueltas continua. */
+    AstNodo retorno = nodo(AST_RETORNO, NULL), diez = nodo(AST_ENTERO, "10");
+    hijos(&retorno, &diez); cuerpo.primer_hijo = &retorno;
+    for (unsigned i = 0; i < 2; ++i) {
+        limite.texto = limites[i];
+        FILE *f = tmpfile(); assert(f);
+        assert(gf_generar_funcion(&fn, 12, referencia, destino, NULL, f, stderr) == 0);
+        char texto[8192]; leer(f, texto, sizeof(texto)); fclose(f);
+        assert(ejecutar_condicional(texto) == (i ? 10 : 0));
+    }
+    /* El retorno del cuerpo no cubre la ruta de cero vueltas. */
+    ciclo.siguiente = NULL;
+    FILE *f = tmpfile(); assert(f); fputs("previo\n", f);
+    assert(gf_generar_funcion(&fn, 12, referencia, destino, NULL, f, NULL) == 1);
+    char texto[8192]; leer(f, texto, sizeof(texto)); fclose(f);
+    assert(!strcmp(texto, "previo\n"));
+    /* Rechazo de ciclo sin cuerpo. */
+    cond.siguiente = NULL;
+    f = tmpfile(); assert(f);
+    assert(gf_generar_funcion(&fn, 12, referencia, destino, NULL, f, NULL) == 1);
+    assert(ftell(f) == 0); fclose(f);
+}
+
 int main(void)
 {
     cuerpo_simple();
@@ -302,6 +379,7 @@ int main(void)
     rechazo_no_final();
     llamadas_anidadas();
     condicionales();
-    puts("OK: funciones, llamadas, whether/alif/also, rutas de retorno y rollback");
+    ciclos();
+    puts("OK: funciones, llamadas, whether/alif/also, whale, rutas de retorno y rollback");
     return EXIT_SUCCESS;
 }
