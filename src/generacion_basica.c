@@ -67,27 +67,29 @@ static void constante(Generador *g, unsigned r, uint32_t v) {
     }
 }
 
-/* Producto de 32 bits por sumas y desplazamientos; no necesita MUL.
- * x12-x15 son temporales y se reutilizan después de evaluar ambos operandos. */
-static void multiplicar(Generador *g, unsigned r) {
+/* El compilador actual genera código en un solo hilo. */
+static unsigned long siguiente_aritmetica;
+
+/* Producto de 32 bits. El operando derecho ya está copiado cuando su
+ * registro se reutiliza como contador; x8-x11 permanecen intactos. */
+static int multiplicar(Generador *g, const AstNodo *n, unsigned r) {
+    if (siguiente_aritmetica == ULONG_MAX)
+        return fallar(g, n, "etiquetas de multiplicacion agotadas");
+    unsigned long id = siguiente_aritmetica++;
     fprintf(g->salida, "sumai x12, x%u, 0\n"
                        "sumai x13, x%u, 0\n"
-                       "sumai x14, x0, 0\n", r, r + 1);
-    for (unsigned bit = 0; bit < 32; ++bit) {
-        fprintf(g->salida, "andi x15, x13, 1\n"
-                           "resta x15, x0, x15\n"
-                           "and x15, x12, x15\n"
-                           "suma x14, x14, x15\n");
-        if (bit != 31)
-            fprintf(g->salida, "cizqi x12, x12, 1\n"
-                               "cderi x13, x13, 1\n");
-    }
-    fprintf(g->salida, "sumai x%u, x14, 0\n", r);
+                       "sumai x14, x0, 0\n"
+                       "sumai x%u, x0, 32\n"
+                       "__gb_mul_%lu_paso:\n"
+                       "andi x15, x13, 1\nresta x15, x0, x15\n"
+                       "and x15, x12, x15\nsuma x14, x14, x15\n"
+                       "cizqi x12, x12, 1\ncderi x13, x13, 1\n"
+                       "restai x%u, x%u, 1\n"
+                       "igualno x%u, x0, __gb_mul_%lu_paso\n"
+                       "sumai x%u, x14, 0\n",
+            r, r + 1, r + 1, id, r + 1, r + 1, r + 1, id, r);
+    return 1;
 }
-
-/* Cada invocación reserva nombres distintos, también dentro de funciones.
- * El compilador actual genera código en un solo hilo. */
-static unsigned long siguiente_aritmetica;
 
 static int dividir(Generador *g, const AstNodo *n, unsigned r, int residuo) {
     if (siguiente_aritmetica == ULONG_MAX)
@@ -258,7 +260,9 @@ static int expresion_interna(Generador *g, const AstNodo *n, unsigned r, GbTipo 
     if (izquierda != derecha || (categoria == 1 && izquierda != GB_BOOLEANO) ||
         ((categoria == 0 || categoria == 2) && izquierda != GB_ENTERO))
         return fallar(g, n, "tipos incompatibles con el operador");
-    if (!strcmp(op, "pitagoras")) multiplicar(g, r);
+    if (!strcmp(op, "pitagoras")) {
+        if (!multiplicar(g, n, r)) return 0;
+    }
     else if (!strcmp(instruccion, "division")) {
         if (!dividir(g, n, r, !strcmp(op, "euler"))) return 0;
     } else if (!strcmp(instruccion, "potencia")) {
