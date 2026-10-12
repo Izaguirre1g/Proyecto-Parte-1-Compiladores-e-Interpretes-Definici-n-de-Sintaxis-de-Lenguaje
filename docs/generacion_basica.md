@@ -26,12 +26,11 @@ desplazamientos, usando instrucciones existentes del procesador. Los negativos
 usan complemento a dos; el desbordamiento conserva el resultado módulo 2^32,
 igual que suma y resta. No se agrega un opcode MUL.
 
-El generador expande 32 pasos sin saltos ni etiquetas. El producto agrega 194
-instrucciones, además de evaluar sus operandos. Con el adaptador conservador de
-Arquitectura ocupa 580 bundles por producto; un programa con varios productos
-puede exceder los 1024 bundles de la memoria actual. El ensamblador debe rechazar
-ese caso. Esta expansión prioriza compatibilidad con el generador lineal; una
-rutina compartida y su calendarización requieren coordinación con el backend.
+El generador emite un bucle de 32 iteraciones: 13 instrucciones estáticas,
+además de evaluar los operandos. El registro del operando derecho se reutiliza
+como contador después de copiarlo; x8–x11 permanecen intactos. Las etiquetas
+usan el prefijo reservado `__gb_mul_`. El backend resuelve los saltos e inserta
+los NOP necesarios, incluyendo los destinos del bucle.
 
 Las pruebas incluyen negativos, límites de 32 bits, productos anidados y
 128 pares reproducibles. También se comprobó `-7 * 6 = -42` desde fuente BAL
@@ -49,7 +48,7 @@ negativos. El resultado conserva los 32 bits bajos; se define `0^0 = 1`.
 El número de iteraciones depende de los bits del exponente, no de su valor.
 
 No se agregan opcodes. Estos operadores generan bucles con instrucciones ALU
-y saltos del ISA. Las etiquetas usan los prefijos reservados `__gb_div_` y
+y saltos del ISA. Las etiquetas usan los prefijos reservados `__gb_mul_`, `__gb_div_` y
 `__gb_pow_`, con nombres diferentes en cada invocación. La generación actual
 se realiza en un solo hilo. El backend debe resolver sus direcciones después
 de calendarizar, e incluir dos NOP en cada destino para proteger las vueltas.
@@ -112,8 +111,12 @@ las instrucciones en paquetes VLIW y producir el binario. El fragmento anterior
 presupone datos y x3 inicializados; todavía no se puede ejecutar directamente.
 
 Tampoco se admiten llamadas, índices, colecciones, cadenas ni caracteres.
-El factorial dispone de multiplicación, pero todavía necesita generación de
-condicionales/ciclos y la integración final para producir un programa ejecutable.
+El factorial se probó junto con la generación de control de Meibel, mediante
+el modo `--functions` del adaptador de Arquitectura. El código inicializa gp,
+sp y ra, llama a main, comprueba el retorno y conserva sus variables en la RAM.
+Las pruebas de 0!, 1!, 5!, 7! y 12! producen 1, 1, 120, 5040 y 479001600.
+Esta validación usa la combinación local de ambas ramas; la integración de las
+opciones de la CLI y los demás ejercicios sigue a cargo del equipo.
 
 El contrato actual reserva x4–x15 como temporales y x16–x31 como preservados.
 La convención escalar de funciones usa x8–x11 para argumentos y x8 para retorno.
