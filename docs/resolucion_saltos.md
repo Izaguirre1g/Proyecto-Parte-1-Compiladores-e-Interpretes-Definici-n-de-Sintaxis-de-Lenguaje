@@ -74,14 +74,39 @@ make test-resolucion-saltos
 - `cycle` dentro de `cycle` con `whether/alif/also` y `whale` con `whether`.
 - Cuerpos largos que obligan a reescribir el salto de un `whale` y de un `whether`.
 - Ejercicio 3 completo: se reescribe la salida del `whale` de `acumular`.
+- Ejercicio 3 enlazado con direcciones reales y ejecutado desde `main`.
 
 Cada salida se verifica de dos formas: cada desplazamiento llega exactamente a
 su etiqueta y respeta su rango, y un modelo que avanza por bundles ejecuta el
 programa y obtiene el mismo resultado que el modelo lineal con etiquetas.
 
+## Direcciones de funciones
+
+`src/enlace_funciones.c` (`ef_enlazar`) genera todas las funciones y fija sus
+direcciones. Las llamadas cargan en x13 la dirección absoluta de la función,
+pero esa dirección depende del layout, y el layout depende del código: una
+dirección mayor que 1023 necesita 7 instrucciones (`sumai`, `cizqi`, `ori`)
+en lugar de 1. Por eso se itera:
+
+1. Generar el lineal de cada función, precedido por la etiqueta `__fn_<nombre>`,
+   con las direcciones supuestas.
+2. Armar bundles con `rs_resolver_etiquetas`, que devuelve el PC final de cada
+   etiqueta.
+3. Si algún `__fn_<nombre>` no coincide con la dirección supuesta, usar las
+   reales y volver al paso 1.
+
+Se parte de todas las funciones en `inicio`, el valor mínimo. Entre vueltas
+las direcciones y el código solo crecen, así que el proceso converge (con un
+tope de 64 vueltas). Las funciones quedan en orden del fuente. El marco de
+cada una se calcula con los desplazamientos de `mem_asignar_proyecto`.
+
+En el ejercicio 3 quedan `sumar` en 0, `puntaje` en 528, `acumular` en 2064 y
+`main` en 4752, con 642 bundles. La prueba ejecuta el programa desde `main`
+siguiendo los saltos y las llamadas reales, y comprueba resultado = 24,
+vacio = 0, combinado = 13 y total = 37.
+
 ## Pendiente
 
-- Direcciones de funciones: las llamadas cargan la dirección absoluta en x13
-  antes del layout. Hay que iterar generación y layout hasta que coincidan.
-- Arranque (gp, sp) y ubicación de `main`.
+- Arranque: inicializar gp y sp, llamar a `main` y detenerse. Hoy `main` no
+  está primero, así que el arranque debe saltar a su dirección.
 - Integración en `balc` (`-s`) y prueba con `tools/assembler.py` y el RTL.

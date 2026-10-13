@@ -1,5 +1,4 @@
 #include "resolucion_saltos.h"
-#include "resolucion_referencias.h"
 
 #include <ctype.h>
 #include <stdlib.h>
@@ -275,6 +274,13 @@ static int copiar(FILE *origen, FILE *destino)
 int rs_resolver(const char *lineal, uint32_t inicio, FILE *salida,
                 FILE *diagnosticos, RsResumen *resumen)
 {
+    return rs_resolver_etiquetas(lineal, inicio, salida, diagnosticos, resumen, NULL);
+}
+
+int rs_resolver_etiquetas(const char *lineal, uint32_t inicio, FILE *salida,
+                          FILE *diagnosticos, RsResumen *resumen,
+                          RrTabla *etiquetas)
+{
     RsPrograma p = {NULL, 0, diagnosticos, 0};
     if (!lineal || !salida || inicio % 16 || inicio / 16 >= RS_BUNDLES_IMEM) {
         fallo(&p, "argumentos invalidos", NULL);
@@ -337,6 +343,13 @@ int rs_resolver(const char *lineal, uint32_t inicio, FILE *salida,
         ok = expandir(&p, marcados, &siguiente);
     }
 
+    /* Antes de escribir: un error aqui tampoco deja salida parcial. */
+    for (size_t i = 0; ok && etiquetas && i < p.cantidad; ++i) {
+        if (p.items[i].tipo != RS_ETIQUETA) continue;
+        RrEstado e = rr_definir(etiquetas, p.items[i].destino, RR_ETIQUETA,
+                                p.items[i].pc);
+        if (e != RR_OK) ok = fallo(&p, rr_nombre_estado(e), p.items[i].destino);
+    }
     if (ok) {
         FILE *temporal = tmpfile();
         if (!temporal) ok = fallo(&p, "no se pudo crear el temporal", NULL);

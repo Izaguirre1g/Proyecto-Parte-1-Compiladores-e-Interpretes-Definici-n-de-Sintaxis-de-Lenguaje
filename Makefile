@@ -496,11 +496,12 @@ test-referencias-integracion: tests/test_semantic_visitante \
 # Fase 5: layout de bundles y resolucion de saltos de control anidado.
 tests/test_resolucion_saltos: tests/test_resolucion_saltos.c tests/modelo_control.h \
                               src/resolucion_saltos.c include/resolucion_saltos.h \
+                              src/enlace_funciones.c include/enlace_funciones.h \
                               src/referencias_integracion.c src/resolucion_referencias.c \
                               $(MODULOS_SRC) $(BACKEND_ESCALAR_SRC) Analisis_Semantico/memory.c \
                               include/symbol_table.h src/generacion_interna.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_resolucion_saltos.c src/resolucion_saltos.c \
-	      src/referencias_integracion.c src/resolucion_referencias.c \
+	      src/enlace_funciones.c src/referencias_integracion.c src/resolucion_referencias.c \
 	      $(MODULOS_SRC) $(BACKEND_ESCALAR_SRC) Analisis_Semantico/memory.c -o $@
 
 .PHONY: test-resolucion-saltos

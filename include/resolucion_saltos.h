@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "resolucion_referencias.h"
+
 /* Fase 5: ensamblador lineal con etiquetas -> bundles con saltos resueltos.
  *
  * Entrada: una instruccion o una etiqueta ("nombre:") por linea, como la
@@ -35,5 +37,11 @@ typedef struct {
 
 int rs_resolver(const char *lineal, uint32_t inicio, FILE *salida,
                 FILE *diagnosticos, RsResumen *resumen);
+
+/* Igual que rs_resolver; si etiquetas no es NULL (tabla inicializada y
+ * vacia), recibe el PC final de cada etiqueta como RR_ETIQUETA. */
+int rs_resolver_etiquetas(const char *lineal, uint32_t inicio, FILE *salida,
+                          FILE *diagnosticos, RsResumen *resumen,
+                          RrTabla *etiquetas);
 
 #endif
