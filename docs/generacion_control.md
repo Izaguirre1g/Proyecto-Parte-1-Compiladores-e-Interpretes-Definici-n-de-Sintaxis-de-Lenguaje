@@ -73,7 +73,7 @@ que el mapa de funciones corresponda al layout final de bundles.
 
 ## Limites de esta entrega
 
-- Admite `whale`; `AST_RECORRIDO` sigue pendiente.
+- Admite `whale` y `cycle` (`AST_RECORRIDO`).
 - No admite llamadas dentro de condiciones.
 - Se pueden usar variables de la funcion o globales admitidas por el adaptador.
   Admite declaraciones enteras inicializadas en ramas y ciclos, con resolucion
@@ -118,6 +118,44 @@ ensamblador lineal. Las pruebas del generador ejecutan en el modelo secuencial
 cero, una y cuatro vueltas, ciclos anidados con un condicional y retornos en el
 cuerpo. Tambien verifican rechazo sin publicar salida ante ciclos mal formados
 y funciones sin retorno fuera del ciclo. No se incorporan assembler ni bundler.
+
+## Ciclos cycle
+
+`cycle i let a until b step p { ... } endgame;` se traduce con
+`__gf_<funcion>_cycle_cond_<n>` y `__gf_<funcion>_cycle_fin_<n>`, usando el
+mismo contador de etiquetas:
+
+```text
+    evaluar a en x4; guardar en i
+etiqueta_condicion:
+    x4 = i < b   (paso positivo)  o  i > b   (paso negativo)
+    igualsi x4, x0, etiqueta_fin
+    generar cuerpo
+    evaluar p en x4; i = i + x4
+    sye x0, etiqueta_condicion
+etiqueta_fin:
+```
+
+El limite es exclusivo y, como en whale, el limite y el paso se evaluan en
+cada vuelta. Si el paso es una constante (`step 2`, `step neumann 1` o el `1`
+implicito) el sentido se fija al generar. Si es una expresion, se decide en
+ejecucion: `(p > 0 && i < b) || (~(p > 0) && i > b)`; el limite queda en la
+pila mientras se evalua el paso. Un paso constante cero se rechaza.
+Inicio, limite y paso pueden contener llamadas.
+
+La variable de control vive en el ambito `cycle_N` que crea la semantica,
+ligado al cuerpo del ciclo, pero su declaracion esta en la cabecera. El
+adaptador la considera visible en todo el cuerpo, y el generador la resuelve
+con una copia local de su identificador colgada del cuerpo, sin modificar el
+AST. Como whale, un cycle no garantiza el retorno de la funcion.
+
+`examples/cycle.bal` combina un paso 2, un paso `neumann 1` y dos cycle
+anidados con un `whether`. `make test-cycle-pipeline` lo procesa hasta
+ensamblador lineal; para verlo: `./tests/test_condicional_pipeline --cycle --emitir`.
+
+`make test-ambitos-generacion` ejecuta en el modelo secuencial: paso implicito,
+paso 2, paso `neumann 1`, paso variable en ambos sentidos, cero vueltas y dos
+cycle anidados con un whether y limite tomado de una variable externa.
 
 ## Variables de bloques anidados
 

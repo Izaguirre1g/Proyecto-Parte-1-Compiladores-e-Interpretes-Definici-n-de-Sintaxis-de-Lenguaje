@@ -63,6 +63,150 @@ inválidos comprueban que no se muestre un árbol parcial. `tests/test_ast.c`
 verifica nodos, hijos, precedencia, posiciones y limpieza de árboles incompletos
 con `make test-ast`. Ninguna de estas pruebas ejecuta el programa fuente.
 
+## Gramática formal
+
+Resumen en BNF de las reglas de `Analisis_Sintactico/gramatica.y`; ese archivo
+es la fuente de verdad. Los no terminales van en minúscula y los terminales
+entre comillas (lexemas) o en mayúscula (`IDENTIFIER`, `INTEGER`, `STRING`,
+`CHARACTER`). `ε` es la producción vacía. El símbolo inicial es `programa`.
+
+### Programa y funciones
+
+```text
+programa            ::= elemento_superior
+                      | programa elemento_superior
+elemento_superior   ::= funcion | importacion | constante
+
+funcion             ::= "create_funk" "#" tipo_retorno "#" nombre_funcion
+                        "(" parametros_opcionales ")" bloque
+tipo_retorno        ::= tipo | "declare_infinite_void"
+nombre_funcion      ::= "main" | IDENTIFIER
+
+parametros_opcionales ::= ε | parametros
+parametros          ::= parametro | parametros "," parametro
+parametro           ::= IDENTIFIER "*" tipo_parametro
+tipo_parametro      ::= tipo
+                      | tipo dimensiones_parametro
+                      | "declare_list" tipo
+dimensiones_parametro ::= dimension_parametro
+                      | dimensiones_parametro dimension_parametro
+dimension_parametro ::= dimension | "[" "]"
+
+importacion         ::= "bring" IDENTIFIER alias_opcional ";"
+alias_opcional      ::= ε | "aka" IDENTIFIER
+```
+
+### Bloques y sentencias
+
+```text
+bloque              ::= "{" contenido_bloque "}"
+contenido_bloque    ::= ε | sentencias
+sentencias          ::= sentencia | sentencias sentencia
+sentencia           ::= declaracion | asignacion | bloque | condicional
+                      | ciclo | retorno | constante | declaracion_lista
+                      | recorrido | intentar | llamada ";"
+
+retorno             ::= "give" expresion ";" | "give" ";"
+
+condicional         ::= "whether" "(" expresion ")" bloque alternativa
+alternativa         ::= ε
+                      | "alif" "(" expresion ")" bloque alternativa
+                      | "also" bloque
+
+ciclo               ::= "whale" "(" expresion ")" bloque "stop" ";"
+recorrido           ::= "cycle" IDENTIFIER "let" expresion "until" expresion
+                        paso_opcional bloque "endgame" ";"
+paso_opcional       ::= ε | "step" expresion
+
+intentar            ::= "seek" bloque capturas
+capturas            ::= captura | capturas captura
+captura             ::= "seize" "(" IDENTIFIER IDENTIFIER ")" bloque
+```
+
+### Declaraciones y asignaciones
+
+```text
+declaracion         ::= declaradores ";"
+declaradores        ::= declarador | declaradores "," declarador
+declarador          ::= IDENTIFIER "*" tipo_variable inicializador_opcional
+inicializador_opcional ::= ε | ":" expresion
+
+constante           ::= "declare_const" IDENTIFIER "*" tipo_variable ":" expresion ";"
+
+declaracion_lista   ::= "declare_list" listas ";"
+listas              ::= declarador_lista | listas "," declarador_lista
+declarador_lista    ::= IDENTIFIER "*" tipo inicializador_opcional
+
+asignacion          ::= referencia ":" expresion ";"
+
+tipo                ::= "declare_int" | "declare_boolean"
+                      | "declare_text" | "declare_char"
+tipo_variable       ::= tipo | tipo dimensiones
+dimensiones         ::= dimension | dimensiones dimension
+dimension           ::= "[" expresion "]"
+```
+
+### Expresiones y llamadas
+
+```text
+expresion           ::= INTEGER | STRING | CHARACTER
+                      | "declare_true" | "declare_false"
+                      | referencia | literal_coleccion | llamada
+                      | expresion operador_binario expresion
+                      | "~" expresion
+                      | "neumann" expresion
+                      | "(" expresion ")"
+operador_binario    ::= "||" | "^" | "&&"
+                      | "==" | "=/=" | "<" | ">" | "<=" | ">="
+                      | "gauss" | "neumann"
+                      | "pitagoras" | "euclides" | "euler"
+                      | "descartes"
+
+referencia          ::= IDENTIFIER
+                      | referencia "." IDENTIFIER
+                      | referencia "[" expresion "]"
+
+llamada             ::= destino_llamada "(" argumentos_opcionales ")"
+                      | "add" "(" expresion "," expresion ")"
+                      | "remove" "(" expresion "," expresion ")"
+                      | "size" "(" expresion ")"
+destino_llamada     ::= referencia | "main"
+argumentos_opcionales ::= ε | argumentos
+argumentos          ::= expresion | argumentos "," expresion
+
+literal_coleccion   ::= "[" elementos_opcionales "]"
+elementos_opcionales ::= ε | elementos
+elementos           ::= expresion | elementos "," expresion
+```
+
+### Precedencia y ambigüedad
+
+La regla `expresion operador_binario expresion` es ambigua por sí sola. Bison
+la resuelve con las declaraciones `%left`, `%right`, `%nonassoc` y
+`%precedence` de `gramatica.y`. De menor a mayor precedencia:
+
+| Nivel | Operadores | Asociatividad |
+|---|---|---|
+| 1 | `\|\|` | Izquierda |
+| 2 | `^` | Izquierda |
+| 3 | `&&` | Izquierda |
+| 4 | `==` `=/=` `<` `>` `<=` `>=` | No asociativa |
+| 5 | `gauss`, `neumann` binario | Izquierda |
+| 6 | `pitagoras`, `euclides`, `euler` | Izquierda |
+| 7 | `neumann` unario, `~` | Prefijo |
+| 8 | `descartes` | Derecha |
+
+Consecuencias:
+
+- `a gauss b pitagoras c` se agrupa como `a gauss (b pitagoras c)`.
+- `a < b < c` es un error sintáctico: hay que usar `&&` o paréntesis.
+- `neumann 2 descartes 2` se agrupa como `neumann (2 descartes 2)`.
+- El `neumann` unario usa `%prec NEGATIVO` para no tomar la precedencia del binario.
+
+La cadena `whether`/`alif`/`also` no tiene el problema del *dangling else*
+porque cada rama exige llaves: un `also` siempre pertenece al `whether` cuyo
+bloque acaba de cerrarse.
+
 ## Parámetros de funciones
 
 La sintaxis adoptada para este paso es `nombre * tipo`, separada por comas:
