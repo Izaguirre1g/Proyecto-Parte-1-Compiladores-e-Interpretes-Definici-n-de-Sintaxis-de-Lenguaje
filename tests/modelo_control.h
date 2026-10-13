@@ -38,6 +38,8 @@ static int ejecutar_control(char *texto)
             registros[a] = registros[b] > registros[d];
         else if (sscanf(linea, "and x%u, x%u, x%u", &a, &b, &d) == 3)
             registros[a] = registros[b] & registros[d];
+        else if (sscanf(linea, "xor x%u, x%u, x%u", &a, &b, &d) == 3)
+            registros[a] = registros[b] ^ registros[d];
         else if (sscanf(linea, "or x%u, x%u, x%u", &a, &b, &d) == 3)
             registros[a] = registros[b] | registros[d];
         else if (sscanf(linea, "xori x%u, x%u, %d", &a, &b, &inmediato) == 3)

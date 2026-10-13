@@ -46,7 +46,7 @@ tests/test_lexer: tests/test_lexer.c src/lexer.c $(LEXER_GEN) src/token.c includ
 	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_lexer.c src/lexer.c $(LEXER_GEN) src/token.c -o $@
 
 # Ejecuta las pruebas del proyecto y analiza el factorial.
-test: test-ejercicio3 test-ambitos-generacion test-whale-pipeline test-cycle-pipeline test-condicional-pipeline tests/test_lexer balc test-parser test-ast test-cli test-generacion test-symbol-table test-semantic test-semantic-functions test-semantic-arrays test-semantic-matrix-cycle test-semantic-returns test-semantic-initializers test-semantic-dynamic-arrays test-semantic-lists test-semantic-list-indices test-semantic-composite-params test-semantic-pipeline test-semantic-modules test-semantic-entry test-funciones-backend test-referencias-integracion test-m-simbolos test-auditoria-semantica test-ejercicio2-matriz
+test: test-ejercicio3 test-ambitos-generacion test-whale-pipeline test-cycle-pipeline test-resolucion-saltos test-condicional-pipeline tests/test_lexer balc test-parser test-ast test-cli test-generacion test-symbol-table test-semantic test-semantic-functions test-semantic-arrays test-semantic-matrix-cycle test-semantic-returns test-semantic-initializers test-semantic-dynamic-arrays test-semantic-lists test-semantic-list-indices test-semantic-composite-params test-semantic-pipeline test-semantic-modules test-semantic-entry test-funciones-backend test-referencias-integracion test-m-simbolos test-auditoria-semantica test-ejercicio2-matriz
 	./tests/test_lexer
 	./balc -v examples/factorial.bal
 
@@ -86,7 +86,7 @@ test-generacion: tests/test_generacion
 # Sirve para volver a compilar todo desde cero.
 # Elimina los ejecutables y archivos generados.
 clean:
-	rm -f tests/test_ejercicio3 tests/test_ambitos_generacion tests/test_condicional_pipeline balc tests/test_lexer tests/test_parser tests/test_ast tests/test_cli tests/test_generacion tests/test_funciones_marco tests/test_funciones_llamada tests/test_funciones_integracion tests/test_generacion_funciones tests/test_semantic_visitante tests/test_generacion_adaptador tests/test_resolucion_referencias tests/test_referencias_integracion tests/test_symbol_table tests/test_semantic tests/test_semantic_functions tests/test_semantic_arrays tests/test_semantic_matrix_cycle tests/test_semantic_returns tests/test_semantic_dynamic_arrays test/test_semantic_lists test/test_semantic_list_indices test/test_semantic_composite_params test/test_semantic_pipeline tests/test_semantic_modules $(LEXER_GEN)
+	rm -f tests/test_ejercicio3 tests/test_resolucion_saltos tests/test_ambitos_generacion tests/test_condicional_pipeline balc tests/test_lexer tests/test_parser tests/test_ast tests/test_cli tests/test_generacion tests/test_funciones_marco tests/test_funciones_llamada tests/test_funciones_integracion tests/test_generacion_funciones tests/test_semantic_visitante tests/test_generacion_adaptador tests/test_resolucion_referencias tests/test_referencias_integracion tests/test_symbol_table tests/test_semantic tests/test_semantic_functions tests/test_semantic_arrays tests/test_semantic_matrix_cycle tests/test_semantic_returns tests/test_semantic_dynamic_arrays test/test_semantic_lists test/test_semantic_list_indices test/test_semantic_composite_params test/test_semantic_pipeline tests/test_semantic_modules $(LEXER_GEN)
 
 # Pruebas de la tabla de símbolos
 .PHONY: test-symbol-table
@@ -492,6 +492,20 @@ test-referencias-integracion: tests/test_semantic_visitante \
 	./tests/test_generacion_adaptador
 	./tests/test_resolucion_referencias
 	./tests/test_referencias_integracion
+
+# Fase 5: layout de bundles y resolucion de saltos de control anidado.
+tests/test_resolucion_saltos: tests/test_resolucion_saltos.c tests/modelo_control.h \
+                              src/resolucion_saltos.c include/resolucion_saltos.h \
+                              src/referencias_integracion.c src/resolucion_referencias.c \
+                              $(MODULOS_SRC) $(BACKEND_ESCALAR_SRC) Analisis_Semantico/memory.c \
+                              include/symbol_table.h src/generacion_interna.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_resolucion_saltos.c src/resolucion_saltos.c \
+	      src/referencias_integracion.c src/resolucion_referencias.c \
+	      $(MODULOS_SRC) $(BACKEND_ESCALAR_SRC) Analisis_Semantico/memory.c -o $@
+
+.PHONY: test-resolucion-saltos
+test-resolucion-saltos: tests/test_resolucion_saltos
+	./tests/test_resolucion_saltos
 
 # 3B-D3F: comprueba el reporte de simbolos despues del analisis semantico.
 .PHONY: test-m-simbolos
