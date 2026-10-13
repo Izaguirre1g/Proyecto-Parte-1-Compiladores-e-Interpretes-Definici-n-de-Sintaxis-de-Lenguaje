@@ -71,19 +71,22 @@ static int visible(const SimSimbolo *s, const AstNodo *uso)
     return 0;
 }
 
+/* Simbolo visible en el punto de uso, o NULL. */
+static const SimSimbolo *buscar(GdContexto *c, const AstNodo *id)
+{
+    if (!id || id->tipo != AST_IDENTIFICADOR || !id->texto) return NULL;
+    const SimAmbito *uso = ambito_del_uso(c, id);
+    for (const SimAmbito *a = uso; a; a = a->padre)
+        for (const SimSimbolo *s = a->simbolos; s; s = s->hh.next)
+            if (!strcmp(s->nombre, id->texto) && visible(s, id)) return s;
+    return NULL;
+}
+
 static int referencia(void *datos, const AstNodo *id, GbReferencia *r)
 {
     GdContexto *c = datos;
-    if (!id || id->tipo != AST_IDENTIFICADOR || !id->texto || !r) return 0;
-    const SimSimbolo *encontrado = NULL;
-    const SimAmbito *uso = ambito_del_uso(c, id);
-    if (!uso) return 0;
-    for (const SimAmbito *a = uso; a && !encontrado; a = a->padre)
-        for (const SimSimbolo *s = a->simbolos; s; s = s->hh.next)
-            if (!strcmp(s->nombre, id->texto) && visible(s, id)) {
-                encontrado = s;
-                break;
-            }
+    if (!r) return 0;
+    const SimSimbolo *encontrado = buscar(c, id);
     if (!encontrado || encontrado->tipo != SIM_TIPO_INT ||
         encontrado->dimensiones || encontrado->bytes != 4 ||
         (encontrado->clase != SIM_VARIABLE &&
@@ -106,6 +109,39 @@ static int referencia(void *datos, const AstNodo *id, GbReferencia *r)
         encontrado->desplazamiento % 4 != 0) return 0;
     *r = (GbReferencia){GB_ENTERO, base, (int)encontrado->desplazamiento,
                        encontrado->clase != SIM_CONSTANTE};
+    return 1;
+}
+
+/* Arreglo local o global de enteros con todas sus dimensiones conocidas.
+ * Los parametros de arreglo (por referencia) y las dimensiones dinamicas
+ * quedan fuera. Ocupa bytes = 4 * producto de las longitudes. */
+static int arreglo(void *datos, const AstNodo *id, GbArreglo *r)
+{
+    GdContexto *c = datos;
+    const SimSimbolo *s = buscar(c, id);
+    if (!s || !r || s->tipo != SIM_TIPO_INT || s->clase != SIM_VARIABLE ||
+        !s->dimensiones || s->dimensiones > GB_MAX_DIMENSIONES || !s->longitudes)
+        return 0;
+    size_t elementos = 1;
+    for (unsigned k = 0; k < s->dimensiones; ++k) {
+        if (!s->longitudes[k] || s->longitudes[k] > 1024 ||
+            elementos > SIZE_MAX / s->longitudes[k]) return 0;
+        elementos *= s->longitudes[k];
+    }
+    if (elementos > 256 || s->bytes != 4 * elementos) return 0;
+    unsigned base;
+    if (pertenece(s->ambito, c->ambito) && s->almacen == SIM_ALMACEN_LOCAL) {
+        base = 2;
+        if (s->desplazamiento < 4 ||
+            (size_t)s->desplazamiento + s->bytes > c->bytes_marco) return 0;
+    } else if (s->ambito == c->tabla->global && s->almacen == SIM_ALMACEN_GLOBAL) {
+        base = 3;
+    } else return 0;
+    if (s->desplazamiento < -1024 || s->desplazamiento > 1023 ||
+        s->desplazamiento % 4) return 0;
+    *r = (GbArreglo){base, (int)s->desplazamiento, s->dimensiones, {0}};
+    for (unsigned k = 0; k < s->dimensiones; ++k)
+        r->longitudes[k] = (uint32_t)s->longitudes[k];
     return 1;
 }
 
@@ -146,6 +182,6 @@ int gd_generar_funcion(const AstNodo *funcion, const SimTabla *tabla,
             s->almacen != SIM_ALMACEN_PARAMETRO &&
             s->almacen != SIM_ALMACEN_LOCAL) return 1;
     GdContexto c = {tabla, ambito, destino, contexto_destinos, bytes_marco};
-    return gf_generar_funcion(funcion, bytes_marco, referencia,
-                             resolver_destino, &c, salida, diagnosticos);
+    return gf_generar_funcion_arreglos(funcion, bytes_marco, referencia, arreglo,
+                                      resolver_destino, &c, salida, diagnosticos);
 }

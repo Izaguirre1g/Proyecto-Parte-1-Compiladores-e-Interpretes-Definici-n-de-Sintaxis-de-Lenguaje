@@ -3,6 +3,8 @@
 
 #include "ast.h"
 
+#include <stdint.h>
+
 typedef enum { GB_ENTERO, GB_BOOLEANO } GbTipo;
 typedef struct {
     GbTipo tipo;
@@ -29,5 +31,29 @@ typedef int (*GbResolver)(void *datos, const AstNodo *identificador,
  */
 int gb_generar(const AstNodo *nodo, GbResolver resolver, void *datos,
                FILE *salida, FILE *diagnosticos);
+
+/* Arreglo estatico de enteros de 4 bytes, en orden por filas: el elemento
+ * [i][j] de una matriz NxM esta en desplazamiento + 4*(i*M + j). */
+#define GB_MAX_DIMENSIONES 4
+typedef struct {
+    unsigned base;          /* x2 (sp) o x3 (gp). */
+    int desplazamiento;     /* Byte del primer elemento. */
+    unsigned dimensiones;   /* 1..GB_MAX_DIMENSIONES */
+    uint32_t longitudes[GB_MAX_DIMENSIONES];
+} GbArreglo;
+
+/* Devuelve 1 si el identificador es un arreglo estatico de enteros. */
+typedef int (*GbResolverArreglo)(void *datos, const AstNodo *identificador,
+                                 GbArreglo *arreglo);
+
+/* Igual que gb_generar y ademas admite, con un resolvedor de arreglos:
+ * lectura de elementos (a[i], m[i][j]) en expresiones, asignacion a un
+ * elemento y declaracion con literal ([[1, 2], [3, 4]]) o sin inicializar.
+ * Los indices se evaluan en tiempo de ejecucion y NO se comprueban sus
+ * limites (la semantica rechaza los indices constantes fuera de rango).
+ * La direccion usa los temporales del nivel: a[i] en xR necesita xR+1. */
+int gb_generar_arreglos(const AstNodo *nodo, GbResolver resolver,
+                        GbResolverArreglo arreglos, void *datos,
+                        FILE *salida, FILE *diagnosticos);
 
 #endif

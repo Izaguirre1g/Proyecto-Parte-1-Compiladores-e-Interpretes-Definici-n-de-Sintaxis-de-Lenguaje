@@ -122,6 +122,27 @@ El contrato actual reserva x4–x15 como temporales y x16–x31 como preservados
 La convención escalar de funciones usa x8–x11 para argumentos y x8 para retorno.
 El empaquetador debe respetar que una escritura del bundle N se lea desde N+3.
 
+## Arreglos y matrices
+
+Con `gb_generar_arreglos` (y `gf_generar_funcion_arreglos`), un resolvedor de
+arreglos entrega base (sp o gp), desplazamiento del primer elemento y
+longitud de cada dimensión. Se admiten arreglos estáticos de `declare_int` de
+hasta 4 dimensiones, en orden por filas: `m[i][j]` de una matriz NxM está en
+`desplazamiento + 4*(i*M + j)`.
+
+- Lectura `m[i][j]` en cualquier expresión: el índice lineal se calcula en
+  xR (multiplicación por la constante M con desplazamientos y sumas, usando
+  xR+1), se multiplica por 4 con `cizqi`, se suma la base y se carga con
+  `cargai xR, xR, desplazamiento`.
+- Asignación `m[i][j] : valor;`: valor en x4, dirección en x5, `guardap x5, x4, desplazamiento`.
+- Declaración con literal `[[4, 7, 1], [9, 5, 7]]`: un `guardap` por elemento
+  con desplazamiento constante; sin literal no se emite código.
+
+Los índices no se comprueban en ejecución; la semántica rechaza los índices
+constantes fuera de rango. Quedan fuera los parámetros de arreglo (por
+referencia), las dimensiones dinámicas y los arreglos de booleanos o
+caracteres (ocupan 1 byte por elemento).
+
 ## Referencias
 
 - Jason Leitón Jiménez. *Introducción*, TEC CE1108, 2026. Diapositivas 16 y 20:

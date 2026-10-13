@@ -4,7 +4,8 @@ Este documento registra las decisiones confirmadas para el proyecto y las
 convenciones necesarias para las extensiones. Complementa el PDF del avance:
 los ejemplos contradictorios del PDF no cambian estas reglas.
 
-El ejecutable se llama `balc`, con `-v` para tokens y `-t` para AST.
+El ejecutable se llama `balc`; sus opciones están en el README. Para ver solo
+tokens o el AST sin compilar: `balc --frontend [-v] [-t]`.
 `tree`, `trace` y demás opciones antiguas del avance no se implementan.
 No se admiten `declare_float`, literales decimales ni `show` por ahora.
 `alif` siempre requiere una condición entre paréntesis.
@@ -177,8 +178,8 @@ su variable y la traducción a la arquitectura quedan pendientes de integración
 
 ```bash
 make
-./balc -t examples/lenguaje_ampliado.bal
-./balc -t examples/matematicas.bal
+./balc --frontend -t examples/lenguaje_ampliado.bal
+./balc --frontend -t examples/matematicas.bal
 make test-parser
 make test-ast
 make test

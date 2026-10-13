@@ -196,9 +196,11 @@ static Resultado ejecutar(const char *archivo, int sintaxis, int verbose) {
             dup2(fileno(errores), STDERR_FILENO) < 0) _exit(126);
         fclose(salida);
         fclose(errores);
-        char *argumentos[5];
+        /* --frontend: solo lexico/sintaxis, sin generar binario. */
+        char *argumentos[6];
         int n = 0;
         argumentos[n++] = "./balc";
+        argumentos[n++] = "--frontend";
         if (verbose) argumentos[n++] = "-v";
         if (sintaxis) argumentos[n++] = "-t";
         argumentos[n++] = (char *)archivo;

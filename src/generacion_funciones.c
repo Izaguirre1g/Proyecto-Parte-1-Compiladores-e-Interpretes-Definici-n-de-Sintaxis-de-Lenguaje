@@ -8,6 +8,7 @@
 
 typedef struct {
     GbResolver resolver;
+    GbResolverArreglo arreglos;
     void *datos;
     size_t reserva;
 } Referencias;
@@ -33,6 +34,19 @@ static int referencia_desplazada(void *datos, const AstNodo *n, GbReferencia *r)
     return 1;
 }
 
+/* Igual que referencia_desplazada, para arreglos relativos a sp. */
+static int arreglo_desplazado(void *datos, const AstNodo *n, GbArreglo *a)
+{
+    Referencias *ref = datos;
+    if (!ref->arreglos || !ref->arreglos(ref->datos, n, a)) return 0;
+    if (a->base == 2) {
+        if (ref->reserva > 1020 || a->desplazamiento > 1023 - (int)ref->reserva)
+            return 0;
+        a->desplazamiento += (int)ref->reserva;
+    }
+    return 1;
+}
+
 static int emitir_constante(FILE *f, unsigned reg, uint32_t v)
 {
     if (v <= 1023)
@@ -50,9 +64,10 @@ static int emitir_constante(FILE *f, unsigned reg, uint32_t v)
 
 static int expresion_basica(GfContexto *c, const AstNodo *n, size_t reserva)
 {
-    Referencias ref = {c->resolver, c->datos, reserva};
-    return gb_generar(n, referencia_desplazada, &ref, c->salida,
-                      c->diagnosticos) == 0;
+    Referencias ref = {c->resolver, c->arreglos, c->datos, reserva};
+    return gb_generar_arreglos(n, referencia_desplazada,
+                               c->arreglos ? arreglo_desplazado : NULL, &ref,
+                               c->salida, c->diagnosticos) == 0;
 }
 
 /* Las expresiones con llamadas se procesan usando la pila para valores vivos. */
@@ -189,8 +204,8 @@ int gf_sentencia(GfContexto *c, const AstNodo *n, int es_void, int *retorna)
     if (n->tipo == AST_DECLARACION || n->tipo == AST_ASIGNACION) {
         if (contiene_llamada(n)) {
             if (!asignacion_ext(c, n)) return 0;
-        } else if (gb_generar(n, c->resolver, c->datos,
-                              c->salida, c->diagnosticos) != 0) return 0;
+        } else if (gb_generar_arreglos(n, c->resolver, c->arreglos, c->datos,
+                                       c->salida, c->diagnosticos) != 0) return 0;
     } else if (n->tipo == AST_LLAMADA) {
         if (!llamada(c, n, 0)) return 0;
     } else if (n->tipo == AST_RETORNO) {
@@ -218,6 +233,15 @@ int gf_generar_funcion(const AstNodo *funcion, size_t bytes_marco,
                        GbResolver resolver, GfResolverDestino destino,
                        void *datos, FILE *salida, FILE *diagnosticos)
 {
+    return gf_generar_funcion_arreglos(funcion, bytes_marco, resolver, NULL,
+                                       destino, datos, salida, diagnosticos);
+}
+
+int gf_generar_funcion_arreglos(const AstNodo *funcion, size_t bytes_marco,
+                                GbResolver resolver, GbResolverArreglo arreglos,
+                                GfResolverDestino destino, void *datos,
+                                FILE *salida, FILE *diagnosticos)
+{
     if (!salida || !funcion || funcion->tipo != AST_FUNCION) return 1;
     const AstNodo *id = funcion->primer_hijo;
     const AstNodo *tipo = id ? id->siguiente : NULL;
@@ -243,7 +267,7 @@ int gf_generar_funcion(const AstNodo *funcion, size_t bytes_marco,
     FILE *temporal = tmpfile();
     if (!temporal) return 1;
     GfContexto c = {temporal, diagnosticos, resolver, destino, datos, bytes_marco,
-                  0, id->texto, 0, 0};
+                  0, id->texto, 0, 0, arreglos};
     int retorna = 0;
     int ok = fm_emitir_prologo(temporal, bytes_marco, cantidad) == FM_OK &&
              gc_bloque(&c, bloque, es_void, &retorna);

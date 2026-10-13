@@ -21,6 +21,7 @@ typedef struct {
     const char *funcion;
     unsigned etiquetas;
     unsigned bloques;
+    GbResolverArreglo arreglos; /* NULL: sin arreglos. */
 } GfContexto;
 
 int gf_fallo(GfContexto *c, const AstNodo *n, const char *mensaje);

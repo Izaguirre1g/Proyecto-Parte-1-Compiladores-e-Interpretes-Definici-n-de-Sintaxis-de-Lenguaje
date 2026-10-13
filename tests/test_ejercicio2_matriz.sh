@@ -4,16 +4,22 @@ set -eu
 salida=$(mktemp)
 error=$(mktemp)
 caso=$(mktemp --suffix=.bal)
-trap 'rm -f "$salida" "$error" "$caso"' EXIT HUP INT TERM
+binario=$(mktemp --suffix=.bin)
+trap 'rm -f "$salida" "$error" "$caso" "$binario" "${binario%.bin}.mem"' EXIT HUP INT TERM
 fuente=examples/ejercicio2_busqueda_matriz.bal
 if ! ./balc --semantico "$fuente" >"$salida" 2>"$error"; then
     echo 'FALLO: ejercicio 2 no supera analisis semantico' >&2
     cat "$error" >&2
     exit 1
 fi
-if ! ./balc -m "$fuente" >"$salida" 2>"$error"; then
-    echo 'FALLO: ejercicio 2 no supera asignacion de memoria' >&2
+# -m tambien compila hasta el binario.
+if ! ./balc -m -o "$binario" "$fuente" >"$salida" 2>"$error"; then
+    echo 'FALLO: ejercicio 2 no compila' >&2
     cat "$error" >&2
+    exit 1
+fi
+if [ ! -s "$binario" ]; then
+    echo 'FALLO: ejercicio 2 no genero el binario' >&2
     exit 1
 fi
 for patron in '[SIMBOLOS]' 'matriz | variable' 'objetivo | variable' 'fila_encontrada | variable' 'columna_encontrada | variable' '[MEMORIA]'; do
@@ -35,4 +41,4 @@ if ! grep -F 'fuera de rango' "$error" "$salida" >/dev/null 2>&1; then
     cat "$error" >&2
     exit 1
 fi
-printf '%s\n' 'OK: Ejercicio 2 - sintaxis, semantica, -m y rechazo de indices (sin ejecucion VLIW)'
+printf '%s\n' 'OK: Ejercicio 2 - sintaxis, semantica, -m, binario y rechazo de indices'
