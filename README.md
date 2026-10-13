@@ -76,12 +76,9 @@ pueden combinar.
 | `-x` | Toma un archivo de ensamblador y genera el binario. |
 | `-p` | Muestra los paquetes generados en ensamblador y en binario. |
 
-Junto al `.bin` (16 bytes por bundle, el formato que carga la memoria de
-instrucciones) se escribe un `.mem` para `$readmemh` del RTL. Los formatos y
-la verificación contra `tools/assembler.py` están en
-[docs/backend_binario.md](docs/backend_binario.md). Los archivos se crean solo
-si la compilación termina bien. `balc` devuelve 0 si compila, 1 por errores del
-programa y 2 por fallos de invocación, lectura o memoria.
+El `.bin` usa el [formato BALB v1](docs/formato_binario.md): encabezado,
+codigo y datos globales. Junto a el se genera un `.mem` de instrucciones
+compatible con la IMEM de Arquitectura. El encabezado no se carga en la IMEM.
 
 ```bash
 ./balc -v examples/factorial.bal          # factorial.bin y factorial.mem

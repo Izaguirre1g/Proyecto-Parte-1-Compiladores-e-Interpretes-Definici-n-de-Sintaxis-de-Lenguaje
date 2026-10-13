@@ -40,14 +40,14 @@ que no genera archivos.
 | Archivo | Contenido |
 |---|---|
 | `.asm` | Un bundle por línea: `ALU \| LSU \| BRU \| CRIPTO` o `nop`. Etiquetas como comentarios. |
-| `.bin` | 16 bytes little-endian por bundle, ALU primero. Sin encabezado. |
+| `.bin` | Contenedor BALB v1: encabezado de 48 bytes, codigo y datos globales. |
 | `.mem` | 32 dígitos hexadecimales por bundle, CRIPTO en los bits altos, para `$readmemh` de la IMEM. |
 | `-p` | Por paquete: PC y ensamblador; la palabra en hexadecimal y el binario de cada slot separado por campos (tipo, id, operandos). |
 
-El `.bin` no lleva encabezado ni sección de datos: es la imagen que se carga
-en la memoria de instrucciones desde la dirección 0, igual que el `.bin` de
-`tools/assembler.py`. La memoria de datos no se precarga: el arranque fija
-gp y sp e inicializa las constantes globales con código.
+El formato completo se describe en [formato_binario.md](formato_binario.md).
+La seccion de codigo conserva 16 bytes little-endian por bundle, ALU primero.
+El `.mem` y el arranque conservan la inicializacion por instrucciones para
+que el procesador siga funcionando sin precarga de datos.
 
 Mapa de memoria: código desde 0 (máximo 1024 bundles), globales desde
 gp = 0x4000 hasta 0x7FFF, pila desde sp = 0x10000 hacia abajo.
@@ -84,7 +84,7 @@ alias, etiquetas y operandos nombrados. Su `.mem` y su `.bin` se generaron con
 `tools/assembler.py` (commit 818e1de de Arquitectura).
 `make test-codificacion-binaria` exige los mismos bytes y los mismos rechazos.
 
-Además, el `.bin` y el `.mem` que genera `balc` resultaron idénticos a los de
+Además, la seccion de codigo del `.bin` y el `.mem` que genera `balc` resultaron idénticos a los de
 `assembler.py` sobre la salida de `balc -s`:
 
 | Programa | Bundles | Resultado |
@@ -101,7 +101,13 @@ Para repetir la comparación (requiere el repositorio de Arquitectura):
 ./balc -s examples/factorial.bal   # factorial.asm, factorial.bin y factorial.mem
 python3 ../Proyecto1_Arquitectura1/tools/assembler.py \
   --input examples/factorial.asm --output /tmp/ref.mem --binary /tmp/ref.bin
-cmp examples/factorial.bin /tmp/ref.bin && cmp examples/factorial.mem /tmp/ref.mem
+python3 - <<'PYCODE'
+import pathlib, struct
+b = pathlib.Path("examples/factorial.bin").read_bytes()
+offset, cantidad = struct.unpack_from("<II", b, 20)
+assert b[offset:offset + cantidad] == pathlib.Path("/tmp/ref.bin").read_bytes()
+PYCODE
+cmp examples/factorial.mem /tmp/ref.mem
 ```
 
 ## Pendiente

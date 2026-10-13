@@ -64,6 +64,19 @@ static long tamano(const char *ruta) {
     return n;
 }
 
+static int mismos_codigo(const char *a, const char *b) {
+    FILE *x = fopen(a, "rb"), *y = fopen(b, "rb");
+    int ok = x && y && fseek(x, 48, SEEK_SET) == 0;
+    while (ok) {
+        int c = fgetc(x), d = fgetc(y);
+        if (c != d) ok = 0;
+        if (c == EOF || d == EOF) break;
+    }
+    if (x) fclose(x);
+    if (y) fclose(y);
+    return ok;
+}
+
 static int mismos(const char *a, const char *b) {
     FILE *x = fopen(a, "rb"), *y = fopen(b, "rb");
     int iguales = x && y;
@@ -114,16 +127,16 @@ int main(void) {
     exigir(fgets(primera, sizeof(primera), asm_whale) != NULL, "whale.asm vacio");
     fclose(asm_whale);
     exigir(strcmp(primera, "# __arranque:\n") == 0, "whale.asm sin arranque");
-    /* .bin de 16 bytes por bundle y .mem de 33 caracteres por bundle. */
-    exigir(tamano("tests/cli_salida.bin") == 144 * 16, "tamano de cli_salida.bin");
+    /* .bin: cabecera de 48 bytes + codigo; .mem conserva su formato. */
+    exigir(tamano("tests/cli_salida.bin") == 48 + 144 * 16, "tamano de cli_salida.bin");
     exigir(tamano("tests/cli_salida.mem") == 144 * 33, "tamano de cli_salida.mem");
     /* Todas las opciones generan el mismo binario. */
     const char *iguales[] = {"examples/whale.bin", "tests/cli_s.bin", "tests/cli_t.bin",
                              "tests/cli_v.bin", "tests/cli_p.bin"};
     for (size_t i = 0; i < sizeof(iguales) / sizeof(*iguales); ++i)
         exigir(mismos(iguales[i], "tests/cli_salida.bin"), iguales[i]);
-    /* -x sobre un .asm da el mismo binario que tools/assembler.py. */
-    exigir(mismos("tests/cli_isa.bin", "tests/fixtures/isa_todas.bin"), "cli_isa.bin distinto");
+    /* La seccion de codigo de -x coincide con tools/assembler.py. */
+    exigir(mismos_codigo("tests/cli_isa.bin", "tests/fixtures/isa_todas.bin"), "cli_isa.bin distinto");
     exigir(mismos("tests/cli_isa.mem", "tests/fixtures/isa_todas.mem"), "cli_isa.mem distinto");
     const char *generados[] = {"examples/whale.asm", "examples/whale.bin", "examples/whale.mem",
                                "tests/cli_salida.bin", "tests/cli_salida.mem",

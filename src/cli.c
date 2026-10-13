@@ -1,3 +1,4 @@
+#include "formato_binario.h"
 #include "cli.h"
 #include "lexer.h"
 
@@ -176,6 +177,7 @@ typedef struct {
     const Compilacion *opciones;
     char *ensamblador;      /* Bundles en texto, propiedad del llamador. */
     EfResumen resumen;
+    FbDatos datos;
 } Backend;
 
 static void usage(FILE *out) {
@@ -264,11 +266,13 @@ static char *leer_temporal(FILE *f, long *largo_out)
 /* El archivo se crea solo cuando el contenido ya esta completo. */
 static int escribir_archivo(const char *ruta, const CbPrograma *programa,
                             int (*escribir)(const CbPrograma *, FILE *),
-                            const char *texto)
+                            const char *texto, const FbDatos *datos)
 {
     FILE *temporal = tmpfile();
     if (!temporal) { perror("tmpfile"); return 0; }
-    int ok = texto ? fputs(texto, temporal) >= 0 : escribir(programa, temporal) == 0;
+    int ok = texto ? fputs(texto, temporal) >= 0 :
+             datos ? fb_escribir(programa, datos, temporal) == 0 :
+             escribir(programa, temporal) == 0;
     long largo = 0;
     char *contenido = ok ? leer_temporal(temporal, &largo) : NULL;
     fclose(temporal);
@@ -336,6 +340,8 @@ static int compilar_proyecto(void *ctx, const Ast *arbol, SimTabla *tabla, FILE 
     if (!temporal) { perror("tmpfile"); return 2; }
     int ok = ef_enlazar(arbol, tabla, 0, &arranque, &funciones, temporal,
                         diagnosticos, &b->resumen) == 0;
+    if (ok) ok = fb_preparar_datos(arbol, tabla, (uint32_t)mapa.globales.gp_base,
+                                   mapa.globales.bytes_globales, &b->datos, diagnosticos) == 0;
     if (ok) b->ensamblador = leer_temporal(temporal, NULL);
     fclose(temporal);
 
@@ -432,7 +438,9 @@ static int compilar(const Compilacion *op)
     }
     if (op->detallado) printf("[balc] %s\n", op->entrada);
 
-    Backend datos = {op, NULL, {{0}, 0, 0}};
+    Backend datos = {0};
+    datos.opciones = op;
+    datos.datos.base = CLI_GP_BASE;
     int estado = 0;
     if (op->desde_ensamblador) {
         size_t largo = 0;
@@ -450,7 +458,7 @@ static int compilar(const Compilacion *op)
 
     if (estado == 0 && op->ensamblador) {
         char *destino = cambiar_extension(op->entrada, ".bal", ".asm");
-        if (!destino || !escribir_archivo(destino, NULL, NULL, datos.ensamblador)) estado = 2;
+        if (!destino || !escribir_archivo(destino, NULL, NULL, datos.ensamblador, NULL)) estado = 2;
         else printf("[ensamblador] %s: %zu bundles, %zu funciones, %zu saltos (%zu reescritos)\n",
                     destino, datos.resumen.saltos.bundles, datos.resumen.funciones,
                     datos.resumen.saltos.saltos, datos.resumen.saltos.relajados);
@@ -474,10 +482,10 @@ static int compilar(const Compilacion *op)
         else if (!strcmp(bin, mem) || !strcmp(bin, op->entrada) || !strcmp(mem, op->entrada)) {
             fputs("la entrada y las salidas deben tener rutas distintas\n", stderr);
             estado = 2;
-        } else if (!escribir_archivo(bin, &programa, cb_escribir_bin, NULL) ||
-                   !escribir_archivo(mem, &programa, cb_escribir_mem, NULL)) estado = 2;
+        } else if (!escribir_archivo(bin, &programa, NULL, NULL, &datos.datos) ||
+                   !escribir_archivo(mem, &programa, cb_escribir_mem, NULL, NULL)) estado = 2;
         else printf("[binario] %s y %s: %zu bundles, %zu bytes\n",
-                    bin, mem, programa.cantidad, 16 * programa.cantidad);
+                    bin, mem, programa.cantidad, FB_CABECERA_BYTES + 16 * programa.cantidad + datos.datos.cantidad);
         free(bin);
         free(mem);
     }
