@@ -168,6 +168,7 @@ typedef struct {
     int detallado;          /* -v */
     int ensamblador;        /* -s */
     int ast;                /* -t */
+    int ast_json;           /* exportacion sin compilacion */
     int simbolos;           /* -m */
     int desde_ensamblador;  /* -x */
     int paquetes;           /* -p */
@@ -190,7 +191,8 @@ static void usage(FILE *out) {
           "-t            imprime el arbol sintactico (AST)\n"
           "-m            imprime la tabla de simbolos y las asignaciones de memoria\n"
           "-x            toma un archivo de ensamblador y genera el binario\n"
-          "-p            muestra los paquetes generados en ensamblador y en binario\n", out);
+          "-p            muestra los paquetes generados en ensamblador y en binario\n"
+          "--ast-json    exporta solamente el AST como JSON por stdout\n", out);
 }
 
 static int parse_compilacion(int argc, char **argv, Compilacion *c)
@@ -198,6 +200,7 @@ static int parse_compilacion(int argc, char **argv, Compilacion *c)
     int posicional = 0;
     for (int i = 1; i < argc; ++i) {
         const char *arg = argv[i];
+        if (!posicional && !strcmp(arg, "--ast-json")) { c->ast_json = 1; continue; }
         if (!posicional && arg[0] == '-' && arg[1] && !arg[2]) {
             switch (arg[1]) {
                 case 'h': usage(stdout); return 1;
@@ -223,6 +226,11 @@ static int parse_compilacion(int argc, char **argv, Compilacion *c)
         c->entrada = arg;
     }
     if (!c->entrada) { usage(stderr); return -1; }
+    if (c->ast_json && (c->detallado || c->ensamblador || c->simbolos ||
+                        c->desde_ensamblador || c->paquetes || c->salida)) {
+        fputs("--ast-json solo admite -t; no se combina con -v, -m, -s, -x, -p ni -o\n", stderr);
+        return -1;
+    }
     if (c->desde_ensamblador && (c->ensamblador || c->ast || c->simbolos)) {
         fputs("-x toma ensamblador: no se combina con -s, -t ni -m\n", stderr);
         return -1;
@@ -495,10 +503,28 @@ static int compilar(const Compilacion *op)
     return estado != 0 ? estado : ferror(stdout) ? 2 : 0;
 }
 
+/* JSON limpio para el visualizador, sin ejecutar las fases de generacion. */
+static int exportar_ast_json(const char *ruta)
+{
+    size_t largo = 0;
+    char *fuente = read_source(ruta, &largo);
+    if (!fuente) return 2;
+    Ast arbol = {0};
+    int estado = construir_ast(fuente, largo, ruta, stderr, &arbol);
+    if (!estado && ast_exportar_json(&arbol, stdout) != 0) {
+        fputs("No se pudo escribir el AST en JSON\n", stderr);
+        estado = 2;
+    }
+    ast_liberar(&arbol);
+    free(fuente);
+    return estado;
+}
+
 int cli_run(int argc, char **argv) {
     Compilacion op = {0};
     int parsed = parse_compilacion(argc, argv, &op);
     if (parsed != 0) return parsed == 1 ? 0 : 2;
+    if (op.ast_json) return exportar_ast_json(op.entrada);
     return compilar(&op);
 }
 
