@@ -82,5 +82,8 @@ const char *ast_nombre_tipo(AstTipo tipo);
 /* Declara la impresión del árbol en el flujo indicado, sin modificarlo, con sangría, textos y ubicaciones. */
 void ast_imprimir(const Ast *arbol, FILE *salida);
 
+/* Exporta el arbol como JSON. Devuelve 0 en exito y 1 si falla la salida. */
+int ast_exportar_json(const Ast *arbol, FILE *salida);
+
 /* Cierra la protección contra inclusiones repetidas iniciada con la directiva ifndef. */
 #endif

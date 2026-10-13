@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Árbol AST de BAL</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font:15px system-ui,sans-serif;background:#f4f6f8;color:#182230}main{padding:22px;max-width:1600px;margin:auto}h1{font-size:25px;margin:0 0 8px}p{line-height:1.5;margin:8px 0 16px}.barra{display:flex;align-items:center;gap:9px;flex-wrap:wrap;background:white;border:1px solid #d0d5dd;padding:14px;border-radius:9px}button{padding:7px 12px;border:1px solid #98a2b3;border-radius:5px;background:white;cursor:pointer}button:disabled{opacity:.4;cursor:default}#estado{min-height:23px}.error{color:#b42318}#vista{height:72vh;min-height:400px;background:white;border:1px solid #d0d5dd;border-radius:9px;overflow:hidden;touch-action:none}svg{display:block;width:100%;height:100%;cursor:grab}svg.arrastrando{cursor:grabbing}.enlace{stroke:#475467;stroke-width:1.6;fill:none;vector-effect:non-scaling-stroke}.nodo circle{fill:#fff;stroke:#1d2939;stroke-width:1.8}.nodo.rama{cursor:pointer}.nodo.rama circle:hover{fill:#eff8ff}.nodo.cerrado circle{fill:#e0edff;stroke:#175cd3}.etiqueta{font:600 13px system-ui,sans-serif;fill:#101828}.tipo{font:10px system-ui,sans-serif;fill:#667085}.mas{font:bold 16px system-ui,sans-serif;fill:#175cd3}code{background:#e9eef3;padding:2px 4px;border-radius:3px}
+</style>
+</head>
+<body><main>
+<h1>Árbol sintáctico de BAL</h1>
+<p>Genera el JSON con <code>./balc --ast-json examples/factorial.bal &gt; factorial.ast.json</code>. La raíz aparece arriba y las líneas conectan cada nodo con sus hijos.</p>
+<div class="barra">
+<label>Archivo JSON <input id="archivo" type="file" accept=".json,application/json"></label>
+<button id="ajustar" disabled>Ajustar árbol</button>
+<button id="acercar" disabled>+</button><button id="alejar" disabled>−</button>
+<button id="expandir" disabled>Expandir todo</button><button id="contraer" disabled>Contraer todo</button>
+<span id="zoom">100 %</span>
+</div>
+<p id="estado" role="status">Selecciona un AST. Arrastra para desplazarte y usa la rueda para cambiar el zoom. Pulsa un nodo para abrir o cerrar sus hijos.</p>
+<div id="vista"><svg id="arbol" aria-label="Árbol sintáctico con nodos y conexiones" role="img"><g id="escena"></g></svg></div>
+<p>El archivo se lee únicamente en este navegador. No necesitas conexión a Internet.</p>
+</main>
+<script>
+'use strict';
+const ns='http://www.w3.org/2000/svg';
+const entrada=document.getElementById('archivo');
+const svg=document.getElementById('arbol');
+const escena=document.getElementById('escena');
+const estado=document.getElementById('estado');
+const botones=['ajustar','acercar','alejar','expandir','contraer'].map(id=>document.getElementById(id));
+let raiz=null,cerrados=new WeakSet(),escala=1,dx=0,dy=0,seleccion=0,limites={ancho:1,alto:1};
+let arrastre=null,movido=false;
+
+function crear(tipo,atributos={}){
+  const el=document.createElementNS(ns,tipo);
+  for(const [k,v] of Object.entries(atributos))el.setAttribute(k,String(v));
+  return el;
+}
+function validar(nodo){
+  const pila=[nodo];let cantidad=0;
+  while(pila.length){
+    const n=pila.pop();
+    if(!n||typeof n.tipo!=='string'||!(n.texto===null||typeof n.texto==='string')||!Array.isArray(n.hijos))
+      throw Error('El archivo no tiene el formato de AST de BAL.');
+    const u=n.ubicacion;
+    if(!u||!['linea_inicio','columna_inicio','linea_fin','columna_fin'].every(k=>Number.isSafeInteger(u[k])&&u[k]>=1))
+      throw Error('Hay un nodo con una ubicación inválida.');
+    if(++cantidad>20000)throw Error('El visualizador admite hasta 20 000 nodos.');
+    for(const hijo of n.hijos)pila.push(hijo);
+  }
+  return cantidad;
+}
+function transformar(){
+  escena.setAttribute('transform',`translate(${dx},${dy}) scale(${escala})`);
+  document.getElementById('zoom').textContent=Math.round(escala*100)+' %';
+}
+function ajustar(){
+  const r=svg.getBoundingClientRect();
+  escala=Math.min(1,Math.max(.01,Math.min((r.width-40)/limites.ancho,(r.height-40)/limites.alto)));
+  dx=(r.width-limites.ancho*escala)/2;dy=(r.height-limites.alto*escala)/2;
+  transformar();
+}
+function ampliar(factor,x,y){
+  if(!raiz)return;
+  const r=svg.getBoundingClientRect();x=x??r.width/2;y=y??r.height/2;
+  const siguiente=Math.max(.01,Math.min(4,escala*factor));
+  dx=x-(x-dx)*siguiente/escala;dy=y-(y-dy)*siguiente/escala;escala=siguiente;
+  transformar();
+}
+function dibujar(recentrar=false){
+  const nodos=[],pila=[{n:raiz,padre:null,nivel:0}],posiciones=new Map();
+  let profundidad=0,hoja=0;
+  while(pila.length){
+    const p=pila.pop();nodos.push(p);profundidad=Math.max(profundidad,p.nivel);
+    posiciones.set(p.n,p);
+    if(!cerrados.has(p.n))for(let i=p.n.hijos.length-1;i>=0;--i)
+      pila.push({n:p.n.hijos[i],padre:p.n,nivel:p.nivel+1});
+  }
+  // Las hojas ocupan columnas distintas; cada padre queda centrado entre sus hijos.
+  for(let i=nodos.length-1;i>=0;--i){
+    const p=nodos[i],hijos=cerrados.has(p.n)?[]:p.n.hijos;
+    if(hijos.length)p.x=(posiciones.get(hijos[0]).x+posiciones.get(hijos[hijos.length-1]).x)/2;
+    else p.x=70+(hoja++)*140;
+    p.y=65+p.nivel*145;
+  }
+  // El recorrido inverso asigna columnas de derecha a izquierda: reflejamos el eje.
+  const ancho=Math.max(140,hoja*140);
+  for(const p of nodos)p.x=ancho-p.x;
+  limites={ancho,alto:130+profundidad*145};
+  const contenido=document.createDocumentFragment();
+  for(const p of nodos)if(p.padre){
+    const padre=posiciones.get(p.padre),vx=p.x-padre.x,vy=p.y-padre.y,l=Math.hypot(vx,vy);
+    contenido.append(crear('line',{class:'enlace',x1:padre.x+vx*47/l,y1:padre.y+vy*47/l,x2:p.x-vx*47/l,y2:p.y-vy*47/l}));
+  }
+  for(const p of nodos){
+    const rama=p.n.hijos.length>0,cerrado=cerrados.has(p.n);
+    const grupo=crear('g',{class:'nodo'+(rama?' rama':'')+(cerrado?' cerrado':''),transform:`translate(${p.x},${p.y})`});
+    const titulo=crear('title');const u=p.n.ubicacion;
+    titulo.textContent=p.n.tipo+(p.n.texto===null?'':' — '+p.n.texto)+`\n${u.linea_inicio}:${u.columna_inicio} → ${u.linea_fin}:${u.columna_fin}`;
+    grupo.append(titulo,crear('circle',{r:47}));
+    const rotulo=p.n.texto===null?p.n.tipo:p.n.texto;
+    const texto=crear('text',{'text-anchor':'middle',class:'etiqueta',y:p.n.texto===null?4:-5});
+    texto.textContent=rotulo.length>13?rotulo.slice(0,12)+'…':rotulo;grupo.append(texto);
+    if(p.n.texto!==null){const tipo=crear('text',{'text-anchor':'middle',class:'tipo',y:14});tipo.textContent=p.n.tipo;grupo.append(tipo);}
+    if(cerrado&&rama){const mas=crear('text',{'text-anchor':'middle',class:'mas',y:34});mas.textContent='+';grupo.append(mas);}
+    if(rama){
+      grupo.setAttribute('tabindex','0');grupo.setAttribute('role','button');
+      grupo.setAttribute('aria-label',titulo.textContent);grupo.setAttribute('aria-expanded',String(!cerrado));
+      const alternar=()=>{if(cerrados.has(p.n))cerrados.delete(p.n);else cerrados.add(p.n);dibujar(true);};
+      grupo.addEventListener('click',()=>{if(!movido)alternar();});
+      grupo.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();alternar();}});
+    }
+    contenido.append(grupo);
+  }
+  escena.replaceChildren(contenido);if(recentrar)ajustar();else transformar();
+}
+entrada.addEventListener('change',async()=>{
+  const turno=++seleccion,archivo=entrada.files[0];raiz=null;escena.replaceChildren();
+  botones.forEach(b=>b.disabled=true);estado.className='';
+  if(!archivo){estado.textContent='Selecciona un AST.';return;}
+  try{
+    if(archivo.size>10*1024*1024)throw Error('El archivo supera los 10 MiB.');
+    const texto=await archivo.text();if(turno!==seleccion)return;
+    const nuevo=JSON.parse(texto),cantidad=validar(nuevo);raiz=nuevo;cerrados=new WeakSet();
+    dibujar(true);botones.forEach(b=>b.disabled=false);
+    estado.textContent=`${archivo.name}: ${cantidad} nodos. Arrastra para desplazarte; pulsa un nodo para contraerlo.`;
+  }catch(e){if(turno!==seleccion)return;estado.className='error';estado.textContent='No se pudo cargar el AST: '+e.message;}
+});
+document.getElementById('ajustar').onclick=ajustar;
+document.getElementById('acercar').onclick=()=>ampliar(1.3);
+document.getElementById('alejar').onclick=()=>ampliar(1/1.3);
+document.getElementById('expandir').onclick=()=>{cerrados=new WeakSet();dibujar(true);};
+document.getElementById('contraer').onclick=()=>{cerrados=new WeakSet();const pila=[...raiz.hijos];while(pila.length){const n=pila.pop();if(n.hijos.length)cerrados.add(n);for(const h of n.hijos)pila.push(h);}dibujar(true);};
+svg.addEventListener('wheel',e=>{if(!raiz)return;e.preventDefault();const r=svg.getBoundingClientRect();ampliar(Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top);},{passive:false});
+svg.addEventListener('pointerdown',e=>{if(!raiz||e.button!==0)return;arrastre={x:e.clientX,y:e.clientY,dx,dy};movido=false;});
+svg.addEventListener('pointermove',e=>{if(!arrastre)return;const x=e.clientX-arrastre.x,y=e.clientY-arrastre.y;if(Math.hypot(x,y)>4){movido=true;svg.classList.add('arrastrando');svg.setPointerCapture(e.pointerId);dx=arrastre.dx+x;dy=arrastre.dy+y;transformar();}});
+function terminar(){arrastre=null;svg.classList.remove('arrastrando');}
+svg.addEventListener('pointerup',terminar);svg.addEventListener('pointercancel',terminar);
+window.addEventListener('resize',()=>{if(raiz)ajustar();});
+</script>
+</body></html>

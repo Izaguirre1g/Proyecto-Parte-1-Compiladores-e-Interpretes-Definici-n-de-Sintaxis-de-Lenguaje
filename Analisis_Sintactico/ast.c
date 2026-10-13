@@ -161,3 +161,53 @@ void ast_imprimir(const Ast *arbol, FILE *salida) {
     }
 /* Finaliza la función de impresión del árbol. */
 }
+
+
+/* JSON necesita escapes Unicode para los controles, no escapes de C. */
+static void json_texto(FILE *salida, const char *texto) {
+    if (!texto) { fputs("null", salida); return; }
+    fputc('"', salida);
+    for (const unsigned char *p = (const unsigned char *)texto; *p; ++p) {
+        if (*p == '"' || *p == '\\') { fputc('\\', salida); fputc(*p, salida); }
+        else if (*p < 0x20) fprintf(salida, "\\u%04x", (unsigned)*p);
+        else fputc(*p, salida);
+    }
+    fputc('"', salida);
+}
+
+static void json_abrir_nodo(FILE *salida, const AstNodo *nodo) {
+    fputs("{\"tipo\":", salida);
+    json_texto(salida, ast_nombre_tipo(nodo->tipo));
+    fputs(",\"texto\":", salida);
+    json_texto(salida, nodo->texto);
+    fprintf(salida, ",\"ubicacion\":{\"linea_inicio\":%zu,\"columna_inicio\":%zu,"
+            "\"linea_fin\":%zu,\"columna_fin\":%zu},\"hijos\":[",
+            nodo->ubicacion.first_line, nodo->ubicacion.first_column,
+            nodo->ubicacion.last_line, nodo->ubicacion.last_column);
+}
+
+int ast_exportar_json(const Ast *arbol, FILE *salida) {
+    if (!arbol || !salida) return 1;
+    const AstNodo *nodo = arbol->raiz;
+    if (!nodo) { fputs("null\n", salida); return ferror(salida) != 0; }
+    /* Recorremos padres y hermanos sin recursion ni modificar el AST. */
+    json_abrir_nodo(salida, nodo);
+    for (;;) {
+        if (nodo->primer_hijo) {
+            nodo = nodo->primer_hijo;
+            json_abrir_nodo(salida, nodo);
+            continue;
+        }
+        fputs("]}", salida);
+        while (nodo != arbol->raiz && !nodo->siguiente) {
+            nodo = nodo->padre;
+            fputs("]}", salida);
+        }
+        if (nodo == arbol->raiz || ferror(salida)) break;
+        nodo = nodo->siguiente;
+        fputc(',', salida);
+        json_abrir_nodo(salida, nodo);
+    }
+    fputc('\n', salida);
+    return ferror(salida) != 0;
+}

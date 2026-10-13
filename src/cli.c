@@ -21,11 +21,13 @@ typedef struct {
     int syntax;
     int symbols;
     int assembly;
+    int ast_json;
 } Options;
 
 static void usage(FILE *out) {
-    fputs("Uso: balc [-v] [-t] [-m] [-s] <archivo_fuente>\n"
+    fputs("Uso: balc [-v] [-t] [-m] [-s] [--ast-json] <archivo_fuente>\n"
           "-t valida sintaxis e imprime el AST. Sin -t, solo analiza tokens.\n"
+          "--ast-json exporta el AST como JSON por stdout.\n"
           "-m valida semantica, asigna memoria y muestra simbolos.\n"
           "-s genera el ensamblador en bundles (<fuente>.asm).\n"
           "Opciones del proyecto reservadas para integración: -o, -x, -p.\n", out);
@@ -39,6 +41,7 @@ static int parse_args(int argc, char **argv, Options *opt) {
         if (!positional && strcmp(arg, "-v") == 0) { opt->verbose = 1; continue; }
         /*Se agrega la opcion -t para validar sintaxis */
         if (!positional && strcmp(arg, "-t") == 0) { opt->syntax = 1; continue; }
+        if (!positional && strcmp(arg, "--ast-json") == 0) { opt->ast_json = 1; continue; }
         if (!positional && strcmp(arg, "-m") == 0) { opt->symbols = 1; continue; }
         if (!positional && strcmp(arg, "-h") == 0) { usage(stdout); return 1; }
         if (!positional && strcmp(arg, "-o") == 0) {
@@ -68,6 +71,10 @@ static int parse_args(int argc, char **argv, Options *opt) {
         return -1;
     }
     if (!opt->input) { usage(stderr); return -1; }
+    if (opt->ast_json && (opt->verbose || opt->symbols || opt->assembly)) {
+        fputs("--ast-json no se combina con -v, -m ni -s\n", stderr);
+        return -1;
+    }
     if (opt->symbols && (opt->syntax || opt->verbose)) {
         fputs("-m no se combina con -t ni -v\n", stderr);
         return -1;
@@ -290,6 +297,19 @@ int cli_run(int argc, char **argv) {
     size_t size = 0;
     char *source = read_source(opt.input, &size);
     if (!source) return 2;
+
+    /* Los diagnosticos van a stderr para poder redirigir un JSON limpio. */
+    if (opt.ast_json) {
+        Ast arbol = {0};
+        int estado = construir_ast(source, size, opt.input, stderr, &arbol);
+        if (estado == 0 && (ast_exportar_json(&arbol, stdout) || fflush(stdout))) {
+            fputs("No se pudo escribir el AST JSON\n", stderr);
+            estado = 2;
+        }
+        ast_liberar(&arbol);
+        free(source);
+        return estado;
+    }
 
     /*Se agrega la condicion para que si se pidio analizar sintaxis y no verbose, se ejecute el analisis sintactico*/
     if (opt.syntax && !opt.verbose) {
