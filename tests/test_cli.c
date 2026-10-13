@@ -44,7 +44,9 @@ static const Caso casos[] = {
     {"opciones despues", {"./balc", "--frontend", "examples/factorial.bal", "-t", "-v"}, 0, "[AST]", "[binario]"},
     {"fin de opciones", {"./balc", "--frontend", "-t", "--", "examples/factorial.bal"}, 0, "[AST]", "Opción desconocida"},
     {"expresiones", {"./balc", "--frontend", "-t", "examples/expresiones_basicas.bal"}, 0, "Análisis sintáctico correcto", "error del parser"},
-    {"frontend sin -o", {"./balc", "--frontend", "-o", "x.bin", "examples/factorial.bal"}, 2, "Opción desconocida", "[binario]"}
+    {"frontend sin -o", {"./balc", "--frontend", "-o", "x.bin", "examples/factorial.bal"}, 2, "Opción desconocida", "[binario]"},
+    /* examples/ puede guardar entregables (factorial.bin); este no tiene. */
+    {"frontend no escribe", {"./balc", "--frontend", "-v", "-t", "examples/llamadas.bal"}, 0, "[AST]", "[binario]"}
 };
 
 static void exigir(int condicion, const char *mensaje) {
@@ -135,7 +137,8 @@ int main(void) {
     const char *no_generados[] = {"tests/cli_invalido.bin", "tests/cli_invalido.mem",
                                   "tests/cli_matriz.bin", "tests/cli_matriz.mem",
                                   "examples/expresiones_basicas.asm",
-                                  "examples/factorial.bin", "examples/factorial.mem",
+                                  "examples/llamadas.bin", "examples/llamadas.mem",
+                                  "examples/llamadas.asm",
                                   "examples/expresiones_basicas.bin", "x.bin"};
     for (size_t i = 0; i < sizeof(no_generados) / sizeof(*no_generados); ++i)
         exigir(access(no_generados[i], F_OK) != 0, no_generados[i]);
