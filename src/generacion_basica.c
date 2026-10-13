@@ -1,6 +1,7 @@
 #include "generacion_basica.h"
 
 #include <stdint.h>
+#include <limits.h>
 #include <string.h>
 
 typedef struct {
@@ -66,22 +67,120 @@ static void constante(Generador *g, unsigned r, uint32_t v) {
     }
 }
 
-/* Producto de 32 bits por sumas y desplazamientos; no necesita MUL.
- * x12-x15 son temporales y se reutilizan después de evaluar ambos operandos. */
-static void multiplicar(Generador *g, unsigned r) {
+/* El compilador actual genera código en un solo hilo. */
+static unsigned long siguiente_aritmetica;
+
+/* Producto de 32 bits. El operando derecho ya está copiado cuando su
+ * registro se reutiliza como contador; x8-x11 permanecen intactos. */
+static int multiplicar(Generador *g, const AstNodo *n, unsigned r) {
+    if (siguiente_aritmetica == ULONG_MAX)
+        return fallar(g, n, "etiquetas de multiplicacion agotadas");
+    unsigned long id = siguiente_aritmetica++;
     fprintf(g->salida, "sumai x12, x%u, 0\n"
                        "sumai x13, x%u, 0\n"
-                       "sumai x14, x0, 0\n", r, r + 1);
-    for (unsigned bit = 0; bit < 32; ++bit) {
-        fprintf(g->salida, "andi x15, x13, 1\n"
-                           "resta x15, x0, x15\n"
-                           "and x15, x12, x15\n"
-                           "suma x14, x14, x15\n");
-        if (bit != 31)
-            fprintf(g->salida, "cizqi x12, x12, 1\n"
-                               "cderi x13, x13, 1\n");
-    }
-    fprintf(g->salida, "sumai x%u, x14, 0\n", r);
+                       "sumai x14, x0, 0\n"
+                       "sumai x%u, x0, 32\n"
+                       "__gb_mul_%lu_paso:\n"
+                       "andi x15, x13, 1\nresta x15, x0, x15\n"
+                       "and x15, x12, x15\nsuma x14, x14, x15\n"
+                       "cizqi x12, x12, 1\ncderi x13, x13, 1\n"
+                       "restai x%u, x%u, 1\n"
+                       "igualno x%u, x0, __gb_mul_%lu_paso\n"
+                       "sumai x%u, x14, 0\n",
+            r, r + 1, r + 1, id, r + 1, r + 1, r + 1, id, r);
+    return 1;
+}
+
+static int dividir(Generador *g, const AstNodo *n, unsigned r, int residuo) {
+    if (siguiente_aritmetica == ULONG_MAX)
+        return fallar(g, n, "etiquetas de division agotadas");
+    unsigned long id = siguiente_aritmetica++;
+    FILE *f = g->salida;
+    /* Un divisor cero detiene el programa antes de escribir el resultado. */
+    fprintf(f, "igualno x%u, x0, __gb_div_%lu_inicio\n"
+               "__gb_div_%lu_cero:\n"
+               "sye x0, __gb_div_%lu_cero\n"
+               "__gb_div_%lu_inicio:\n", r + 1, id, id, id, id);
+    fprintf(f, "mrq x8, x%u, x0\nresta x8, x0, x8\n"
+               "mrq x9, x%u, x0\nresta x9, x0, x9\n"
+               "xor x12, x%u, x8\nresta x12, x12, x8\n"
+               "xor x13, x%u, x9\nresta x13, x13, x9\n"
+               "xor x9, x8, x9\n"
+               "sumai x10, x0, 1\ncizqi x10, x10, 31\n"
+               "xor x11, x13, x10\n"
+               "sumai x14, x0, 0\nsumai x%u, x0, 32\n"
+               "__gb_div_%lu_paso:\n", r, r + 1, r, r + 1, r, id);
+    /* División binaria de magnitudes. XOR con el bit de signo permite
+     * comparar como unsigned usando la comparación con signo del ISA. */
+    fprintf(f, "cderi x15, x12, 31\ncizqi x14, x14, 1\n"
+               "or x14, x14, x15\ncizqi x12, x12, 1\n"
+               "xor x15, x14, x10\nmrq x15, x15, x11\n"
+               "xori x15, x15, 1\nor x12, x12, x15\n"
+               "resta x15, x0, x15\nand x15, x13, x15\n"
+               "resta x14, x14, x15\nrestai x%u, x%u, 1\n"
+               "igualno x%u, x0, __gb_div_%lu_paso\n", r, r, r, id);
+    fprintf(f, "xor x%u, x%u, x%u\nresta x%u, x%u, x%u\n",
+            r, residuo ? 14u : 12u, residuo ? 8u : 9u,
+            r, r, residuo ? 8u : 9u);
+    return 1;
+}
+
+static void producto_potencia(FILE *f, unsigned a, unsigned b,
+                              unsigned destino, unsigned long id, unsigned paso) {
+    fprintf(f, "sumai x12, x%u, 0\nsumai x13, x%u, 0\n"
+               "sumai x14, x0, 0\nsumai x11, x0, 32\n"
+               "__gb_pow_%lu_mul_%u:\n"
+               "andi x15, x13, 1\nresta x15, x0, x15\n"
+               "and x15, x12, x15\nsuma x14, x14, x15\n"
+               "cizqi x12, x12, 1\ncderi x13, x13, 1\n"
+               "restai x11, x11, 1\n"
+               "igualno x11, x0, __gb_pow_%lu_mul_%u\n"
+               "sumai x%u, x14, 0\n", a, b, id, paso, id, paso, destino);
+}
+
+/* Exponenciación por cuadrados: procesa como máximo 31 bits del exponente. */
+static int potencia(Generador *g, const AstNodo *n, unsigned r) {
+    if (siguiente_aritmetica == ULONG_MAX)
+        return fallar(g, n, "etiquetas de potencia agotadas");
+    unsigned long id = siguiente_aritmetica++;
+    FILE *f = g->salida;
+    fprintf(f, "mayoroigual x%u, x0, __gb_pow_%lu_inicio\n"
+               "__gb_pow_%lu_negativo:\n"
+               "sye x0, __gb_pow_%lu_negativo\n"
+               "__gb_pow_%lu_inicio:\n"
+               "sumai x8, x0, 1\nsumai x9, x%u, 0\nsumai x10, x%u, 0\n"
+               "__gb_pow_%lu_paso:\n"
+               "igualno x10, x0, __gb_pow_%lu_iterar\n"
+               "sye x0, __gb_pow_%lu_fin\n"
+               "__gb_pow_%lu_iterar:\n"
+               "andi x%u, x10, 1\n"
+               "igualno x%u, x0, __gb_pow_%lu_producto\n"
+               "sye x0, __gb_pow_%lu_cuadrado\n"
+               "__gb_pow_%lu_producto:\n",
+            r + 1, id, id, id, id, r, r + 1, id, id, id, id, r, r, id, id, id);
+    producto_potencia(f, 8, 9, 8, id, 0);
+    fprintf(f, "__gb_pow_%lu_cuadrado:\n", id);
+    producto_potencia(f, 9, 9, 9, id, 1);
+    fprintf(f, "cderi x10, x10, 1\nsye x0, __gb_pow_%lu_paso\n"
+               "__gb_pow_%lu_fin:\nsumai x%u, x8, 0\n", id, id, r);
+    return 1;
+}
+
+static int negativo_literal(const AstNodo *n) {
+    uint32_t v;
+    return n && n->tipo == AST_UNARIO && n->texto &&
+           !strcmp(n->texto, "neumann") && hijos(n, 1) &&
+           n->primer_hijo->tipo == AST_ENTERO &&
+           magnitud(n->primer_hijo->texto, &v) && v != 0;
+}
+
+static int cero_literal(const AstNodo *n) {
+    if (n && n->tipo == AST_UNARIO && n->texto &&
+        !strcmp(n->texto, "neumann") && hijos(n, 1))
+        return cero_literal(n->primer_hijo);
+    if (!n || n->tipo != AST_ENTERO || !n->texto) return 0;
+    uint32_t v;
+    return magnitud(n->texto, &v) && v == 0;
 }
 
 static int expresion(Generador *g, const AstNodo *n, unsigned r, GbTipo *tipo);
@@ -136,6 +235,8 @@ static int expresion_interna(Generador *g, const AstNodo *n, unsigned r, GbTipo 
     if (!strcmp(op, "gauss")) instruccion = "suma";
     else if (!strcmp(op, "neumann")) instruccion = "resta";
     else if (!strcmp(op, "pitagoras")) instruccion = "producto";
+    else if (!strcmp(op, "euclides") || !strcmp(op, "euler")) instruccion = "division";
+    else if (!strcmp(op, "descartes")) instruccion = "potencia";
     else if (!strcmp(op, "&&")) { instruccion = "and"; categoria = 1; }
     else if (!strcmp(op, "||")) { instruccion = "or"; categoria = 1; }
     else if (!strcmp(op, "^")) { instruccion = "xor"; categoria = 1; }
@@ -146,14 +247,27 @@ static int expresion_interna(Generador *g, const AstNodo *n, unsigned r, GbTipo 
     else if (!strcmp(op, "==") || !strcmp(op, "=/=")) { instruccion = "xor"; categoria = 3; }
     else return fallar(g, n, "operador sin traducción acordada en la ISA");
 
+    if ((!strcmp(op, "euclides") || !strcmp(op, "euler")) &&
+        cero_literal(n->primer_hijo->siguiente))
+        return fallar(g, n, "division por cero literal");
+
+    if (!strcmp(op, "descartes") && negativo_literal(n->primer_hijo->siguiente))
+        return fallar(g, n, "exponente negativo literal");
+
     GbTipo izquierda, derecha;
     if (!expresion(g, n->primer_hijo, r, &izquierda) ||
         !expresion(g, n->primer_hijo->siguiente, r + 1, &derecha)) return 0;
     if (izquierda != derecha || (categoria == 1 && izquierda != GB_BOOLEANO) ||
         ((categoria == 0 || categoria == 2) && izquierda != GB_ENTERO))
         return fallar(g, n, "tipos incompatibles con el operador");
-    if (!strcmp(op, "pitagoras")) multiplicar(g, r);
-    else fprintf(g->salida, "%s x%u, x%u, x%u\n", instruccion, r, r, r + 1);
+    if (!strcmp(op, "pitagoras")) {
+        if (!multiplicar(g, n, r)) return 0;
+    }
+    else if (!strcmp(instruccion, "division")) {
+        if (!dividir(g, n, r, !strcmp(op, "euler"))) return 0;
+    } else if (!strcmp(instruccion, "potencia")) {
+        if (!potencia(g, n, r)) return 0;
+    } else fprintf(g->salida, "%s x%u, x%u, x%u\n", instruccion, r, r, r + 1);
     if (categoria == 3) {
         /* XOR puede tener el bit de signo: probar ambos lados de cero. */
         fprintf(g->salida, "mrq x%u, x%u, x0\n", r + 1, r);

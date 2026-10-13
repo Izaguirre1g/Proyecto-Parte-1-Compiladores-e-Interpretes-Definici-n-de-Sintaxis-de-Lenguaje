@@ -49,7 +49,7 @@ static int64_t con_signo(uint32_t n) {
 }
 
 static int temporal(unsigned r) {
-    return (r >= 4 && r <= 7) || (r >= 12 && r <= 15);
+    return r >= 4 && r <= 15;
 }
 
 static void ejecutar(FILE *asmfile, uint32_t registros[32], uint32_t memoria[512]) {
@@ -57,7 +57,44 @@ static void ejecutar(FILE *asmfile, uint32_t registros[32], uint32_t memoria[512
     char linea[128], op[16];
     unsigned d, a, b;
     int inmediato;
+    char programa[1024][128];
+    size_t cantidad = 0;
     while (fgets(linea, sizeof(linea), asmfile)) {
+        exigir(cantidad < 1024, "programa de prueba demasiado grande");
+        strcpy(programa[cantidad++], linea);
+    }
+    unsigned pasos = 0;
+    for (size_t pc = 0; pc < cantidad; ++pc) {
+        exigir(++pasos < 200000, "programa no termina");
+        strcpy(linea, programa[pc]);
+        if (strchr(linea, ':')) continue;
+        exigir(sscanf(linea, "%15s", op) == 1, "instruccion");
+        if (!strcmp(op, "igualno") || !strcmp(op, "igualsi") ||
+            !strcmp(op, "mayoroigual") || !strcmp(op, "sye")) {
+            char etiqueta[96];
+            int saltar;
+            if (strcmp(op, "sye")) {
+                exigir(sscanf(linea, "%15s x%u, x%u, %95s", op, &a, &b, etiqueta) == 4,
+                       "salto condicional");
+                saltar = !strcmp(op, "igualno") ? registros[a] != registros[b] :
+                         !strcmp(op, "igualsi") ? registros[a] == registros[b] :
+                         con_signo(registros[a]) >= con_signo(registros[b]);
+            } else {
+                exigir(sscanf(linea, "%15s x%u, %95s", op, &d, etiqueta) == 3 && d == 0,
+                       "salto directo");
+                saltar = 1;
+            }
+            if (saltar) {
+                size_t destino;
+                for (destino = 0; destino < cantidad; ++destino) {
+                    size_t len = strlen(etiqueta);
+                    if (!strncmp(programa[destino], etiqueta, len) && programa[destino][len] == ':') break;
+                }
+                exigir(destino < cantidad, "etiqueta definida");
+                pc = destino;
+            }
+            continue;
+        }
         uint32_t resultado = 0;
         if (sscanf(linea, "%15s x%u, x%u, x%u", op, &d, &a, &b) == 4) {
             exigir(temporal(d) && a < 32 && b < 32, "registro R");
@@ -85,6 +122,7 @@ static void ejecutar(FILE *asmfile, uint32_t registros[32], uint32_t memoria[512
                 }
                 resultado = memoria[dir / 4];
             } else if (!strcmp(op, "sumai")) resultado = registros[a] + (uint32_t)inmediato;
+            else if (!strcmp(op, "restai")) resultado = registros[a] - (uint32_t)inmediato;
             else if (!strcmp(op, "cizqi")) resultado = registros[a] << (inmediato & 31);
             else if (!strcmp(op, "ori")) resultado = registros[a] | (uint32_t)inmediato;
             else if (!strcmp(op, "andi")) resultado = registros[a] & (uint32_t)inmediato;
@@ -105,6 +143,21 @@ typedef struct {
 } Caso;
 
 static const Caso casos[] = {
+    {"r : a descartes b;", UINT32_MAX, INT32_MAX, UINT32_MAX, GB_ENTERO, GB_ENTERO},
+    {"r : a descartes b;", 2, 10, 1024, GB_ENTERO, GB_ENTERO},
+    {"r : a descartes b;", UINT32_C(4294967294), 3, UINT32_C(4294967288), GB_ENTERO, GB_ENTERO},
+    {"r : a descartes b;", 0, 0, 1, GB_ENTERO, GB_ENTERO},
+    {"r : a descartes b;", 2, 31, UINT32_C(2147483648), GB_ENTERO, GB_ENTERO},
+    {"r : a descartes b;", 2, 32, 0, GB_ENTERO, GB_ENTERO},
+    {"r : a descartes (b descartes a);", 2, 3, 512, GB_ENTERO, GB_ENTERO},
+    {"r : a euclides b;", 17, 5, 3, GB_ENTERO, GB_ENTERO},
+    {"r : a euclides b;", UINT32_C(4294967279), 5, UINT32_C(4294967293), GB_ENTERO, GB_ENTERO},
+    {"r : a euler b;", UINT32_C(4294967279), 5, UINT32_C(4294967294), GB_ENTERO, GB_ENTERO},
+    {"r : a euclides b;", UINT32_C(2147483648), UINT32_MAX, UINT32_C(2147483648), GB_ENTERO, GB_ENTERO},
+    {"r : a euler b;", UINT32_C(2147483648), UINT32_MAX, 0, GB_ENTERO, GB_ENTERO},
+    {"r : a euclides b;", UINT32_C(2147483648), UINT32_C(2147483648), 1, GB_ENTERO, GB_ENTERO},
+    {"r : a euclides (b euclides a);", 2, 8, 0, GB_ENTERO, GB_ENTERO},
+    {"r : (a euclides b) gauss (a euler b);", 17, 5, 5, GB_ENTERO, GB_ENTERO},
     {"r : a pitagoras b;", 6, 7, 42, GB_ENTERO, GB_ENTERO},
     {"r : a pitagoras b;", UINT32_MAX, 7, UINT32_C(4294967289), GB_ENTERO, GB_ENTERO},
     {"r : a pitagoras b;", UINT32_MAX, UINT32_MAX, 1, GB_ENTERO, GB_ENTERO},
@@ -181,9 +234,9 @@ static void rechazar(const char *texto, Entorno e, const char *mensaje) {
 
 static void negativos(void) {
     Entorno e = {GB_ENTERO, GB_ENTERO, 3, 0, 1};
-    const char *no_soportados[] = {"r : a euclides b;",
-        "r : a euler b;", "r : a descartes b;"};
-    for (size_t i = 0; i < 3; ++i) rechazar(no_soportados[i], e, "sin traducción acordada");
+    rechazar("r : a descartes neumann 1;", e, "exponente negativo");
+    rechazar("r : a euclides 0;", e, "division por cero");
+    rechazar("r : a euler neumann 0;", e, "division por cero");
     rechazar("r : f();", e, "fuera del subconjunto");
     rechazar("r : a[0];", e, "fuera del subconjunto");
     rechazar("r : \"hola\";", e, "fuera del subconjunto");
@@ -235,10 +288,59 @@ static void productos(void) {
         ejecutar(salida, registros, memoria);
         exigir(memoria[66] == (uint32_t)((uint64_t)a * b), "producto modulo 2^32");
         for (unsigned j = 0; j < 32; ++j)
-            if (!temporal(j)) exigir(registros[j] == originales[j], "preservar registros");
+            if (!((j >= 4 && j <= 7) || (j >= 12 && j <= 15))) exigir(registros[j] == originales[j], "preservar registros");
     }
     fclose(salida); ast_liberar(&ast);
     puts("OK: 128 productos de 32 bits y registros preservados");
+}
+
+static void divisiones(void) {
+    uint32_t estado = UINT32_C(2022321746);
+    for (unsigned modo = 0; modo < 2; ++modo) {
+        Ast ast = {0};
+        const AstNodo *n = sentencia(&ast, modo ? "r : a euler b;" : "r : a euclides b;");
+        FILE *salida = tmpfile();
+        exigir(salida != NULL, "tmpfile");
+        Entorno e = {GB_ENTERO, GB_ENTERO, 3, 0, 1};
+        exigir(gb_generar(n, resolver, &e, salida, stderr) == 0, "division/residuo");
+        for (unsigned i = 0; i < 128; ++i) {
+            estado = estado * UINT32_C(1664525) + UINT32_C(1013904223);
+            uint32_t a = estado;
+            estado = estado * UINT32_C(1664525) + UINT32_C(1013904223);
+            uint32_t b = estado ? estado : 1;
+            uint32_t registros[32] = {0}, memoria[512] = {0};
+            registros[3] = 256; memoria[64] = a; memoria[65] = b;
+            ejecutar(salida, registros, memoria);
+            int64_t esperado = modo ? con_signo(a) % con_signo(b) : con_signo(a) / con_signo(b);
+            exigir(memoria[66] == (uint32_t)esperado, "division con signo");
+            exigir(memoria[64] == a && memoria[65] == b, "preservar operandos");
+            exigir(registros[3] == 256 && registros[2] == 0 && registros[1] == 0,
+                   "preservar gp, sp y ra");
+        }
+        fclose(salida); ast_liberar(&ast);
+    }
+    puts("OK: 256 divisiones/residuos de 32 bits");
+}
+
+static void potencias(void) {
+    Ast ast = {0};
+    const AstNodo *n = sentencia(&ast, "r : a descartes b;");
+    FILE *salida = tmpfile();
+    exigir(salida != NULL, "tmpfile");
+    Entorno e = {GB_ENTERO, GB_ENTERO, 3, 0, 1};
+    exigir(gb_generar(n, resolver, &e, salida, stderr) == 0, "potencia");
+    uint32_t estado = UINT32_C(2022321746);
+    for (unsigned i = 0; i < 64; ++i) {
+        estado = estado * UINT32_C(1664525) + UINT32_C(1013904223);
+        uint32_t a = estado, b = i;
+        uint32_t registros[32] = {0}, memoria[512] = {0}, esperado = 1;
+        for (uint32_t j = 0; j < b; ++j) esperado = (uint32_t)((uint64_t)esperado * a);
+        registros[3] = 256; memoria[64] = a; memoria[65] = b;
+        ejecutar(salida, registros, memoria);
+        exigir(memoria[66] == esperado, "potencia modulo 2^32");
+    }
+    fclose(salida); ast_liberar(&ast);
+    puts("OK: 64 potencias de 32 bits");
 }
 
 static void accesos(void) {
@@ -266,7 +368,7 @@ int main(int argc, char **argv) {
         return estado;
     }
     exigir(argc == 1, "uso: test_generacion [--ejemplo]");
-    positivos(); negativos(); accesos(); productos();
+    positivos(); negativos(); accesos(); productos(); divisiones(); potencias();
     puts("Modelo secuencial validado; no prueba bundles, binario ni procesador.");
     return EXIT_SUCCESS;
 }

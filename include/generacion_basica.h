@@ -18,9 +18,11 @@ typedef int (*GbResolver)(void *datos, const AstNodo *identificador,
                           GbReferencia *referencia);
 
 /* Recibe una expresion pura, asignacion o declaracion escalar inicializada.
- * Emite instrucciones lineales; NO bundles ni un programa ejecutable.
- * Usa x4-x7; multiplicacion tambien modifica x12-x15.
+ * Emite instrucciones y etiquetas internas; NO bundles ni un programa ejecutable.
+ * Usa x4-x7; multiplicacion tambien modifica x12-x15 y emite un bucle.
+ * Division/residuo/potencia tambien modifican x8-x15 y emiten saltos.
  * Una expresion deja el resultado en x4.
+ * El backend reserva los prefijos __gb_mul_, __gb_div_ y __gb_pow_ y coloca NOPs en los destinos.
  * Retorna 0 en exito y 1 en error, con diagnostico opcional.
  * No escribe instrucciones si falla la validacion/generacion. Un error de E/S
  * al copiar al destino puede dejar una salida parcial, que debe descartarse.
