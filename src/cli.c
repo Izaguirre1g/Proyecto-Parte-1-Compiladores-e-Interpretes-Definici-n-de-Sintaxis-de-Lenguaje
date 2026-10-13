@@ -6,29 +6,26 @@
 #include "semantic_modules.h"
 #include "memory.h"
 #include "enlace_funciones.h"
+#include "codificacion_binaria.h"
 
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+/* Opciones del modo interno --frontend. */
 typedef struct {
     const char *input;
-    const char *pending_option;
     int verbose;
 
     /*Bandera de sintaxis guarda si se pidio analizar sintaxis: 0 es desactivo y 1 es activado*/
     int syntax;
-    int symbols;
-    int assembly;
 } Options;
 
-static void usage(FILE *out) {
-    fputs("Uso: balc [-v] [-t] [-m] [-s] <archivo_fuente>\n"
-          "-t valida sintaxis e imprime el AST. Sin -t, solo analiza tokens.\n"
-          "-m valida semantica, asigna memoria y muestra simbolos.\n"
-          "-s genera el ensamblador en bundles (<fuente>.asm).\n"
-          "Opciones del proyecto reservadas para integración: -o, -x, -p.\n", out);
+static void usage_frontend(FILE *out) {
+    fputs("Uso: balc --frontend [-v] [-t] <archivo_fuente>\n"
+          "Modo de pruebas del frontend: sin -t solo analiza tokens; -v los lista;\n"
+          "-t valida sintaxis e imprime el AST. No genera archivos.\n", out);
 }
 
 static int parse_args(int argc, char **argv, Options *opt) {
@@ -39,19 +36,7 @@ static int parse_args(int argc, char **argv, Options *opt) {
         if (!positional && strcmp(arg, "-v") == 0) { opt->verbose = 1; continue; }
         /*Se agrega la opcion -t para validar sintaxis */
         if (!positional && strcmp(arg, "-t") == 0) { opt->syntax = 1; continue; }
-        if (!positional && strcmp(arg, "-m") == 0) { opt->symbols = 1; continue; }
-        if (!positional && strcmp(arg, "-h") == 0) { usage(stdout); return 1; }
-        if (!positional && strcmp(arg, "-o") == 0) {
-            if (++i >= argc) { fputs("-o necesita un archivo de salida\n", stderr); return -1; }
-            opt->pending_option = "-o";
-            continue;
-        }
-        if (!positional && strcmp(arg, "-s") == 0) { opt->assembly = 1; continue; }
-        if (!positional && (strcmp(arg, "-x") == 0 ||
-                            strcmp(arg, "-p") == 0)) {
-            opt->pending_option = arg;
-            continue;
-        }
+        if (!positional && strcmp(arg, "-h") == 0) { usage_frontend(stdout); return 1; }
         if (!positional && arg[0] == '-') {
             fprintf(stderr, "Opción desconocida: %s\n", arg);
             return -1;
@@ -62,20 +47,7 @@ static int parse_args(int argc, char **argv, Options *opt) {
         }
         opt->input = arg;
     }
-    if (opt->pending_option) {
-        fprintf(stderr, "La opción %s requiere una fase aún no integrada\n",
-                opt->pending_option);
-        return -1;
-    }
-    if (!opt->input) { usage(stderr); return -1; }
-    if (opt->symbols && (opt->syntax || opt->verbose)) {
-        fputs("-m no se combina con -t ni -v\n", stderr);
-        return -1;
-    }
-    if (opt->assembly && (opt->symbols || opt->syntax || opt->verbose)) {
-        fputs("-s no se combina con -t, -v ni -m\n", stderr);
-        return -1;
-    }
+    if (!opt->input) { usage_frontend(stderr); return -1; }
     return 0;
 }
 
@@ -182,110 +154,350 @@ static const char *almacen_sim(SimAlmacen a)
     return "desconocido";
 }
 
-static int reporte_simbolos(void *ctx, const Ast *arbol,
-                           SimTabla *tabla, FILE *diagnosticos)
-{
-    (void)ctx;
-    (void)arbol;
-    MemProyectoMapa mapa = {0};
-    MemProyectoResultado r = mem_asignar_proyecto(tabla, 0, 4096,
-                                                  1020, &mapa);
-    if (r != MEM_PROYECTO_OK) {
-        fprintf(diagnosticos, "-m: asignacion de memoria no disponible (codigo %d)\n", (int)r);
-        return 1;
-    }
-    /* Imprimir solo tras terminar la validacion y la asignacion. */
-    puts("[SIMBOLOS]");
-    puts("nombre | clase | tipo | ambito | nivel | almacen | bytes | desplazamiento | direccion_codigo");
-    for (const SimSimbolo *s = tabla->primero; s; s = s->siguiente_orden) {
-        const SimAmbito *a = s->ambito;
-        printf("%s | %s | %s | %s | %u | %s | %zu | ",
-               s->nombre ? s->nombre : "?", clase_sim(s->clase),
-               tipo_sim(s->tipo), a && a->nombre ? a->nombre : "?",
-               a ? a->nivel : 0, almacen_sim(s->almacen), s->bytes);
-        if (s->almacen == SIM_ALMACEN_GLOBAL ||
-            s->almacen == SIM_ALMACEN_LOCAL ||
-            s->almacen == SIM_ALMACEN_PARAMETRO)
-            printf("%ld", s->desplazamiento);
-        else
-            fputs("pendiente", stdout);
-        puts(" | pendiente");
-    }
-    printf("[MEMORIA] funciones=%zu marco_maximo_bytes=%zu\n",
-           mapa.funciones, mapa.marco_maximo_bytes);
-    return ferror(stdout) ? 2 : 0;
-}
-
 /* Mapa de memoria del contrato: globales desde 0x4000 hasta 0x7FFF y pila
  * desde 0x10000 hacia abajo (0x8000-0xFFFF). El codigo empieza en 0. */
 #define CLI_GP_BASE 0x4000u
 #define CLI_FIN_GLOBALES 0x8000u
 #define CLI_TOPE_PILA 0x10000u
 
-static int generar_ensamblador(void *ctx, const Ast *arbol,
-                               SimTabla *tabla, FILE *diagnosticos)
+/* Opciones de la especificacion. Todas agregan salidas a la compilacion. */
+typedef struct {
+    const char *entrada;
+    const char *salida;     /* -o */
+    int detallado;          /* -v */
+    int ensamblador;        /* -s */
+    int ast;                /* -t */
+    int simbolos;           /* -m */
+    int desde_ensamblador;  /* -x */
+    int paquetes;           /* -p */
+} Compilacion;
+
+typedef struct {
+    const Compilacion *opciones;
+    char *ensamblador;      /* Bundles en texto, propiedad del llamador. */
+    EfResumen resumen;
+} Backend;
+
+static void usage(FILE *out) {
+    fputs("Uso: balc [-o <archivo>] [-v] [-s] [-t] [-m] [-p] <archivo_fuente.bal>\n"
+          "     balc -x [-o <archivo>] [-v] [-p] <archivo.asm>\n"
+          "Compila el fuente y genera el binario (<fuente>.bin) y la imagen de IMEM (.mem).\n"
+          "-o <archivo>  nombre del binario de salida (por defecto, el del fuente con .bin)\n"
+          "-v            muestra cada fase del compilador y las decisiones importantes\n"
+          "-s            genera tambien el ensamblador (.asm)\n"
+          "-t            imprime el arbol sintactico (AST)\n"
+          "-m            imprime la tabla de simbolos y las asignaciones de memoria\n"
+          "-x            toma un archivo de ensamblador y genera el binario\n"
+          "-p            muestra los paquetes generados en ensamblador y en binario\n", out);
+}
+
+static int parse_compilacion(int argc, char **argv, Compilacion *c)
 {
-    const char *destino = ctx;
+    int posicional = 0;
+    for (int i = 1; i < argc; ++i) {
+        const char *arg = argv[i];
+        if (!posicional && arg[0] == '-' && arg[1] && !arg[2]) {
+            switch (arg[1]) {
+                case 'h': usage(stdout); return 1;
+                case 'v': c->detallado = 1; continue;
+                case 's': c->ensamblador = 1; continue;
+                case 't': c->ast = 1; continue;
+                case 'm': c->simbolos = 1; continue;
+                case 'x': c->desde_ensamblador = 1; continue;
+                case 'p': c->paquetes = 1; continue;
+                case 'o':
+                    if (++i >= argc) { fputs("-o necesita un archivo de salida\n", stderr); return -1; }
+                    c->salida = argv[i];
+                    continue;
+                default: break;
+            }
+        }
+        if (!posicional && strcmp(arg, "--") == 0) { posicional = 1; continue; }
+        if (!posicional && arg[0] == '-') {
+            fprintf(stderr, "Opción desconocida: %s\n", arg);
+            return -1;
+        }
+        if (c->entrada) { fputs("Se admite un único archivo fuente\n", stderr); return -1; }
+        c->entrada = arg;
+    }
+    if (!c->entrada) { usage(stderr); return -1; }
+    if (c->desde_ensamblador && (c->ensamblador || c->ast || c->simbolos)) {
+        fputs("-x toma ensamblador: no se combina con -s, -t ni -m\n", stderr);
+        return -1;
+    }
+    return 0;
+}
+
+static int termina_en(const char *s, const char *sufijo)
+{
+    size_t a = strlen(s), b = strlen(sufijo);
+    return a >= b && strcmp(s + a - b, sufijo) == 0;
+}
+
+/* base sin la extension quitar (si la tiene) + extension nueva. */
+static char *cambiar_extension(const char *base, const char *quitar, const char *nueva)
+{
+    size_t largo = strlen(base);
+    if (termina_en(base, quitar)) largo -= strlen(quitar);
+    char *nombre = malloc(largo + strlen(nueva) + 1);
+    if (!nombre) return NULL;
+    memcpy(nombre, base, largo);
+    strcpy(nombre + largo, nueva);
+    return nombre;
+}
+
+/* Contenido completo de un temporal; puede contener bytes 0. */
+static char *leer_temporal(FILE *f, long *largo_out)
+{
+    long largo = ftell(f);
+    if (largo < 0 || fseek(f, 0, SEEK_SET) != 0) return NULL;
+    char *texto = malloc((size_t)largo + 1);
+    if (texto && fread(texto, 1, (size_t)largo, f) != (size_t)largo) {
+        free(texto);
+        return NULL;
+    }
+    if (texto) texto[largo] = '\0';
+    if (texto && largo_out) *largo_out = largo;
+    return texto;
+}
+
+/* El archivo se crea solo cuando el contenido ya esta completo. */
+static int escribir_archivo(const char *ruta, const CbPrograma *programa,
+                            int (*escribir)(const CbPrograma *, FILE *),
+                            const char *texto)
+{
+    FILE *temporal = tmpfile();
+    if (!temporal) { perror("tmpfile"); return 0; }
+    int ok = texto ? fputs(texto, temporal) >= 0 : escribir(programa, temporal) == 0;
+    long largo = 0;
+    char *contenido = ok ? leer_temporal(temporal, &largo) : NULL;
+    fclose(temporal);
+    FILE *salida = contenido ? fopen(ruta, "wb") : NULL;
+    ok = salida && fwrite(contenido, 1, (size_t)largo, salida) == (size_t)largo;
+    if (salida && fclose(salida) != 0) ok = 0;
+    free(contenido);
+    if (!ok) perror(ruta);
+    return ok;
+}
+
+static void imprimir_simbolos(const SimTabla *tabla, const MemProyectoMapa *mapa,
+                              const RrTabla *funciones)
+{
+    puts("[SIMBOLOS]");
+    puts("nombre | clase | tipo | ambito | nivel | almacen | bytes | desplazamiento | direccion_codigo");
+    for (const SimSimbolo *s = tabla->primero; s; s = s->siguiente_orden) {
+        const SimAmbito *a = s->ambito;
+        uint32_t direccion = 0;
+        int con_direccion = funciones && s->clase == SIM_FUNCION &&
+                            a == tabla->global &&
+                            rr_buscar(funciones, s->nombre, RR_FUNCION, &direccion) == RR_OK;
+        printf("%s | %s | %s | %s | %u | %s | %zu | ",
+               s->nombre ? s->nombre : "?", clase_sim(s->clase),
+               tipo_sim(s->tipo), a && a->nombre ? a->nombre : "?",
+               a ? a->nivel : 0, con_direccion ? "codigo" : almacen_sim(s->almacen), s->bytes);
+        if (s->almacen == SIM_ALMACEN_GLOBAL ||
+            s->almacen == SIM_ALMACEN_LOCAL ||
+            s->almacen == SIM_ALMACEN_PARAMETRO)
+            printf("%ld", s->desplazamiento);
+        else
+            fputs("pendiente", stdout);
+        if (con_direccion) printf(" | 0x%04x\n", (unsigned)direccion);
+        else puts(" | pendiente");
+    }
+    printf("[MEMORIA] funciones=%zu marco_maximo_bytes=%zu\n",
+           mapa->funciones, mapa->marco_maximo_bytes);
+    printf("[MEMORIA] codigo desde 0x0000; gp=0x%04zx (globales: %zu bytes); sp=0x%05x\n",
+           mapa->globales.gp_base, mapa->globales.bytes_globales, CLI_TOPE_PILA);
+}
+
+/* Visitante: memoria, -m, generacion, enlace con arranque y bundles. */
+static int compilar_proyecto(void *ctx, const Ast *arbol, SimTabla *tabla, FILE *diagnosticos)
+{
+    Backend *b = ctx;
+    const Compilacion *op = b->opciones;
+    if (op->detallado) puts("[fase 3] semántico: declaraciones, tipos, ámbitos y llamadas válidos");
     MemProyectoMapa mapa = {0};
     MemProyectoResultado r = mem_asignar_proyecto(tabla, CLI_GP_BASE, CLI_FIN_GLOBALES,
                                                   1020, &mapa);
     if (r != MEM_PROYECTO_OK) {
-        fprintf(diagnosticos, "-s: asignacion de memoria no disponible (codigo %d)\n", (int)r);
+        fprintf(diagnosticos, "asignacion de memoria no disponible (codigo %d)\n", (int)r);
         return 1;
     }
+    if (op->detallado)
+        printf("[fase 3] memoria: globales desde gp=0x%04zx (%zu bytes), pila desde sp=0x%05x "
+               "hacia abajo; %zu funciones, marco maximo %zu bytes (ra en sp+0)\n",
+               mapa.globales.gp_base, mapa.globales.bytes_globales, CLI_TOPE_PILA,
+               mapa.funciones, mapa.marco_maximo_bytes);
+
     const EfArranque arranque = {(uint32_t)mapa.globales.gp_base, CLI_TOPE_PILA};
-    EfResumen resumen;
+    RrTabla funciones;
+    rr_inicializar(&funciones);
     FILE *temporal = tmpfile();
     if (!temporal) { perror("tmpfile"); return 2; }
-    if (ef_enlazar(arbol, tabla, 0, &arranque, NULL, temporal,
-                   diagnosticos, &resumen) != 0) {
-        fclose(temporal);
-        fputs("-s: no se pudo generar el ensamblador\n", diagnosticos);
-        return 1;
-    }
-    /* El archivo se crea solo si la generacion completa tuvo exito. */
-    FILE *salida = fopen(destino, "w");
-    int ok = salida && fseek(temporal, 0, SEEK_SET) == 0;
-    char buf[4096];
-    size_t n;
-    while (ok && (n = fread(buf, 1, sizeof(buf), temporal)) != 0)
-        ok = fwrite(buf, 1, n, salida) == n;
-    ok = ok && !ferror(temporal);
-    if (salida && fclose(salida) != 0) ok = 0;
+    int ok = ef_enlazar(arbol, tabla, 0, &arranque, &funciones, temporal,
+                        diagnosticos, &b->resumen) == 0;
+    if (ok) b->ensamblador = leer_temporal(temporal, NULL);
     fclose(temporal);
-    if (!ok) { perror(destino); return 2; }
-    printf("[ensamblador] %s: %zu bundles, %zu funciones, %zu saltos (%zu reescritos)\n",
-           destino, resumen.saltos.bundles, resumen.funciones,
-           resumen.saltos.saltos, resumen.saltos.relajados);
-    return ferror(stdout) ? 2 : 0;
+
+    /* -m se muestra aunque la generacion falle; con exito incluye las direcciones. */
+    if (op->simbolos) imprimir_simbolos(tabla, &mapa, ok ? &funciones : NULL);
+    int estado = 0;
+    if (!ok) {
+        fputs("no se pudo generar el ensamblador\n", diagnosticos);
+        estado = 1;
+    } else if (!b->ensamblador) {
+        fputs("Memoria insuficiente\n", stderr);
+        estado = 2;
+    } else if (op->detallado) {
+        printf("[fase 4] ensamblador: %zu funciones; arranque en 0x0000 llama a main\n",
+               b->resumen.funciones);
+        for (const AstNodo *f = arbol->raiz->primer_hijo; f; f = f->siguiente) {
+            uint32_t d;
+            if (f->tipo == AST_FUNCION &&
+                rr_buscar(&funciones, f->primer_hijo->texto, RR_FUNCION, &d) == RR_OK)
+                printf("           %s en 0x%04x\n", f->primer_hijo->texto, (unsigned)d);
+        }
+        printf("[fase 5] saltos: %zu resueltos, %zu reescritos como condicional + sye por "
+               "alcance; %zu vueltas de enlace; %zu bundles (1 instruccion + 2 nop)\n",
+               b->resumen.saltos.saltos, b->resumen.saltos.relajados,
+               b->resumen.vueltas, b->resumen.saltos.bundles);
+    }
+    rr_liberar(&funciones);
+    return estado;
 }
 
-/* prog.bal -> prog.asm; sin extension .bal se agrega .asm. */
-static char *nombre_ensamblador(const char *fuente)
+static int contar_tokens(const char *fuente, size_t largo, const char *nombre,
+                         size_t *tokens, size_t *errores)
 {
-    size_t largo = strlen(fuente);
-    if (largo >= 4 && strcmp(fuente + largo - 4, ".bal") == 0) largo -= 4;
-    char *nombre = malloc(largo + 5);
-    if (!nombre) return NULL;
-    memcpy(nombre, fuente, largo);
-    memcpy(nombre + largo, ".asm", 5);
-    return nombre;
+    Lexer lexer;
+    lexer_init(&lexer, fuente, largo, nombre);
+    *tokens = *errores = 0;
+    for (;;) {
+        Token t = lexer_next(&lexer);
+        if (t.error == TOKEN_OUT_OF_MEMORY) {
+            fprintf(stderr, "%s:%zu:%zu: memoria insuficiente\n", nombre, t.line, t.column);
+            token_dispose(&t);
+            return 0;
+        }
+        if (t.type == TOKEN_ERROR) {
+            fprintf(stderr, "%s:%zu:%zu: error léxico: %s\n",
+                    nombre, t.line, t.column, token_error_message(t.error));
+            ++*errores;
+        }
+        TokenType tipo = t.type;
+        if (tipo != TOKEN_EOF) ++*tokens;
+        token_dispose(&t);
+        if (tipo == TOKEN_EOF) return 1;
+    }
+}
+
+/* Fases 1 y 2 con -v o -t. Sin ellas, el analisis semantico vuelve a
+ * leer y analizar el fuente por su cuenta. */
+static int frontend(const Compilacion *op)
+{
+    size_t largo = 0;
+    char *fuente = read_source(op->entrada, &largo);
+    if (!fuente) return 2;
+    int estado = 0;
+    if (op->detallado) {
+        size_t tokens, errores;
+        if (!contar_tokens(fuente, largo, op->entrada, &tokens, &errores)) estado = 2;
+        else {
+            printf("[fase 1] léxico: %zu tokens, %zu errores\n", tokens, errores);
+            if (errores) estado = 1;
+        }
+    }
+    if (estado == 0) {
+        Ast arbol = {0};
+        if (construir_ast(fuente, largo, op->entrada, stderr, &arbol) != 0) estado = 1;
+        else {
+            if (op->detallado) puts("[fase 2] sintáctico: AST construido");
+            if (op->ast) {
+                puts("[AST]");
+                ast_imprimir(&arbol, stdout);
+            }
+        }
+        ast_liberar(&arbol);
+    }
+    free(fuente);
+    return estado;
+}
+
+static int compilar(const Compilacion *op)
+{
+    int es_asm = termina_en(op->entrada, ".asm");
+    if (es_asm && !op->desde_ensamblador) {
+        fputs("la entrada es ensamblador: use -x para generar el binario\n", stderr);
+        return 2;
+    }
+    if (op->detallado) printf("[balc] %s\n", op->entrada);
+
+    Backend datos = {op, NULL, {{0}, 0, 0}};
+    int estado = 0;
+    if (op->desde_ensamblador) {
+        size_t largo = 0;
+        datos.ensamblador = read_source(op->entrada, &largo);
+        if (!datos.ensamblador) return 2;
+        char *texto = realloc(datos.ensamblador, largo + 1);
+        if (!texto) { free(datos.ensamblador); fputs("Memoria insuficiente\n", stderr); return 2; }
+        texto[largo] = '\0';
+        datos.ensamblador = texto;
+    } else {
+        if (op->detallado || op->ast) estado = frontend(op);
+        if (estado == 0)
+            estado = sem_visitar_proyecto(op->entrada, stderr, compilar_proyecto, &datos);
+    }
+
+    if (estado == 0 && op->ensamblador) {
+        char *destino = cambiar_extension(op->entrada, ".bal", ".asm");
+        if (!destino || !escribir_archivo(destino, NULL, NULL, datos.ensamblador)) estado = 2;
+        else printf("[ensamblador] %s: %zu bundles, %zu funciones, %zu saltos (%zu reescritos)\n",
+                    destino, datos.resumen.saltos.bundles, datos.resumen.funciones,
+                    datos.resumen.saltos.saltos, datos.resumen.saltos.relajados);
+        free(destino);
+    }
+
+    CbPrograma programa = {0};
+    if (estado == 0) {
+        if (cb_ensamblar(datos.ensamblador, &programa, stderr) != 0) {
+            fputs("el ensamblador no es valido para la ISA\n", stderr);
+            estado = 1;
+        } else if (op->detallado)
+            printf("[fase 6] binario: %zu bundles codificados; slots, rangos, saltos y "
+                   "latencias (N+3) validados\n", programa.cantidad);
+    }
+    if (estado == 0) {
+        char *bin = op->salida ? cambiar_extension(op->salida, "", "") :
+                    cambiar_extension(op->entrada, es_asm ? ".asm" : ".bal", ".bin");
+        char *mem = bin ? cambiar_extension(bin, ".bin", ".mem") : NULL;
+        if (!bin || !mem) estado = 2;
+        else if (!strcmp(bin, mem) || !strcmp(bin, op->entrada) || !strcmp(mem, op->entrada)) {
+            fputs("la entrada y las salidas deben tener rutas distintas\n", stderr);
+            estado = 2;
+        } else if (!escribir_archivo(bin, &programa, cb_escribir_bin, NULL) ||
+                   !escribir_archivo(mem, &programa, cb_escribir_mem, NULL)) estado = 2;
+        else printf("[binario] %s y %s: %zu bundles, %zu bytes\n",
+                    bin, mem, programa.cantidad, 16 * programa.cantidad);
+        free(bin);
+        free(mem);
+    }
+    if (estado == 0 && op->paquetes && cb_escribir_listado(&programa, stdout) != 0) estado = 2;
+    cb_liberar(&programa);
+    free(datos.ensamblador);
+    return estado != 0 ? estado : ferror(stdout) ? 2 : 0;
 }
 
 int cli_run(int argc, char **argv) {
+    Compilacion op = {0};
+    int parsed = parse_compilacion(argc, argv, &op);
+    if (parsed != 0) return parsed == 1 ? 0 : 2;
+    return compilar(&op);
+}
+
+int cli_frontend(int argc, char **argv) {
     Options opt = {0};
     int parsed = parse_args(argc, argv, &opt);
     if (parsed != 0) return parsed == 1 ? 0 : 2;
-
-    if (opt.symbols)
-        return sem_visitar_proyecto(opt.input, stderr, reporte_simbolos, NULL);
-    if (opt.assembly) {
-        char *destino = nombre_ensamblador(opt.input);
-        if (!destino) { fputs("Memoria insuficiente\n", stderr); return 2; }
-        int estado = sem_visitar_proyecto(opt.input, stderr, generar_ensamblador, destino);
-        free(destino);
-        return estado;
-    }
 
     size_t size = 0;
     char *source = read_source(opt.input, &size);
@@ -329,7 +541,7 @@ int cli_run(int argc, char **argv) {
         printf("[léxico] %zu tokens, %zu errores.\n",
                count, errors);
     else if (errors == 0 && !opt.syntax)
-        fputs("Análisis léxico correcto. Fases posteriores pendientes; no se generó binario.\n",
+        fputs("Análisis léxico correcto (modo --frontend; no se generó binario).\n",
               stderr);
 
     /*Se agrega la condicion para que si se pidio analizar sintaxis y no hubo errores léxicos, se ejecute el analisis sintactico*/

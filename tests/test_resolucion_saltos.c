@@ -475,6 +475,62 @@ static void caso_arranque(int emitir)
     free(s);
 }
 
+static char *leer_ejemplo(const char *ruta)
+{
+    FILE *entrada = fopen(ruta, "r");
+    assert(entrada);
+    static char fuente[8192];
+    size_t n = fread(fuente, 1, sizeof(fuente) - 1, entrada);
+    assert(!ferror(entrada) && feof(entrada)); fuente[n] = 0;
+    fclose(entrada);
+    return fuente;
+}
+
+/* Ejercicio 2 y arreglos: lectura con indices variables, asignacion a
+ * elementos y declaracion con literal o sin inicializar. */
+static void caso_arreglos(void)
+{
+    const EfArranque arranque = {0x4000, 0x10000};
+    EfResumen r;
+    /* matriz en sp+4..sp+27, objetivo 28, fila 32, columna 36,
+     * fila_encontrada 40, columna_encontrada 44; marco de 48. */
+    char *fuente = leer_ejemplo("examples/ejercicio2_busqueda_matriz.bal");
+    char *s = enlazar(fuente, &arranque, &r);
+    ejecutar_desde(s, 0);
+    int base = (0x10000 - 48) / 4;
+    int esperado[6] = {4, 7, 1, 9, 5, 7};
+    for (int k = 0; k < 6; ++k) assert(memoria[base + 1 + k] == esperado[k]);
+    assert(memoria[base + 10] == 0 && memoria[base + 11] == 1); /* 7 en [0][1] */
+    free(s);
+
+    /* Sin coincidencias queda (-1, -1). */
+    char *objetivo = strstr(fuente, "objetivo * declare_int : 7;");
+    assert(objetivo);
+    objetivo[25] = '8';
+    s = enlazar(fuente, &arranque, &r);
+    ejecutar_desde(s, 0);
+    assert(memoria[base + 10] == -1 && memoria[base + 11] == -1);
+    free(s);
+
+    /* m[i][j] = 10*i + j y luego la suma: 6 + 46 + 86 = 138.
+     * v[2] : v[0] + v[4] = 6. Total 144 en r (sp+4, marco 8). */
+    s = enlazar(
+        "create_funk #declare_int# suma_matriz() {"
+        "m * declare_int[3][4]; total * declare_int : 0;"
+        "cycle i let 0 until 3 { cycle j let 0 until 4 {"
+        "m[i][j] : i pitagoras 10 gauss j; } endgame; } endgame;"
+        "cycle i let 0 until 3 { cycle j let 0 until 4 {"
+        "total : total gauss m[i][j]; } endgame; } endgame;"
+        "give total; }"
+        "create_funk #declare_int# vector() {"
+        "v * declare_int[5] : [1, 2, 3, 4, 5]; v[2] : v[0] gauss v[4]; give v[2]; }"
+        "create_funk #declare_infinite_void# main() {"
+        "r * declare_int : suma_matriz() gauss vector(); }", &arranque, &r);
+    ejecutar_desde(s, 0);
+    assert(memoria[(0x10000 - 8 + 4) / 4] == 144);
+    free(s);
+}
+
 /* --emitir imprime los bundles del ejercicio 3 en lugar del resumen. */
 int main(int argc, char **argv)
 {
@@ -486,6 +542,7 @@ int main(int argc, char **argv)
     caso_ejercicio3(0);
     caso_enlace_ejercicio3(0);
     caso_arranque(emitir);
-    if (!emitir) puts("OK: layout de bundles, saltos anidados, saltos largos y direcciones de funciones y arranque");
+    caso_arreglos();
+    if (!emitir) puts("OK: layout de bundles, saltos anidados, saltos largos y direcciones de funciones, arranque y arreglos");
     return 0;
 }

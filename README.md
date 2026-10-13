@@ -15,10 +15,7 @@ sudo apt install build-essential flex bison
 cd "/mnt/c/ruta/al/repositorio"
 flex -o src/lexer_flex.c src/lexer.l
 bison -Wall -Werror -d -o Analisis_Sintactico/parser.c Analisis_Sintactico/gramatica.y
-gcc -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -Iinclude -Isrc \
-  src/main.c src/cli.c src/lexer.c src/lexer_flex.c src/token.c \
-  Analisis_Sintactico/parser.c Analisis_Sintactico/puente_lexer.c \
-  Analisis_Sintactico/ast.c -o balc
+make
 ./balc -v examples/factorial.bal
 ```
 
@@ -58,35 +55,64 @@ gcc -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 tests/test_parser.c -o tests/t
 ## Resultado esperado
 
 Las pruebas terminan con `OK: 18 casos del lexer, incluido factorial.bal`.
-El análisis del factorial termina con `64 tokens, 0 errores`. Para analizar otro
-archivo, usa `./balc -v ruta/al/archivo.bal`.
 
-Para validar la sintaxis y mostrar el AST:
+## Uso del compilador
 
 ```bash
-./balc -t examples/factorial.bal
-./balc -v -t examples/factorial.bal
+balc [-o <archivo>] [-v] [-s] [-t] [-m] [-p] <archivo_fuente.bal>
+balc -x [-o <archivo>] [-v] [-p] <archivo.asm>
+```
+
+`balc` siempre compila hasta el binario; las opciones agregan salidas y se
+pueden combinar.
+
+| Opción | Descripción |
+|---|---|
+| `-o <archivo>` | Nombre del binario de salida. Si se omite, el del fuente con `.bin`. |
+| `-v` | Muestra cada fase del compilador y las decisiones importantes. |
+| `-s` | Genera el ensamblador (`.asm`) además del binario. |
+| `-t` | Imprime el AST. |
+| `-m` | Imprime la tabla de símbolos, la memoria asignada y la dirección de cada función. |
+| `-x` | Toma un archivo de ensamblador y genera el binario. |
+| `-p` | Muestra los paquetes generados en ensamblador y en binario. |
+
+Junto al `.bin` (16 bytes por bundle, el formato que carga la memoria de
+instrucciones) se escribe un `.mem` para `$readmemh` del RTL. Los formatos y
+la verificación contra `tools/assembler.py` están en
+[docs/backend_binario.md](docs/backend_binario.md). Los archivos se crean solo
+si la compilación termina bien. `balc` devuelve 0 si compila, 1 por errores del
+programa y 2 por fallos de invocación, lectura o memoria.
+
+```bash
+./balc -v examples/factorial.bal          # factorial.bin y factorial.mem
+./balc -s -p examples/ejercicio3_puntajes.bal
+```
+
+## Modo de pruebas del frontend
+
+Para revisar solo el lexer o el parser, sin generar archivos:
+
+```bash
+./balc --frontend -t examples/factorial.bal
+./balc --frontend -v -t examples/factorial.bal
 make test-parser
 make test-ast
 ```
 
-`-t` valida la sintaxis y muestra el AST con sangría y posiciones del fuente.
-Solo imprime el árbol si el archivo completo es válido. Sin `-t` se conserva
-el análisis exclusivamente léxico. La estructura del árbol y las acciones de
-Bison se explican en `docs/ast.md`.
-`balc` devuelve 0 si el análisis solicitado tiene éxito, 1 por errores de
-entrada y 2 por fallos de lectura, invocación o memoria. La integración y sus
+Con `--frontend`, `-t` valida la sintaxis y muestra el AST con sangría y
+posiciones del fuente; sin `-t` solo analiza tokens y `-v` los lista. La
+estructura del árbol y las acciones de Bison se explican en `docs/ast.md`. La integración y sus
 límites se explican en `docs/parser.md`; el diseño léxico está en `docs/lexer.md`.
 
 ## Lenguaje ampliado
 
-El ejecutable se llama `balc` y conserva las opciones `-v` y `-t`. Las reglas actuales,
+El ejecutable se llama `balc`. Las reglas actuales,
 las diferencias con el PDF del avance y los límites de esta fase están en
 [docs/lenguaje_actual.md](docs/lenguaje_actual.md).
 
 ```bash
-./balc -t examples/lenguaje_ampliado.bal
-./balc -t examples/matematicas.bal
+./balc --frontend -t examples/lenguaje_ampliado.bal
+./balc --frontend -t examples/matematicas.bal
 ```
 
 Incluye declaraciones sin inicialización, lógica, residuo/potencia, cycle,

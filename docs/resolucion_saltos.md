@@ -139,21 +139,19 @@ make
 # [ensamblador] examples/ejercicio3_puntajes.asm: 801 bundles, 4 funciones, 6 saltos (1 reescritos)
 ```
 
-`-s` recorre semántica, asignación de memoria, generación, enlace con
-arranque y layout, y escribe `<fuente>.asm` junto al fuente. Mapa de memoria
-del contrato: código desde 0, globales desde gp = 0x4000 (hasta 0x7FFF) y
-pila desde sp = 0x10000 hacia abajo. El archivo se crea solo si todo terminó
-bien. No se combina con `-t`, `-v` ni `-m`. `-o`, `-x` y `-p` siguen
-pendientes (backend binario).
+`balc` recorre semántica, asignación de memoria, generación, enlace con
+arranque y layout; `-s` además escribe `<fuente>.asm`. Mapa de memoria del
+contrato: código desde 0, globales desde gp = 0x4000 (hasta 0x7FFF) y pila
+desde sp = 0x10000 hacia abajo. Las demás opciones y el binario están en
+`docs/backend_binario.md`.
 
 | Ejemplo | Resultado de `-s` |
 |---|---|
 | `factorial.bal` | 189 bundles; ejecutado en el modelo: resultado = 120 |
 | `ejercicio3_puntajes.bal` | 801 bundles; ejecutado en el modelo: 24, 0, 13, 37 |
-| `ejercicio2_busqueda_matriz.bal` | Error: la generación aún no soporta arreglos |
+| `ejercicio2_busqueda_matriz.bal` | 291 bundles; ejecutado en el modelo: 7 en [0][1]; sin coincidencia, (-1, -1) |
 
 ## Pendiente
 
-- Arreglos y matrices en la generación (bloquea el ejercicio 2).
 - Probar los `.asm` con `tools/assembler.py` y el RTL del repositorio de
   Arquitectura.

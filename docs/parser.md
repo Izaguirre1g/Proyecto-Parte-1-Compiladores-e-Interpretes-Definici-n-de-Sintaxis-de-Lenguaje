@@ -36,12 +36,14 @@ en la gramática se rechazan con un mensaje explícito; nunca se omiten.
 
 ```bash
 make
-./balc -t examples/factorial.bal
-./balc -v -t examples/factorial.bal
+./balc --frontend -t examples/factorial.bal
+./balc --frontend -v -t examples/factorial.bal
 make test
 ```
 
-`-t` valida sintaxis e imprime el AST completo si no hubo errores. `-v -t`
+En el modo `--frontend`, `-t` valida sintaxis e imprime el AST completo si no
+hubo errores, sin generar archivos. (`balc -t` sin `--frontend` además compila
+hasta el binario; ver el README.) `-v -t`
 muestra primero todos los tokens y, si no hubo errores léxicos, inicia un
 nuevo recorrido del fuente para validar sintaxis. Sin `-t`, se mantiene el
 modo léxico de Javier. Resultado: 0 éxito, 1 error léxico/sintáctico, 2 fallo
@@ -266,7 +268,7 @@ sentencia completa, no a cada llamada interior.
 
 ```bash
 make
-./balc -t examples/llamadas.bal
+./balc --frontend -t examples/llamadas.bal
 make test-parser
 ```
 
@@ -297,5 +299,5 @@ es un error sintáctico. La validación del tipo de las condiciones corresponde
 al análisis semántico. El ejemplo completo se analiza con:
 
 ```bash
-./balc -t examples/condicionales.bal
+./balc --frontend -t examples/condicionales.bal
 ```

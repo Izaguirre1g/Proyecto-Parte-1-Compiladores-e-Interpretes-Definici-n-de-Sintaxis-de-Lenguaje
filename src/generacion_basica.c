@@ -11,6 +11,7 @@ typedef struct {
     FILE *diagnosticos;
     int error;
     unsigned profundidad;
+    GbResolverArreglo arreglos; /* NULL: sin soporte de arreglos. */
 } Generador;
 
 static int fallar(Generador *g, const AstNodo *n, const char *mensaje) {
@@ -184,6 +185,7 @@ static int cero_literal(const AstNodo *n) {
 }
 
 static int expresion(Generador *g, const AstNodo *n, unsigned r, GbTipo *tipo);
+static int elemento(Generador *g, const AstNodo *n, unsigned r, GbTipo *tipo);
 
 static int expresion_interna(Generador *g, const AstNodo *n, unsigned r, GbTipo *tipo) {
     if (!n) return fallar(g, n, "expresión ausente");
@@ -227,6 +229,8 @@ static int expresion_interna(Generador *g, const AstNodo *n, unsigned r, GbTipo 
         else return fallar(g, n, "operador unario o tipo no soportado");
         return 1;
     }
+    /* Sin resolvedor de arreglos, un indice queda fuera del subconjunto. */
+    if (n->tipo == AST_INDICE && hijos(n, 2) && g->arreglos) return elemento(g, n, r, tipo);
     if (n->tipo != AST_BINARIO || !n->texto || !hijos(n, 2))
         return fallar(g, n, "nodo fuera del subconjunto básico (sin llamadas ni índices)");
 
@@ -289,11 +293,114 @@ static int expresion(Generador *g, const AstNodo *n, unsigned r, GbTipo *tipo) {
     return ok;
 }
 
+/* xR = xR * k con k constante (Horner sobre los bits de k); usa xR+1. */
+static int multiplicar_constante(Generador *g, const AstNodo *n, unsigned r, uint32_t k) {
+    if (k == 0) { fprintf(g->salida, "sumai x%u, x0, 0\n", r); return 1; }
+    if (k == 1) return 1;
+    if (r + 1 > 7) return fallar(g, n, "temporales agotados (x4-x7) al indexar");
+    int alto = 31;
+    while (!(k >> alto & 1u)) --alto;
+    fprintf(g->salida, "sumai x%u, x%u, 0\n", r + 1, r);
+    for (int b = alto - 1; b >= 0; --b) {
+        fprintf(g->salida, "cizqi x%u, x%u, 1\n", r, r);
+        if (k >> b & 1u) fprintf(g->salida, "suma x%u, x%u, x%u\n", r, r, r + 1);
+    }
+    return 1;
+}
+
+/* a[i0][i1]...: deja en xR la direccion base + 4*indice_lineal (sin el
+ * desplazamiento del arreglo, que va en el inmediato de cargai/guardap). */
+static int direccion_elemento(Generador *g, const AstNodo *n, unsigned r, GbArreglo *a) {
+    const AstNodo *indices[GB_MAX_DIMENSIONES];
+    unsigned cantidad = 0;
+    const AstNodo *base = n;
+    for (; base && base->tipo == AST_INDICE && hijos(base, 2); base = base->primer_hijo) {
+        if (cantidad == GB_MAX_DIMENSIONES)
+            return fallar(g, n, "demasiados indices");
+        indices[cantidad++] = base->primer_hijo->siguiente;
+    }
+    if (!base || base->tipo != AST_IDENTIFICADOR || !base->texto || !g->arreglos ||
+        !g->arreglos(g->datos, base, a))
+        return fallar(g, base ? base : n, "arreglo sin referencia semántica");
+    if (a->dimensiones != cantidad)
+        return fallar(g, n, "se requiere un indice por dimension del arreglo");
+    if ((a->base != 2 && a->base != 3) || a->desplazamiento < -1024 ||
+        a->desplazamiento > 1023 || a->desplazamiento % 4)
+        return fallar(g, n, "base o desplazamiento del arreglo no soportado");
+    if (r + 1 > 7) return fallar(g, n, "temporales agotados (x4-x7) al indexar");
+    /* Los indices se guardaron del ultimo al primero. */
+    for (unsigned k = 0; k < cantidad; ++k) {
+        const AstNodo *indice = indices[cantidad - 1 - k];
+        GbTipo tipo;
+        unsigned destino = k == 0 ? r : r + 1;
+        if (k > 0 && !multiplicar_constante(g, n, r, a->longitudes[k])) return 0;
+        if (!expresion(g, indice, destino, &tipo)) return 0;
+        if (tipo != GB_ENTERO) return fallar(g, indice, "el indice debe ser declare_int");
+        if (k > 0) fprintf(g->salida, "suma x%u, x%u, x%u\n", r, r, r + 1);
+    }
+    fprintf(g->salida, "cizqi x%u, x%u, 2\n"
+                       "suma x%u, x%u, x%u\n", r, r, r, r, a->base);
+    return 1;
+}
+
+static int elemento(Generador *g, const AstNodo *n, unsigned r, GbTipo *tipo) {
+    GbArreglo a;
+    if (!direccion_elemento(g, n, r, &a)) return 0;
+    fprintf(g->salida, "cargai x%u, x%u, %d\n", r, r, a.desplazamiento);
+    *tipo = GB_ENTERO;
+    return 1;
+}
+
+/* Recorre el literal en orden por filas y guarda cada elemento. */
+static int inicializar(Generador *g, const AstNodo *lit, const GbArreglo *a,
+                       unsigned nivel, uint32_t *indice) {
+    if (!lit || lit->tipo != AST_LITERAL_COLECCION)
+        return fallar(g, lit, "se esperaba un literal [ ... ] para el arreglo");
+    uint32_t cantidad = 0;
+    for (const AstNodo *e = lit->primer_hijo; e; e = e->siguiente) ++cantidad;
+    if (cantidad != a->longitudes[nivel])
+        return fallar(g, lit, "el literal no coincide con las dimensiones del arreglo");
+    for (const AstNodo *e = lit->primer_hijo; e; e = e->siguiente) {
+        if (nivel + 1 < a->dimensiones) {
+            if (!inicializar(g, e, a, nivel + 1, indice)) return 0;
+            continue;
+        }
+        long destino = a->desplazamiento + 4L * (long)*indice;
+        if (destino > 1023) return fallar(g, e, "elemento fuera del alcance de guardap");
+        GbTipo tipo;
+        if (!expresion(g, e, 4, &tipo)) return 0;
+        if (tipo != GB_ENTERO) return fallar(g, e, "elemento de tipo incompatible");
+        fprintf(g->salida, "guardap x%u, x4, %ld\n", a->base, destino);
+        ++*indice;
+    }
+    return 1;
+}
+
 static int generar(Generador *g, const AstNodo *n) {
     GbTipo tipo;
     if (!n) return fallar(g, n, "nodo ausente");
     if (n->tipo != AST_ASIGNACION && n->tipo != AST_DECLARACION)
         return expresion(g, n, 4, &tipo);
+    /* Declaracion de arreglo: id, TipoArreglo y literal opcional. */
+    const AstNodo *primero = n->primer_hijo;
+    if (n->tipo == AST_DECLARACION && primero && primero->siguiente &&
+        primero->siguiente->tipo == AST_TIPO_ARREGLO) {
+        GbArreglo a;
+        if (!g->arreglos || !g->arreglos(g->datos, primero, &a))
+            return fallar(g, primero, "arreglo sin referencia semántica");
+        const AstNodo *valor = primero->siguiente->siguiente;
+        uint32_t indice = 0;
+        return !valor || (!valor->siguiente && inicializar(g, valor, &a, 0, &indice));
+    }
+    /* a[i][j] : valor;  valor en x4, direccion en x5. */
+    if (n->tipo == AST_ASIGNACION && hijos(n, 2) && primero->tipo == AST_INDICE) {
+        GbArreglo a;
+        if (!expresion(g, primero->siguiente, 4, &tipo)) return 0;
+        if (tipo != GB_ENTERO) return fallar(g, n, "tipo de asignación incompatible");
+        if (!direccion_elemento(g, primero, 5, &a)) return 0;
+        fprintf(g->salida, "guardap x5, x4, %d\n", a.desplazamiento);
+        return 1;
+    }
     int declaracion = n->tipo == AST_DECLARACION;
     if (!hijos(n, declaracion ? 3 : 2))
         return fallar(g, n, "se requiere asignación o declaración inicializada");
@@ -315,7 +422,13 @@ static int generar(Generador *g, const AstNodo *n) {
 
 int gb_generar(const AstNodo *nodo, GbResolver resolver, void *datos,
                FILE *salida, FILE *diagnosticos) {
-    Generador g = {resolver, datos, NULL, diagnosticos, 0, 0};
+    return gb_generar_arreglos(nodo, resolver, NULL, datos, salida, diagnosticos);
+}
+
+int gb_generar_arreglos(const AstNodo *nodo, GbResolver resolver,
+                        GbResolverArreglo arreglos, void *datos,
+                        FILE *salida, FILE *diagnosticos) {
+    Generador g = {resolver, datos, NULL, diagnosticos, 0, 0, arreglos};
     if (!salida) { fallar(&g, nodo, "salida ausente"); return 1; }
     g.salida = tmpfile();
     if (!g.salida) { fallar(&g, nodo, "no se pudo crear el temporal"); return 1; }

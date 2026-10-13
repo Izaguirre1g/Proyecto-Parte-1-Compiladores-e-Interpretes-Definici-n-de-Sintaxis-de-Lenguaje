@@ -33,4 +33,12 @@ int gf_generar_funcion(const AstNodo *funcion, size_t bytes_marco,
                        GbResolver resolver, GfResolverDestino destino,
                        void *datos, FILE *salida, FILE *diagnosticos);
 
+/* Igual, con arreglos estaticos de enteros (ver gb_generar_arreglos):
+ * declaracion con literal, lectura de elementos y asignacion a elementos.
+ * Una asignacion a un elemento no admite llamadas en el valor. */
+int gf_generar_funcion_arreglos(const AstNodo *funcion, size_t bytes_marco,
+                                GbResolver resolver, GbResolverArreglo arreglos,
+                                GfResolverDestino destino, void *datos,
+                                FILE *salida, FILE *diagnosticos);
+
 #endif

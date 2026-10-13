@@ -22,7 +22,8 @@ LEXER_GEN := src/lexer_flex.c
 SRC := src/main.c src/cli.c src/lexer.c $(LEXER_GEN) src/token.c src/generacion_basica.c $(PARSER_SRC) Analisis_Semantico/symbol_table.c Analisis_Semantico/semantic.c Analisis_Semantico/semantic_modules.c Analisis_Semantico/memory.c \
        src/generacion_adaptador.c src/generacion_funciones.c src/generacion_control.c \
        src/funciones_marco.c src/funciones_llamada.c src/referencias_integracion.c \
-       src/resolucion_referencias.c src/resolucion_saltos.c src/enlace_funciones.c
+       src/resolucion_referencias.c src/resolucion_saltos.c src/enlace_funciones.c \
+       src/codificacion_binaria.c
 
 # Estos nombres son comandos de Make, no archivos.
 .PHONY: all test test-parser test-ast test-cli test-generacion test-semantic-modules test-semantic-entry test-funciones-backend test-referencias-integracion test-m-simbolos test-auditoria-semantica test-ejercicio2-matriz clean
@@ -42,7 +43,7 @@ Analisis_Sintactico/parser.c Analisis_Sintactico/parser.h &: Analisis_Sintactico
 
 # Compila todos los módulos y crea el ejecutable balc.
 balc: $(SRC) include/cli.h include/lexer.h include/token.h include/sintactico.h include/ast.h include/generacion_basica.h include/semantic_modules.h include/semantic.h include/memory.h Analisis_Sintactico/parser.h \
-      include/enlace_funciones.h include/resolucion_saltos.h include/resolucion_referencias.h \
+      include/enlace_funciones.h include/resolucion_saltos.h include/resolucion_referencias.h include/codificacion_binaria.h \
       include/referencias_integracion.h include/generacion_adaptador.h include/generacion_funciones.h \
       src/generacion_interna.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(SRC) -o $@
@@ -52,9 +53,10 @@ tests/test_lexer: tests/test_lexer.c src/lexer.c $(LEXER_GEN) src/token.c includ
 	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_lexer.c src/lexer.c $(LEXER_GEN) src/token.c -o $@
 
 # Ejecuta las pruebas del proyecto y analiza el factorial.
-test: test-ejercicio3 test-ambitos-generacion test-whale-pipeline test-cycle-pipeline test-resolucion-saltos test-condicional-pipeline tests/test_lexer balc test-parser test-ast test-cli test-generacion test-symbol-table test-semantic test-semantic-functions test-semantic-arrays test-semantic-matrix-cycle test-semantic-returns test-semantic-initializers test-semantic-dynamic-arrays test-semantic-lists test-semantic-list-indices test-semantic-composite-params test-semantic-pipeline test-semantic-modules test-semantic-entry test-funciones-backend test-referencias-integracion test-m-simbolos test-auditoria-semantica test-ejercicio2-matriz
+test: test-ejercicio3 test-ambitos-generacion test-whale-pipeline test-cycle-pipeline test-resolucion-saltos test-codificacion-binaria test-condicional-pipeline tests/test_lexer balc test-parser test-ast test-cli test-generacion test-symbol-table test-semantic test-semantic-functions test-semantic-arrays test-semantic-matrix-cycle test-semantic-returns test-semantic-initializers test-semantic-dynamic-arrays test-semantic-lists test-semantic-list-indices test-semantic-composite-params test-semantic-pipeline test-semantic-modules test-semantic-entry test-funciones-backend test-referencias-integracion test-m-simbolos test-auditoria-semantica test-ejercicio2-matriz
 	./tests/test_lexer
-	./balc -v examples/factorial.bal
+	./balc -v -o tests/factorial_make.bin examples/factorial.bal
+	rm -f tests/factorial_make.bin tests/factorial_make.mem
 
 # Compila las pruebas del parser.
 tests/test_parser: tests/test_parser.c
@@ -92,7 +94,7 @@ test-generacion: tests/test_generacion
 # Sirve para volver a compilar todo desde cero.
 # Elimina los ejecutables y archivos generados.
 clean:
-	rm -f tests/test_ejercicio3 tests/test_resolucion_saltos tests/test_ambitos_generacion tests/test_condicional_pipeline balc tests/test_lexer tests/test_parser tests/test_ast tests/test_cli tests/test_generacion tests/test_funciones_marco tests/test_funciones_llamada tests/test_funciones_integracion tests/test_generacion_funciones tests/test_semantic_visitante tests/test_generacion_adaptador tests/test_resolucion_referencias tests/test_referencias_integracion tests/test_symbol_table tests/test_semantic tests/test_semantic_functions tests/test_semantic_arrays tests/test_semantic_matrix_cycle tests/test_semantic_returns tests/test_semantic_dynamic_arrays test/test_semantic_lists test/test_semantic_list_indices test/test_semantic_composite_params test/test_semantic_pipeline tests/test_semantic_modules $(LEXER_GEN)
+	rm -f tests/test_ejercicio3 tests/test_resolucion_saltos tests/test_codificacion_binaria tests/test_ambitos_generacion tests/test_condicional_pipeline balc tests/test_lexer tests/test_parser tests/test_ast tests/test_cli tests/test_generacion tests/test_funciones_marco tests/test_funciones_llamada tests/test_funciones_integracion tests/test_generacion_funciones tests/test_semantic_visitante tests/test_generacion_adaptador tests/test_resolucion_referencias tests/test_referencias_integracion tests/test_symbol_table tests/test_semantic tests/test_semantic_functions tests/test_semantic_arrays tests/test_semantic_matrix_cycle tests/test_semantic_returns tests/test_semantic_dynamic_arrays test/test_semantic_lists test/test_semantic_list_indices test/test_semantic_composite_params test/test_semantic_pipeline tests/test_semantic_modules $(LEXER_GEN)
 
 # Pruebas de la tabla de símbolos
 .PHONY: test-symbol-table
@@ -513,6 +515,15 @@ tests/test_resolucion_saltos: tests/test_resolucion_saltos.c tests/modelo_contro
 .PHONY: test-resolucion-saltos
 test-resolucion-saltos: tests/test_resolucion_saltos
 	./tests/test_resolucion_saltos
+
+# Fase 6: codificacion binaria contra la referencia de tools/assembler.py.
+tests/test_codificacion_binaria: tests/test_codificacion_binaria.c src/codificacion_binaria.c \
+                                 include/codificacion_binaria.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_codificacion_binaria.c src/codificacion_binaria.c -o $@
+
+.PHONY: test-codificacion-binaria
+test-codificacion-binaria: tests/test_codificacion_binaria
+	./tests/test_codificacion_binaria
 
 # 3B-D3F: comprueba el reporte de simbolos despues del analisis semantico.
 .PHONY: test-m-simbolos

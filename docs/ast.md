@@ -127,9 +127,9 @@ Desde la raíz del proyecto:
 
 ```bash
 make
-./balc -t examples/factorial.bal
-./balc -t examples/llamadas.bal
-./balc -t examples/condicionales.bal
+./balc --frontend -t examples/factorial.bal
+./balc --frontend -t examples/llamadas.bal
+./balc --frontend -t examples/condicionales.bal
 make test-ast
 make test
 ```
