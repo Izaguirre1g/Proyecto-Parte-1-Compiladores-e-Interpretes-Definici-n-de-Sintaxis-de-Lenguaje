@@ -110,7 +110,9 @@ static int ejecutar_desde(const char *salida, uint32_t entrada)
                                !strcmp(op, "restai") ? x - k :
                                !strcmp(op, "xori") ? (x ^ k) :
                                !strcmp(op, "ori") ? (x | k) :
+                               !strcmp(op, "andi") ? (x & k) :
                                !strcmp(op, "cizqi") ? (int)((unsigned)x << (k & 31)) :
+                               !strcmp(op, "cderi") ? (int)((unsigned)x >> (k & 31)) :
                                (assert(!"opi"), 0);
             }
         }
@@ -457,6 +459,19 @@ static void caso_arranque(int emitir)
     assert(memoria[base + 1] == 24 && memoria[base + 2] == 0);
     assert(memoria[base + 3] == 13 && memoria[base + 4] == 37);
     if (emitir) assert(fputs(s, stdout) >= 0);
+    free(s);
+
+    /* Ejercicio 1, factorial de 5 con la multiplicacion del generador basico.
+     * n, resultado, i en sp+4, sp+8, sp+12 de un marco de 16. */
+    entrada = fopen("examples/factorial.bal", "r");
+    assert(entrada);
+    n = fread(fuente, 1, sizeof(fuente) - 1, entrada);
+    assert(!ferror(entrada) && feof(entrada)); fuente[n] = 0;
+    fclose(entrada);
+    s = enlazar(fuente, &arranque, &r);
+    ejecutar_desde(s, 0);
+    base = (0x10000 - 16) / 4;
+    assert(memoria[base + 2] == 120 && memoria[base + 3] == 6);
     free(s);
 }
 

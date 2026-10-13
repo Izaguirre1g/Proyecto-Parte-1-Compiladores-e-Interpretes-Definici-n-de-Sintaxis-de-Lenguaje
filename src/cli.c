@@ -5,6 +5,7 @@
 #include "sintactico.h"
 #include "semantic_modules.h"
 #include "memory.h"
+#include "enlace_funciones.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -19,13 +20,15 @@ typedef struct {
     /*Bandera de sintaxis guarda si se pidio analizar sintaxis: 0 es desactivo y 1 es activado*/
     int syntax;
     int symbols;
+    int assembly;
 } Options;
 
 static void usage(FILE *out) {
-    fputs("Uso: balc [-v] [-t] [-m] <archivo_fuente>\n"
+    fputs("Uso: balc [-v] [-t] [-m] [-s] <archivo_fuente>\n"
           "-t valida sintaxis e imprime el AST. Sin -t, solo analiza tokens.\n"
           "-m valida semantica, asigna memoria y muestra simbolos.\n"
-          "Opciones del proyecto reservadas para integración: -o, -s, -x, -p.\n", out);
+          "-s genera el ensamblador en bundles (<fuente>.asm).\n"
+          "Opciones del proyecto reservadas para integración: -o, -x, -p.\n", out);
 }
 
 static int parse_args(int argc, char **argv, Options *opt) {
@@ -43,8 +46,8 @@ static int parse_args(int argc, char **argv, Options *opt) {
             opt->pending_option = "-o";
             continue;
         }
-        if (!positional && (strcmp(arg, "-s") == 0 ||
-                            strcmp(arg, "-x") == 0 ||
+        if (!positional && strcmp(arg, "-s") == 0) { opt->assembly = 1; continue; }
+        if (!positional && (strcmp(arg, "-x") == 0 ||
                             strcmp(arg, "-p") == 0)) {
             opt->pending_option = arg;
             continue;
@@ -67,6 +70,10 @@ static int parse_args(int argc, char **argv, Options *opt) {
     if (!opt->input) { usage(stderr); return -1; }
     if (opt->symbols && (opt->syntax || opt->verbose)) {
         fputs("-m no se combina con -t ni -v\n", stderr);
+        return -1;
+    }
+    if (opt->assembly && (opt->symbols || opt->syntax || opt->verbose)) {
+        fputs("-s no se combina con -t, -v ni -m\n", stderr);
         return -1;
     }
     return 0;
@@ -209,6 +216,62 @@ static int reporte_simbolos(void *ctx, const Ast *arbol,
     return ferror(stdout) ? 2 : 0;
 }
 
+/* Mapa de memoria del contrato: globales desde 0x4000 hasta 0x7FFF y pila
+ * desde 0x10000 hacia abajo (0x8000-0xFFFF). El codigo empieza en 0. */
+#define CLI_GP_BASE 0x4000u
+#define CLI_FIN_GLOBALES 0x8000u
+#define CLI_TOPE_PILA 0x10000u
+
+static int generar_ensamblador(void *ctx, const Ast *arbol,
+                               SimTabla *tabla, FILE *diagnosticos)
+{
+    const char *destino = ctx;
+    MemProyectoMapa mapa = {0};
+    MemProyectoResultado r = mem_asignar_proyecto(tabla, CLI_GP_BASE, CLI_FIN_GLOBALES,
+                                                  1020, &mapa);
+    if (r != MEM_PROYECTO_OK) {
+        fprintf(diagnosticos, "-s: asignacion de memoria no disponible (codigo %d)\n", (int)r);
+        return 1;
+    }
+    const EfArranque arranque = {(uint32_t)mapa.globales.gp_base, CLI_TOPE_PILA};
+    EfResumen resumen;
+    FILE *temporal = tmpfile();
+    if (!temporal) { perror("tmpfile"); return 2; }
+    if (ef_enlazar(arbol, tabla, 0, &arranque, NULL, temporal,
+                   diagnosticos, &resumen) != 0) {
+        fclose(temporal);
+        fputs("-s: no se pudo generar el ensamblador\n", diagnosticos);
+        return 1;
+    }
+    /* El archivo se crea solo si la generacion completa tuvo exito. */
+    FILE *salida = fopen(destino, "w");
+    int ok = salida && fseek(temporal, 0, SEEK_SET) == 0;
+    char buf[4096];
+    size_t n;
+    while (ok && (n = fread(buf, 1, sizeof(buf), temporal)) != 0)
+        ok = fwrite(buf, 1, n, salida) == n;
+    ok = ok && !ferror(temporal);
+    if (salida && fclose(salida) != 0) ok = 0;
+    fclose(temporal);
+    if (!ok) { perror(destino); return 2; }
+    printf("[ensamblador] %s: %zu bundles, %zu funciones, %zu saltos (%zu reescritos)\n",
+           destino, resumen.saltos.bundles, resumen.funciones,
+           resumen.saltos.saltos, resumen.saltos.relajados);
+    return ferror(stdout) ? 2 : 0;
+}
+
+/* prog.bal -> prog.asm; sin extension .bal se agrega .asm. */
+static char *nombre_ensamblador(const char *fuente)
+{
+    size_t largo = strlen(fuente);
+    if (largo >= 4 && strcmp(fuente + largo - 4, ".bal") == 0) largo -= 4;
+    char *nombre = malloc(largo + 5);
+    if (!nombre) return NULL;
+    memcpy(nombre, fuente, largo);
+    memcpy(nombre + largo, ".asm", 5);
+    return nombre;
+}
+
 int cli_run(int argc, char **argv) {
     Options opt = {0};
     int parsed = parse_args(argc, argv, &opt);
@@ -216,6 +279,13 @@ int cli_run(int argc, char **argv) {
 
     if (opt.symbols)
         return sem_visitar_proyecto(opt.input, stderr, reporte_simbolos, NULL);
+    if (opt.assembly) {
+        char *destino = nombre_ensamblador(opt.input);
+        if (!destino) { fputs("Memoria insuficiente\n", stderr); return 2; }
+        int estado = sem_visitar_proyecto(opt.input, stderr, generar_ensamblador, destino);
+        free(destino);
+        return estado;
+    }
 
     size_t size = 0;
     char *source = read_source(opt.input, &size);

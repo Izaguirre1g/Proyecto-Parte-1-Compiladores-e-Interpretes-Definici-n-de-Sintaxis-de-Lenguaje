@@ -22,7 +22,9 @@ static const Caso casos[] = {
     {"dos fuentes", {"./balc", "a.bal", "b.bal"}, 2, "único archivo", "[AST]"},
     {"salida sin argumento", {"./balc", "-o"}, 2, "necesita un archivo", "[AST]"},
     {"salida pendiente", {"./balc", "-o", "salida.bin", "examples/factorial.bal"}, 2, "aún no integrada", "[AST]"},
-    {"ensamblador pendiente", {"./balc", "-s", "examples/factorial.bal"}, 2, "aún no integrada", "[AST]"},
+    {"ensamblador", {"./balc", "-s", "examples/whale.bal"}, 0, "[ensamblador] examples/whale.asm", "aún no integrada"},
+    {"ensamblador no soportado", {"./balc", "-s", "examples/ejercicio2_busqueda_matriz.bal"}, 1, "no se pudo generar", "[ensamblador]"},
+    {"ensamblador con -t", {"./balc", "-s", "-t", "examples/whale.bal"}, 2, "no se combina", "[ensamblador]"},
     {"simbolos habilitados", {"./balc", "-m", "tests/fixtures/3bd3b_escalar.bal"}, 0, "[SIMBOLOS]", "aún no integrada"},
     {"ensamblado pendiente", {"./balc", "-x", "examples/factorial.bal"}, 2, "aún no integrada", "[AST]"},
     {"paquetes pendientes", {"./balc", "-p", "examples/factorial.bal"}, 2, "aún no integrada", "[AST]"},
@@ -72,6 +74,16 @@ static void probar(const Caso *caso) {
 int main(void) {
     size_t cantidad = sizeof(casos) / sizeof(casos[0]);
     for (size_t i = 0; i < cantidad; ++i) probar(&casos[i]);
+    /* -s escribe el archivo junto al fuente; si falla no deja ninguno. */
+    FILE *asm_whale = fopen("examples/whale.asm", "r");
+    exigir(asm_whale != NULL, "-s no creo examples/whale.asm");
+    char primera[64] = "";
+    exigir(fgets(primera, sizeof(primera), asm_whale) != NULL, "whale.asm vacio");
+    fclose(asm_whale);
+    exigir(strcmp(primera, "# __arranque:\n") == 0, "whale.asm sin arranque");
+    exigir(remove("examples/whale.asm") == 0, "remove whale.asm");
+    exigir(access("examples/ejercicio2_busqueda_matriz.asm", F_OK) != 0,
+           "-s dejo un archivo tras fallar");
     printf("OK: %zu casos de CLI\n", cantidad);
     return EXIT_SUCCESS;
 }

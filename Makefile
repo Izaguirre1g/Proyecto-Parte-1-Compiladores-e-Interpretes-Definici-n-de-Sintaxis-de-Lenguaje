@@ -19,7 +19,10 @@ PARSER_SRC := Analisis_Sintactico/parser.c Analisis_Sintactico/puente_lexer.c An
 LEXER_GEN := src/lexer_flex.c
 
 # Archivos que forman el compilador.
-SRC := src/main.c src/cli.c src/lexer.c $(LEXER_GEN) src/token.c src/generacion_basica.c $(PARSER_SRC) Analisis_Semantico/symbol_table.c Analisis_Semantico/semantic.c Analisis_Semantico/semantic_modules.c Analisis_Semantico/memory.c
+SRC := src/main.c src/cli.c src/lexer.c $(LEXER_GEN) src/token.c src/generacion_basica.c $(PARSER_SRC) Analisis_Semantico/symbol_table.c Analisis_Semantico/semantic.c Analisis_Semantico/semantic_modules.c Analisis_Semantico/memory.c \
+       src/generacion_adaptador.c src/generacion_funciones.c src/generacion_control.c \
+       src/funciones_marco.c src/funciones_llamada.c src/referencias_integracion.c \
+       src/resolucion_referencias.c src/resolucion_saltos.c src/enlace_funciones.c
 
 # Estos nombres son comandos de Make, no archivos.
 .PHONY: all test test-parser test-ast test-cli test-generacion test-semantic-modules test-semantic-entry test-funciones-backend test-referencias-integracion test-m-simbolos test-auditoria-semantica test-ejercicio2-matriz clean
@@ -38,7 +41,10 @@ Analisis_Sintactico/parser.c Analisis_Sintactico/parser.h &: Analisis_Sintactico
 	$(BISON) -Wall -Werror -d -o Analisis_Sintactico/parser.c $<
 
 # Compila todos los módulos y crea el ejecutable balc.
-balc: $(SRC) include/cli.h include/lexer.h include/token.h include/sintactico.h include/ast.h include/generacion_basica.h include/semantic_modules.h include/semantic.h include/memory.h Analisis_Sintactico/parser.h
+balc: $(SRC) include/cli.h include/lexer.h include/token.h include/sintactico.h include/ast.h include/generacion_basica.h include/semantic_modules.h include/semantic.h include/memory.h Analisis_Sintactico/parser.h \
+      include/enlace_funciones.h include/resolucion_saltos.h include/resolucion_referencias.h \
+      include/referencias_integracion.h include/generacion_adaptador.h include/generacion_funciones.h \
+      src/generacion_interna.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(SRC) -o $@
 
 # Compila las pruebas del lexer, sin necesitar el parser.

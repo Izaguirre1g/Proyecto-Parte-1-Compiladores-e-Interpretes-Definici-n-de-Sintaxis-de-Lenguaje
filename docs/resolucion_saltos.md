@@ -131,6 +131,29 @@ Pruebas: un programa con dos constantes globales (`base = 5`,
 completo, ejecutados desde la dirección 0 hasta el salto final. Se comprueban
 las globales en 0x4000 y los locales de `main` bajo 0x10000.
 
+## Uso desde balc
+
+```bash
+make
+./balc -s examples/ejercicio3_puntajes.bal
+# [ensamblador] examples/ejercicio3_puntajes.asm: 801 bundles, 4 funciones, 6 saltos (1 reescritos)
+```
+
+`-s` recorre semántica, asignación de memoria, generación, enlace con
+arranque y layout, y escribe `<fuente>.asm` junto al fuente. Mapa de memoria
+del contrato: código desde 0, globales desde gp = 0x4000 (hasta 0x7FFF) y
+pila desde sp = 0x10000 hacia abajo. El archivo se crea solo si todo terminó
+bien. No se combina con `-t`, `-v` ni `-m`. `-o`, `-x` y `-p` siguen
+pendientes (backend binario).
+
+| Ejemplo | Resultado de `-s` |
+|---|---|
+| `factorial.bal` | 189 bundles; ejecutado en el modelo: resultado = 120 |
+| `ejercicio3_puntajes.bal` | 801 bundles; ejecutado en el modelo: 24, 0, 13, 37 |
+| `ejercicio2_busqueda_matriz.bal` | Error: la generación aún no soporta arreglos |
+
 ## Pendiente
 
-- Integración en `balc` (`-s`) y prueba con `tools/assembler.py` y el RTL.
+- Arreglos y matrices en la generación (bloquea el ejercicio 2).
+- Probar los `.asm` con `tools/assembler.py` y el RTL del repositorio de
+  Arquitectura.
