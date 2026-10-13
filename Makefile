@@ -46,7 +46,7 @@ tests/test_lexer: tests/test_lexer.c src/lexer.c $(LEXER_GEN) src/token.c includ
 	$(CC) $(CPPFLAGS) $(CFLAGS) tests/test_lexer.c src/lexer.c $(LEXER_GEN) src/token.c -o $@
 
 # Ejecuta las pruebas del proyecto y analiza el factorial.
-test: test-ejercicio3 test-ambitos-generacion test-whale-pipeline test-condicional-pipeline tests/test_lexer balc test-parser test-ast test-cli test-generacion test-symbol-table test-semantic test-semantic-functions test-semantic-arrays test-semantic-matrix-cycle test-semantic-returns test-semantic-initializers test-semantic-dynamic-arrays test-semantic-lists test-semantic-list-indices test-semantic-composite-params test-semantic-pipeline test-semantic-modules test-semantic-entry test-funciones-backend test-referencias-integracion test-m-simbolos test-auditoria-semantica test-ejercicio2-matriz
+test: test-ejercicio3 test-ambitos-generacion test-whale-pipeline test-cycle-pipeline test-condicional-pipeline tests/test_lexer balc test-parser test-ast test-cli test-generacion test-symbol-table test-semantic test-semantic-functions test-semantic-arrays test-semantic-matrix-cycle test-semantic-returns test-semantic-initializers test-semantic-dynamic-arrays test-semantic-lists test-semantic-list-indices test-semantic-composite-params test-semantic-pipeline test-semantic-modules test-semantic-entry test-funciones-backend test-referencias-integracion test-m-simbolos test-auditoria-semantica test-ejercicio2-matriz
 	./tests/test_lexer
 	./balc -v examples/factorial.bal
 
@@ -521,6 +521,10 @@ tests/test_generacion_funciones tests/test_generacion_adaptador tests/test_refer
 .PHONY: test-whale-pipeline
 test-whale-pipeline: tests/test_condicional_pipeline
 	./tests/test_condicional_pipeline --whale
+
+.PHONY: test-cycle-pipeline
+test-cycle-pipeline: tests/test_condicional_pipeline
+	./tests/test_condicional_pipeline --cycle
 
 # El contrato de simbolos se comparte entre semantica, memoria y generacion.
 tests/test_generacion_funciones: tests/modelo_control.h

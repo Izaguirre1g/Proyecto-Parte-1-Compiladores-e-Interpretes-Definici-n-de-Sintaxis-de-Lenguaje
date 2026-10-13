@@ -178,6 +178,11 @@ int gf_condicion(GfContexto *c, const AstNodo *n)
     return expresion_basica(c, n, 0);
 }
 
+int gf_expresion(GfContexto *c, const AstNodo *n, size_t reserva)
+{
+    return expresion_ext(c, n, reserva);
+}
+
 int gf_sentencia(GfContexto *c, const AstNodo *n, int es_void, int *retorna)
 {
     int retorno = 0;

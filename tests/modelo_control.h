@@ -30,8 +30,18 @@ static int ejecutar_control(char *texto)
             registros[a] = registros[b] - inmediato;
         else if (sscanf(linea, "suma x%u, x%u, x%u", &a, &b, &d) == 3)
             registros[a] = registros[b] + registros[d];
+        else if (sscanf(linea, "resta x%u, x%u, x%u", &a, &b, &d) == 3)
+            registros[a] = registros[b] - registros[d];
         else if (sscanf(linea, "mrq x%u, x%u, x%u", &a, &b, &d) == 3)
             registros[a] = registros[b] < registros[d];
+        else if (sscanf(linea, "myq x%u, x%u, x%u", &a, &b, &d) == 3)
+            registros[a] = registros[b] > registros[d];
+        else if (sscanf(linea, "and x%u, x%u, x%u", &a, &b, &d) == 3)
+            registros[a] = registros[b] & registros[d];
+        else if (sscanf(linea, "or x%u, x%u, x%u", &a, &b, &d) == 3)
+            registros[a] = registros[b] | registros[d];
+        else if (sscanf(linea, "xori x%u, x%u, %d", &a, &b, &inmediato) == 3)
+            registros[a] = registros[b] ^ inmediato;
         else if (sscanf(linea, "guardap x%u, x%u, %d", &a, &b, &inmediato) == 3) {
             int direccion = registros[a] + inmediato;
             assert(direccion >= 0 && direccion < 1024 && direccion % 4 == 0);

@@ -11,13 +11,16 @@
  * --emitir permite inspeccionar la salida del ejemplo reproducible. */
 int main(int argc, char **argv)
 {
-    int emitir = 0, whale = 0;
+    int emitir = 0, whale = 0, cycle = 0;
     for (int i = 1; i < argc; ++i) {
         if (!strcmp(argv[i], "--emitir")) emitir = 1;
         else if (!strcmp(argv[i], "--whale")) whale = 1;
+        else if (!strcmp(argv[i], "--cycle")) cycle = 1;
         else assert(!"opcion desconocida");
     }
-    const char *archivo = whale ? "examples/whale.bal" : "examples/condicional.bal";
+    assert(!(whale && cycle));
+    const char *archivo = whale ? "examples/whale.bal" :
+                          cycle ? "examples/cycle.bal" : "examples/condicional.bal";
     FILE *entrada = fopen(archivo, "r");
     assert(entrada);
     char fuente[4096];
@@ -49,6 +52,17 @@ int main(int argc, char **argv)
         assert(strstr(texto, "sye x0, __gf_main_while_cond_0\n"));
         assert(strstr(texto, "__gf_main_while_fin_0:\n"));
         assert(strstr(texto, "__gf_main_else_1:\n"));
+    } else if (cycle) {
+        /* Tres cycle en secuencia y uno anidado: etiquetas 0 a 3, whether 4. */
+        for (unsigned e = 0; e < 4; ++e) {
+            char etiqueta[64];
+            snprintf(etiqueta, sizeof(etiqueta), "__gf_main_cycle_cond_%u:\n", e);
+            assert(strstr(texto, etiqueta));
+            snprintf(etiqueta, sizeof(etiqueta), "__gf_main_cycle_fin_%u:\n", e);
+            assert(strstr(texto, etiqueta));
+        }
+        assert(strstr(texto, "myq x4, x5, x4\n")); /* paso neumann 1 */
+        assert(strstr(texto, "__gf_main_else_4:\n"));
     } else {
         assert(strstr(texto, "igualsi x4, x0, __gf_main_else_0\n"));
         assert(strstr(texto, "igualsi x4, x0, __gf_main_else_1\n"));
@@ -59,7 +73,7 @@ int main(int argc, char **argv)
     assert(strstr(texto, "guardap x2, x4, 8\n"));
     if (emitir) assert(fputs(texto, stdout) >= 0);
     else printf("OK: BAL -> AST -> semantica -> memoria -> %s lineales\n",
-                whale ? "ciclos" : "condicionales");
+                whale ? "ciclos" : cycle ? "ciclos cycle" : "condicionales");
     fclose(salida);
     sim_liberar(&tabla);
     ast_liberar(&ast);

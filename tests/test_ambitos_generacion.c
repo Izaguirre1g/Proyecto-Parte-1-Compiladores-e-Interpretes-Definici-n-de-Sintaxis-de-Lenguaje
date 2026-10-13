@@ -90,6 +90,40 @@ int main(void)
     assert(strstr(texto, "cargai x4, x2, 8\nguardap x2, x4, 4\n"));
     assert(strstr(texto, "cargai x4, x3, 0\nsumai x8, x4, 0\n"));
 
+    /* cycle: limite exclusivo, paso implicito 1: 0+1+2+3+4. */
+    generar("create_funk #declare_int# f() { r * declare_int : 0;"
+            "cycle i let 0 until 5 { r : r gauss i; } endgame; give r; }",
+            texto, sizeof(texto));
+    assert(strstr(texto, "__gf_f_cycle_cond_0:\n"));
+    assert(strstr(texto, "sye x0, __gf_f_cycle_cond_0\n"));
+    assert(strstr(texto, "__gf_f_cycle_fin_0:\n"));
+    assert(ejecutar_control(texto) == 10);
+
+    /* Paso constante 2 (0, 2, 4) y descendente con neumann 1 (5..1). */
+    generar("create_funk #declare_int# f() { r * declare_int : 0;"
+            "cycle i let 0 until 5 step 2 { r : r gauss i; } endgame;"
+            "cycle i let 5 until 0 step neumann 1 { r : r gauss i; } endgame;"
+            "give r; }", texto, sizeof(texto));
+    assert(ejecutar_control(texto) == 6 + 15);
+
+    /* Paso variable: el sentido se decide en ejecucion (6, 4, 2 y 0, 3, 6). */
+    generar("create_funk #declare_int# f() { r * declare_int : 0;"
+            "p * declare_int : neumann 2;"
+            "cycle i let 6 until 0 step p { r : r gauss i; } endgame;"
+            "p : 3;"
+            "cycle i let 0 until 7 step p { r : r gauss i; } endgame;"
+            "give r; }", texto, sizeof(texto));
+    assert(ejecutar_control(texto) == 12 + 9);
+
+    /* Cero vueltas, ciclos anidados con whether y limite de variable externa. */
+    generar("create_funk #declare_int# f() { r * declare_int : 0;"
+            "n * declare_int : 3;"
+            "cycle i let 3 until 3 { r : 100; } endgame;"
+            "cycle i let 0 until n { cycle j let 0 until n {"
+            "whether (i < j) { r : r gauss 1; } } endgame; } endgame;"
+            "give r; }", texto, sizeof(texto));
+    assert(ejecutar_control(texto) == 3);
+
     /* Un nombre local no se hace visible fuera de su bloque. */
     const char *invalido = "create_funk #declare_int# f() {"
         "whether (declare_true) { oculto * declare_int : 1; } give oculto; }";

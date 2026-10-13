@@ -53,6 +53,10 @@ static int visible(const SimSimbolo *s, const AstNodo *uso)
     if (!s->ambito->bloque || s->es_parametro || s->clase == SIM_PARAMETRO)
         return 1;
     if (!s->declaracion) return 0;
+    /* La variable de cycle se declara en la cabecera, fuera del cuerpo,
+     * y es visible en todo el cuerpo. */
+    if (s->declaracion->padre && s->declaracion->padre->tipo == AST_RECORRIDO &&
+        s->declaracion->padre->primer_hijo == s->declaracion) return 1;
     const AstNodo *raiz = s->ambito->bloque;
     for (const AstNodo *n = raiz; n;) {
         if (n == s->declaracion) return 1;

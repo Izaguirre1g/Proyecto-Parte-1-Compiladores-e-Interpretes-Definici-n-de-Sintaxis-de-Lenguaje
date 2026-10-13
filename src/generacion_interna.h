@@ -25,6 +25,8 @@ typedef struct {
 
 int gf_fallo(GfContexto *c, const AstNodo *n, const char *mensaje);
 int gf_condicion(GfContexto *c, const AstNodo *n);
+/* Expresion entera (admite llamadas) en x4; reserva = bytes ya apilados. */
+int gf_expresion(GfContexto *c, const AstNodo *n, size_t reserva);
 int gf_sentencia(GfContexto *c, const AstNodo *n, int es_void, int *retorna);
 int gc_bloque(GfContexto *c, const AstNodo *bloque, int es_void, int *retorna);
 
