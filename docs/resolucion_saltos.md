@@ -105,8 +105,32 @@ En el ejercicio 3 quedan `sumar` en 0, `puntaje` en 528, `acumular` en 2064 y
 siguiendo los saltos y las llamadas reales, y comprueba resultado = 24,
 vacio = 0, combinado = 13 y total = 37.
 
+## Arranque
+
+Con `EfArranque` (`ef_enlazar(..., &arranque, ...)`) se agrega el código de
+inicio en `inicio`, antes de las funciones. El hardware no inicializa gp ni sp.
+
+```text
+__arranque:
+    x3 (gp) = arranque.gp       %% el gp_base de mem_asignar_proyecto (0x4000)
+    x2 (sp) = arranque.sp       %% tope de la pila, crece hacia abajo (0x10000)
+    constantes globales: evaluar y guardap x3, x4, desplazamiento
+    x13 = direccion de main
+    syer x1, x13, 0
+__arranque_fin:
+    sye x0, __arranque_fin      %% salto estable: fin del programa
+```
+
+Las constantes globales se inicializan en orden del fuente y solo pueden usar
+enteros y otras constantes globales. La dirección de `main` entra en la misma
+iteración que las demás direcciones de funciones. No se agrega una
+instrucción HALT a la ISA: el programa termina en el salto sobre sí mismo.
+
+Pruebas: un programa con dos constantes globales (`base = 5`,
+`doble = base gauss base`) y una llamada desde `main`, y el ejercicio 3
+completo, ejecutados desde la dirección 0 hasta el salto final. Se comprueban
+las globales en 0x4000 y los locales de `main` bajo 0x10000.
+
 ## Pendiente
 
-- Arranque: inicializar gp y sp, llamar a `main` y detenerse. Hoy `main` no
-  está primero, así que el arranque debe saltar a su dirección.
 - Integración en `balc` (`-s`) y prueba con `tools/assembler.py` y el RTL.

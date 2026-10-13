@@ -11,14 +11,15 @@
 
 #define RETORNO_FINAL 0xFFF0 /* ra inicial: fuera del programa. */
 
-static int memoria[256];
+static int memoria[16384]; /* 64 KiB de datos */
 
 /* Ejecuta la salida en bundles siguiendo los desplazamientos numericos,
  * desde la direccion entrada (programa ubicado desde 0).
  * Mismas reglas que modelo_control.h, pero el PC avanza por bundles: asi se
  * comprueba que cada salto resuelto llega al mismo lugar que su etiqueta.
  * Las llamadas usan las direcciones absolutas cargadas en x13. Termina
- * cuando se retorna a RETORNO_FINAL; la memoria queda en memoria[]. */
+ * cuando se retorna a RETORNO_FINAL o en el salto estable "sye x0,0" del
+ * arranque; la memoria queda en memoria[]. */
 static int ejecutar_desde(const char *salida, uint32_t entrada)
 {
     char *copia = malloc(strlen(salida) + 1);
@@ -73,6 +74,10 @@ static int ejecutar_desde(const char *salida, uint32_t entrada)
             } else if (!strcmp(op, "sye")) {
                 assert(sscanf(args, " x0,%d", &k) == 1 && k % 16 == 0);
                 assert(k >= -32768 && k <= 32767);
+                if (k == 0) {
+                    free(copia);
+                    return registros[8];
+                }
                 siguiente = (size_t)((long)pc + k / 16);
             } else if (!strcmp(op, "igualsi") || !strcmp(op, "igualno") ||
                        !strcmp(op, "menora") || !strcmp(op, "mayoroigual")) {
@@ -86,7 +91,7 @@ static int ejecutar_desde(const char *salida, uint32_t entrada)
             } else if (!strcmp(op, "cargai") || !strcmp(op, "guardap")) {
                 assert(sscanf(args, " x%u,x%u,%d", &a, &b, &k) == 3);
                 int direccion = registros[op[0] == 'c' ? b : a] + k;
-                assert(direccion >= 0 && direccion < 1024 && direccion % 4 == 0);
+                assert(direccion >= 0 && direccion < 65536 && direccion % 4 == 0);
                 if (op[0] == 'c') registros[a] = memoria[direccion / 4];
                 else memoria[direccion / 4] = registros[b];
             } else if (sscanf(args, " x%u,x%u,x%u", &a, &b, &d) == 3) {
@@ -356,7 +361,7 @@ static void caso_enlace_ejercicio3(int emitir)
     RrTabla funciones; rr_inicializar(&funciones);
     EfResumen r;
     FILE *f = tmpfile(); assert(f);
-    assert(ef_enlazar(&ast, &tabla, 0, &funciones, f, stderr, &r) == 0);
+    assert(ef_enlazar(&ast, &tabla, 0, NULL, &funciones, f, stderr, &r) == 0);
     long largo = ftell(f);
     rewind(f);
     char *s = malloc((size_t)largo + 1);
@@ -392,10 +397,67 @@ static void caso_enlace_ejercicio3(int emitir)
     /* Sin funciones no hay nada que enlazar; tampoco escribe salida. */
     Ast vacio = {0};
     f = tmpfile(); assert(f);
-    assert(ef_enlazar(&vacio, &tabla, 0, NULL, f, NULL, NULL) == 1);
+    assert(ef_enlazar(&vacio, &tabla, 0, NULL, NULL, f, NULL, NULL) == 1);
     assert(ftell(f) == 0);
     fclose(f);
     rr_liberar(&funciones); sim_liberar(&tabla); ast_liberar(&ast);
+}
+
+static char *enlazar(const char *fuente, const EfArranque *arranque, EfResumen *r)
+{
+    Ast ast = {0}; SimTabla tabla = {0}; MemProyectoMapa mapa;
+    assert(construir_ast(fuente, strlen(fuente), "arranque.bal", stderr, &ast) == 0);
+    assert(sim_inicializar(&tabla) == SIM_OK);
+    assert(analizar_semantica(&ast, &tabla, "arranque.bal", stderr) == 0);
+    assert(mem_asignar_proyecto(&tabla, 0x4000, 65536, 32768, &mapa) == MEM_PROYECTO_OK);
+    assert(mapa.globales.gp_base == arranque->gp);
+    FILE *f = tmpfile(); assert(f);
+    assert(ef_enlazar(&ast, &tabla, 0, arranque, NULL, f, stderr, r) == 0);
+    long largo = ftell(f);
+    rewind(f);
+    char *s = malloc((size_t)largo + 1);
+    assert(s && fread(s, 1, (size_t)largo, f) == (size_t)largo);
+    s[largo] = '\0';
+    fclose(f);
+    assert(verificar_saltos(s, 0) == r->saltos.saltos);
+    sim_liberar(&tabla); ast_liberar(&ast);
+    return s;
+}
+
+/* El arranque fija gp y sp, inicializa constantes globales, llama a main
+ * (que no esta primero) y termina en un salto estable. */
+static void caso_arranque(int emitir)
+{
+    const EfArranque arranque = {0x4000, 0x10000};
+    EfResumen r;
+    char *s = enlazar(
+        "declare_const base * declare_int : 5;"
+        "declare_const doble * declare_int : base gauss base;"
+        "create_funk #declare_int# f(n * declare_int) { give n gauss doble; }"
+        "create_funk #declare_infinite_void# main() { r * declare_int : f(base); }",
+        &arranque, &r);
+    assert(strstr(s, "# __arranque:\nsumai x3,x0,0 | nop | nop | nop\n"));
+    assert(strstr(s, "nop | nop | sye x0,0 | nop  # -> __arranque_fin\n"));
+    ejecutar_desde(s, 0);
+    /* Globales desde gp = 0x4000; r en sp+4 de un marco de 8 bajo 0x10000. */
+    assert(memoria[0x4000 / 4] == 5 && memoria[0x4004 / 4] == 10);
+    assert(memoria[(0x10000 - 8 + 4) / 4] == 15);
+    free(s);
+
+    /* Ejercicio 3 desde su arranque: los locales de main quedan bajo 0x10000. */
+    FILE *entrada = fopen("examples/ejercicio3_puntajes.bal", "r");
+    assert(entrada);
+    char fuente[8192];
+    size_t n = fread(fuente, 1, sizeof(fuente) - 1, entrada);
+    assert(!ferror(entrada) && feof(entrada)); fuente[n] = 0;
+    fclose(entrada);
+    s = enlazar(fuente, &arranque, &r);
+    ejecutar_desde(s, 0);
+    int base = (0x10000 - 20) / 4;
+    assert(memoria[base + 1] == 24 && memoria[base + 2] == 0);
+    assert(memoria[base + 3] == 13 && memoria[base + 4] == 37);
+    if (emitir) assert(fputs(s, stdout) >= 0);
+    free(s);
 }
 
 /* --emitir imprime los bundles del ejercicio 3 en lugar del resumen. */
@@ -407,7 +469,8 @@ int main(int argc, char **argv)
     caso_anidados();
     caso_relajacion();
     caso_ejercicio3(0);
-    caso_enlace_ejercicio3(emitir);
-    if (!emitir) puts("OK: layout de bundles, saltos anidados, saltos largos y direcciones de funciones");
+    caso_enlace_ejercicio3(0);
+    caso_arranque(emitir);
+    if (!emitir) puts("OK: layout de bundles, saltos anidados, saltos largos y direcciones de funciones y arranque");
     return 0;
 }

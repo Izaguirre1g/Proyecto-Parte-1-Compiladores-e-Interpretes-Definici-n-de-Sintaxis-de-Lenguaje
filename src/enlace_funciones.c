@@ -1,5 +1,6 @@
 #include "enlace_funciones.h"
 #include "referencias_integracion.h"
+#include "generacion_basica.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -54,13 +55,75 @@ static char *leer_todo(FILE *f)
     return texto;
 }
 
+/* Mismo esquema que la generacion de llamadas: sumai si cabe en el
+ * inmediato; si no, cuatro bytes con sumai, cizqi y ori. */
+static int constante(FILE *f, unsigned reg, uint32_t v)
+{
+    if (v <= 1023)
+        return fprintf(f, "sumai x%u, x0, %u\n", reg, (unsigned)v) >= 0;
+    if (fprintf(f, "sumai x%u, x0, %u\n", reg, (unsigned)(v >> 24)) < 0) return 0;
+    for (int turno = 16; turno >= 0; turno -= 8)
+        if (fprintf(f, "cizqi x%u, x%u, 8\n", reg, reg) < 0 ||
+            fprintf(f, "ori x%u, x%u, %u\n", reg, reg,
+                    (unsigned)((v >> turno) & 255)) < 0) return 0;
+    return 1;
+}
+
+static const SimSimbolo *global(const SimTabla *tabla, const char *nombre)
+{
+    for (const SimSimbolo *s = tabla->primero; s; s = s->siguiente_orden)
+        if (s->ambito == tabla->global && !strcmp(s->nombre, nombre)) return s;
+    return NULL;
+}
+
+/* Las constantes globales solo pueden usar otras constantes globales. */
+static int referencia_global(void *datos, const AstNodo *id, GbReferencia *r)
+{
+    const SimSimbolo *s = id && id->texto ? global(datos, id->texto) : NULL;
+    if (!s || s->clase != SIM_CONSTANTE || s->tipo != SIM_TIPO_INT ||
+        s->dimensiones || s->bytes != 4 || s->almacen != SIM_ALMACEN_GLOBAL ||
+        s->desplazamiento < 0 || s->desplazamiento > 1023 || s->desplazamiento % 4)
+        return 0;
+    *r = (GbReferencia){GB_ENTERO, 3, (int)s->desplazamiento, 0};
+    return 1;
+}
+
+static int arranque_lineal(const Ast *ast, const SimTabla *tabla,
+                           const EfArranque *arranque, const RrTabla *destinos,
+                           FILE *f, FILE *diagnosticos)
+{
+    uint32_t main_pc = 0;
+    if (rr_buscar(destinos, "main", RR_FUNCION, &main_pc) != RR_OK)
+        return fallo(diagnosticos, "el arranque necesita una funcion main", NULL);
+    if (fputs("__arranque:\n", f) < 0 || !constante(f, 3, arranque->gp) ||
+        !constante(f, 2, arranque->sp)) return 0;
+    for (const AstNodo *c = ast->raiz->primer_hijo; c; c = c->siguiente) {
+        if (c->tipo != AST_CONSTANTE) continue;
+        /* hijos: identificador, tipo, valor */
+        const AstNodo *id = c->primer_hijo;
+        const AstNodo *valor = id && id->siguiente ? id->siguiente->siguiente : NULL;
+        GbReferencia r;
+        if (!valor || !referencia_global((void *)tabla, id, &r))
+            return fallo(diagnosticos, "constante global no soportada",
+                         id ? id->texto : NULL);
+        if (gb_generar(valor, referencia_global, (void *)tabla, f, diagnosticos) != 0 ||
+            fprintf(f, "guardap x3, x4, %d\n", r.desplazamiento) < 0)
+            return fallo(diagnosticos, "no se pudo inicializar la constante", id->texto);
+    }
+    return constante(f, 13, main_pc) &&
+           fputs("syer x1, x13, 0\n"
+                 "__arranque_fin:\n"
+                 "sye x0, __arranque_fin\n", f) >= 0;
+}
+
 /* Genera el lineal de todas las funciones con las direcciones de destinos. */
 static char *generar(const Ast *ast, const SimTabla *tabla,
-                     const RrTabla *destinos, FILE *diagnosticos)
+                     const EfArranque *arranque, const RrTabla *destinos,
+                     FILE *diagnosticos)
 {
     FILE *f = tmpfile();
     if (!f) return NULL;
-    int ok = 1;
+    int ok = !arranque || arranque_lineal(ast, tabla, arranque, destinos, f, diagnosticos);
     for (const AstNodo *fn = ast->raiz->primer_hijo; ok && fn; fn = fn->siguiente) {
         if (fn->tipo != AST_FUNCION) continue;
         size_t marco = marco_de(tabla, nombre(fn));
@@ -74,7 +137,7 @@ static char *generar(const Ast *ast, const SimTabla *tabla,
 }
 
 int ef_enlazar(const Ast *ast, const SimTabla *tabla, uint32_t inicio,
-               RrTabla *funciones, FILE *salida, FILE *diagnosticos,
+               const EfArranque *arranque, RrTabla *funciones, FILE *salida, FILE *diagnosticos,
                EfResumen *resumen)
 {
     if (!ast || !ast->raiz || !tabla || !tabla->global || !salida) {
@@ -103,7 +166,7 @@ int ef_enlazar(const Ast *ast, const SimTabla *tabla, uint32_t inicio,
             ok = fallo(diagnosticos, "las direcciones de funciones no convergen", NULL);
             break;
         }
-        char *lineal = generar(ast, tabla, &destinos, diagnosticos);
+        char *lineal = generar(ast, tabla, arranque, &destinos, diagnosticos);
         if (!lineal) { ok = 0; break; }
         RrTabla etiquetas;
         rr_inicializar(&etiquetas);
