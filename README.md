@@ -11,7 +11,7 @@ Windows aparecen bajo `/mnt/c/`. Sustituye la ruta del ejemplo por la tuya:
 
 ```bash
 sudo apt update
-sudo apt install build-essential flex bison
+sudo apt install build-essential flex bison uthash-dev
 cd "/mnt/c/ruta/al/repositorio"
 flex -o src/lexer_flex.c src/lexer.l
 bison -Wall -Werror -d -o Analisis_Sintactico/parser.c Analisis_Sintactico/gramatica.y
@@ -34,7 +34,7 @@ Abre una terminal, entra en la raíz del repositorio y compila:
 
 ```bash
 sudo apt update
-sudo apt install build-essential flex bison
+sudo apt install build-essential flex bison uthash-dev
 cd "/ruta/al/repositorio"
 make
 make test
@@ -131,3 +131,7 @@ make test-cli
 El alcance, la conexión con símbolos y las limitaciones están en
 [docs/generacion_basica.md](docs/generacion_basica.md).
 `make test` incluye las pruebas nuevas. `-s` sigue reservado hasta integrar el backend.
+
+## Documentación del proyecto
+La documentación general de todo el proyecto se puede encontrar acá
+[Documentación](https://github.com/Izaguirre1g/Proyecto-Parte-1-Compiladores-e-Interpretes-Definici-n-de-Sintaxis-de-Lenguaje/blob/371cc01ac19cb05b255697d965b58717666bdbf7/docs/latex/Documentacion.pdf)
