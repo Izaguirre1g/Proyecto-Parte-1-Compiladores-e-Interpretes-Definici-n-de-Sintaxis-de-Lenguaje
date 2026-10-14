@@ -1,0 +1,3010 @@
+./tests/test_parser
+
+--- Caso 1/132: bloque vacio ---
+Código de entrada:
+create_funk #declare_infinite_void# main() {
+
+}
+[OK] bloque vacio — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 2/132: tipos y literales ---
+Código de entrada:
+create_funk #declare_infinite_void# main() {
+n * declare_int : 1; t * declare_text : "café"; c * declare_char : $ñ$; b * declare_boolean : declare_true;
+}
+[OK] tipos y literales — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Declaracion @2:1
+        Identificador "n" @2:1
+        Tipo "declare_int" @2:5
+        Entero "1" @2:19
+      Declaracion @2:22
+        Identificador "t" @2:22
+        Tipo "declare_text" @2:26
+        Cadena "\"café\"" @2:41
+      Declaracion @2:49
+        Identificador "c" @2:49
+        Tipo "declare_char" @2:53
+        Caracter "$ñ$" @2:68
+      Declaracion @2:73
+        Identificador "b" @2:73
+        Tipo "declare_boolean" @2:77
+        Booleano "declare_true" @2:95
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 3/132: aritmetica y comparacion ---
+Código de entrada:
+create_funk #declare_infinite_void# main() {
+n * declare_int : neumann (2 gauss 3) pitagoras 4 euclides 2; b * declare_boolean : n =/= 0;
+}
+[OK] aritmetica y comparacion — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Declaracion @2:1
+        Identificador "n" @2:1
+        Tipo "declare_int" @2:5
+        Binario "euclides" @2:19
+          Binario "pitagoras" @2:19
+            Unario "neumann" @2:19
+              Binario "gauss" @2:28
+                Entero "2" @2:28
+                Entero "3" @2:36
+            Entero "4" @2:49
+          Entero "2" @2:60
+      Declaracion @2:63
+        Identificador "b" @2:63
+        Tipo "declare_boolean" @2:67
+        Binario "=/=" @2:85
+          Identificador "n" @2:85
+          Entero "0" @2:91
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 4/132: operadores de comparacion ---
+Código de entrada:
+create_funk #declare_infinite_void# main() {
+b * declare_boolean : 1 == 1; b : 1 < 2; b : 2 > 1; b : 1 <= 2; b : 2 >= 1;
+}
+[OK] operadores de comparacion — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Declaracion @2:1
+        Identificador "b" @2:1
+        Tipo "declare_boolean" @2:5
+        Binario "==" @2:23
+          Entero "1" @2:23
+          Entero "1" @2:28
+      Asignacion @2:31
+        Identificador "b" @2:31
+        Binario "<" @2:35
+          Entero "1" @2:35
+          Entero "2" @2:39
+      Asignacion @2:42
+        Identificador "b" @2:42
+        Binario ">" @2:46
+          Entero "2" @2:46
+          Entero "1" @2:50
+      Asignacion @2:53
+        Identificador "b" @2:53
+        Binario "<=" @2:57
+          Entero "1" @2:57
+          Entero "2" @2:62
+      Asignacion @2:65
+        Identificador "b" @2:65
+        Binario ">=" @2:69
+          Entero "2" @2:69
+          Entero "1" @2:74
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 5/132: anidamiento ---
+Código de entrada:
+create_funk #declare_infinite_void# main() {
+whether (n <= 1) { whale (i < n) { whether (i == 2) {} also { i : i gauss 1; } } stop; } also {}
+}
+[OK] anidamiento — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Si "whether" @2:1
+        Binario "<=" @2:10
+          Identificador "n" @2:10
+          Entero "1" @2:15
+        Bloque @2:18
+          Mientras @2:20
+            Binario "<" @2:27
+              Identificador "i" @2:27
+              Identificador "n" @2:31
+            Bloque @2:34
+              Si "whether" @2:36
+                Binario "==" @2:45
+                  Identificador "i" @2:45
+                  Entero "2" @2:50
+                Bloque @2:53
+                Bloque @2:61
+                  Asignacion @2:63
+                    Identificador "i" @2:63
+                    Binario "gauss" @2:67
+                      Identificador "i" @2:67
+                      Entero "1" @2:75
+        Bloque @2:95
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 6/132: varias funciones ---
+Código de entrada:
+create_funk #declare_infinite_void# auxiliar() {}
+create_funk #declare_infinite_void# main() {
+
+}
+[OK] varias funciones — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "auxiliar" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:46
+    Bloque @1:48
+  Funcion @2:1
+    Identificador "main" @2:37
+    Tipo "declare_infinite_void" @2:14
+    Parametros @2:42
+    Bloque @2:44
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 7/132: un parametro ---
+Código de entrada:
+create_funk #declare_infinite_void# procesar(n * declare_int) { n : n gauss 1; }
+create_funk #declare_infinite_void# main() {
+
+}
+[OK] un parametro — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "procesar" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:46
+      Parametro @1:46
+        Identificador "n" @1:46
+        Tipo "declare_int" @1:50
+    Bloque @1:63
+      Asignacion @1:65
+        Identificador "n" @1:65
+        Binario "gauss" @1:69
+          Identificador "n" @1:69
+          Entero "1" @1:77
+  Funcion @2:1
+    Identificador "main" @2:37
+    Tipo "declare_infinite_void" @2:14
+    Parametros @2:42
+    Bloque @2:44
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 8/132: varios parametros ---
+Código de entrada:
+create_funk #declare_infinite_void# procesar(n * declare_int, t * declare_text, c * declare_char, b * declare_boolean) { whether (b) { n : n gauss 1; } }
+create_funk #declare_infinite_void# main() {
+
+}
+[OK] varios parametros — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "procesar" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:46
+      Parametro @1:46
+        Identificador "n" @1:46
+        Tipo "declare_int" @1:50
+      Parametro @1:63
+        Identificador "t" @1:63
+        Tipo "declare_text" @1:67
+      Parametro @1:81
+        Identificador "c" @1:81
+        Tipo "declare_char" @1:85
+      Parametro @1:99
+        Identificador "b" @1:99
+        Tipo "declare_boolean" @1:103
+    Bloque @1:120
+      Si "whether" @1:122
+        Identificador "b" @1:131
+        Bloque @1:134
+          Asignacion @1:136
+            Identificador "n" @1:136
+            Binario "gauss" @1:140
+              Identificador "n" @1:140
+              Entero "1" @1:148
+  Funcion @2:1
+    Identificador "main" @2:37
+    Tipo "declare_infinite_void" @2:14
+    Parametros @2:42
+    Bloque @2:44
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 9/132: parametro sin tipo ---
+Código de entrada:
+create_funk #declare_int# f(a *) {}
+[OK] parametro sin tipo — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:32: error del parser: syntax error, unexpected RPAREN
+
+
+--- Caso 10/132: parametro sin nombre ---
+Código de entrada:
+create_funk #declare_int# f(* declare_int) {}
+[OK] parametro sin nombre — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:29: error del parser: syntax error, unexpected STAR, expecting IDENTIFIER or RPAREN
+
+
+--- Caso 11/132: parametro sin estrella ---
+Código de entrada:
+create_funk #declare_int# f(a declare_int) {}
+[OK] parametro sin estrella — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:31: error del parser: syntax error, unexpected DECLARE_INT, expecting STAR
+
+
+--- Caso 12/132: parametro void ---
+Código de entrada:
+create_funk #declare_int# f(a * declare_infinite_void) {}
+[OK] parametro void — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:33: error del parser: syntax error, unexpected DECLARE_INFINITE_VOID
+
+
+--- Caso 13/132: parametro inicializado ---
+Código de entrada:
+create_funk #declare_int# f(a * declare_int : 1) {}
+[OK] parametro inicializado — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:45: error del parser: syntax error, unexpected ASSIGN, expecting COMMA or LBRACKET or RPAREN
+
+
+--- Caso 14/132: coma inicial ---
+Código de entrada:
+create_funk #declare_int# f(,a * declare_int) {}
+[OK] coma inicial — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:29: error del parser: syntax error, unexpected COMMA, expecting IDENTIFIER or RPAREN
+
+
+--- Caso 15/132: coma final ---
+Código de entrada:
+create_funk #declare_int# f(a * declare_int,) {}
+[OK] coma final — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:45: error del parser: syntax error, unexpected RPAREN, expecting IDENTIFIER
+
+
+--- Caso 16/132: falta coma ---
+Código de entrada:
+create_funk #declare_int# f(a * declare_int b * declare_int) {}
+[OK] falta coma — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:45: error del parser: syntax error, unexpected IDENTIFIER, expecting COMMA or LBRACKET or RPAREN
+
+
+--- Caso 17/132: comentarios ---
+Código de entrada:
+create_funk #declare_infinite_void# main() {
+%% comentario
+%%// bloque //%%
+n * declare_int : 5;
+}
+[OK] comentarios — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Declaracion @4:1
+        Identificador "n" @4:1
+        Tipo "declare_int" @4:5
+        Entero "5" @4:19
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 18/132: falta punto y coma ---
+Código de entrada:
+create_funk #declare_infinite_void# main() {
+n * declare_int : 5
+}
+[OK] falta punto y coma — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:3:1: error del parser: syntax error, unexpected RBRACE
+
+
+--- Caso 19/132: falta stop ---
+Código de entrada:
+create_funk #declare_infinite_void# main() {
+whale (n > 0) {}
+}
+[OK] falta stop — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:3:1: error del parser: syntax error, unexpected RBRACE, expecting STOP
+
+
+--- Caso 20/132: also suelto ---
+Código de entrada:
+create_funk #declare_infinite_void# main() {
+also {}
+}
+[OK] also suelto — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:2:1: error del parser: syntax error, unexpected ALSO
+
+
+--- Caso 21/132: comparacion encadenada ---
+Código de entrada:
+create_funk #declare_infinite_void# main() {
+b * declare_boolean : 1 < 2 < 3;
+}
+[OK] comparacion encadenada — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:2:29: error del parser: syntax error, unexpected LESS
+
+
+--- Caso 22/132: falta llave ---
+Código de entrada:
+create_funk #declare_infinite_void# main() {
+[OK] falta llave — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:45: error del parser: syntax error, unexpected end of file
+
+
+--- Caso 23/132: vacio ---
+Código de entrada:
+(archivo vacío)
+[OK] vacio — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:1: error del parser: syntax error, unexpected end of file, expecting BRING or DECLARE_CONST or CREATE_FUNK
+
+
+--- Caso 24/132: sentencia fuera de funcion ---
+Código de entrada:
+n * declare_int : 5;
+[OK] sentencia fuera de funcion — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:1: error del parser: syntax error, unexpected IDENTIFIER, expecting BRING or DECLARE_CONST or CREATE_FUNK
+
+
+--- Caso 25/132: retorno con valor ---
+Código de entrada:
+create_funk #declare_int# uno() { give 1; }
+[OK] retorno con valor — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "uno" @1:27
+    Tipo "declare_int" @1:14
+    Parametros @1:31
+    Bloque @1:33
+      Retorno @1:35
+        Entero "1" @1:40
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 26/132: retorno sin valor ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { give; }
+[OK] retorno sin valor — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Retorno @1:46
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 27/132: retorno de expresion ---
+Código de entrada:
+create_funk #declare_int# sumar(a * declare_int, b * declare_int) { give a gauss b; }
+[OK] retorno de expresion — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "sumar" @1:27
+    Tipo "declare_int" @1:14
+    Parametros @1:33
+      Parametro @1:33
+        Identificador "a" @1:33
+        Tipo "declare_int" @1:37
+      Parametro @1:50
+        Identificador "b" @1:50
+        Tipo "declare_int" @1:54
+    Bloque @1:67
+      Retorno @1:69
+        Binario "gauss" @1:74
+          Identificador "a" @1:74
+          Identificador "b" @1:82
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 28/132: retornos en ramas ---
+Código de entrada:
+create_funk #declare_int# f(n * declare_int) { whether (n <= 1) { give 1; } also { give n pitagoras 2; } }
+[OK] retornos en ramas — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "f" @1:27
+    Tipo "declare_int" @1:14
+    Parametros @1:29
+      Parametro @1:29
+        Identificador "n" @1:29
+        Tipo "declare_int" @1:33
+    Bloque @1:46
+      Si "whether" @1:48
+        Binario "<=" @1:57
+          Identificador "n" @1:57
+          Entero "1" @1:62
+        Bloque @1:65
+          Retorno @1:67
+            Entero "1" @1:72
+        Bloque @1:82
+          Retorno @1:84
+            Binario "pitagoras" @1:89
+              Identificador "n" @1:89
+              Entero "2" @1:101
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 29/132: retorno dentro de ciclo ---
+Código de entrada:
+create_funk #declare_int# f(n * declare_int) { whale (n > 0) { give n; } stop; give 0; }
+[OK] retorno dentro de ciclo — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "f" @1:27
+    Tipo "declare_int" @1:14
+    Parametros @1:29
+      Parametro @1:29
+        Identificador "n" @1:29
+        Tipo "declare_int" @1:33
+    Bloque @1:46
+      Mientras @1:48
+        Binario ">" @1:55
+          Identificador "n" @1:55
+          Entero "0" @1:59
+        Bloque @1:62
+          Retorno @1:64
+            Identificador "n" @1:69
+      Retorno @1:80
+        Entero "0" @1:85
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 30/132: retorno sin punto y coma ---
+Código de entrada:
+create_funk #declare_int# f() { give 1 }
+[OK] retorno sin punto y coma — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:40: error del parser: syntax error, unexpected RBRACE
+
+
+--- Caso 31/132: retorno vacio sin punto y coma ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { give }
+[OK] retorno vacio sin punto y coma — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:51: error del parser: syntax error, unexpected RBRACE
+
+
+--- Caso 32/132: retorno con expresion incompleta ---
+Código de entrada:
+create_funk #declare_int# f() { give 1 gauss; }
+[OK] retorno con expresion incompleta — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:45: error del parser: syntax error, unexpected SEMICOLON
+
+
+--- Caso 33/132: retorno fuera de funcion ---
+Código de entrada:
+give 1;
+[OK] retorno fuera de funcion — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:1: error del parser: syntax error, unexpected GIVE, expecting BRING or DECLARE_CONST or CREATE_FUNK
+
+
+--- Caso 34/132: retorno no es expresion ---
+Código de entrada:
+create_funk #declare_int# f() { n * declare_int : give 1; }
+[OK] retorno no es expresion — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:51: error del parser: syntax error, unexpected GIVE
+
+
+--- Caso 35/132: llamada sin argumentos ---
+Código de entrada:
+create_funk #declare_infinite_void# saludar() { give; } create_funk #declare_infinite_void# main() { saludar(); }
+[OK] llamada sin argumentos — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "saludar" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:45
+    Bloque @1:47
+      Retorno @1:49
+  Funcion @1:57
+    Identificador "main" @1:93
+    Tipo "declare_infinite_void" @1:70
+    Parametros @1:98
+    Bloque @1:100
+      Llamada @1:102
+        Identificador "saludar" @1:102
+        Argumentos @1:110
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 36/132: llamada con argumentos ---
+Código de entrada:
+create_funk #declare_int# sumar(a * declare_int, b * declare_int) { give a gauss b; } create_funk #declare_infinite_void# main() { resultado * declare_int : sumar(2, 3); resultado : sumar(resultado, 1); }
+[OK] llamada con argumentos — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "sumar" @1:27
+    Tipo "declare_int" @1:14
+    Parametros @1:33
+      Parametro @1:33
+        Identificador "a" @1:33
+        Tipo "declare_int" @1:37
+      Parametro @1:50
+        Identificador "b" @1:50
+        Tipo "declare_int" @1:54
+    Bloque @1:67
+      Retorno @1:69
+        Binario "gauss" @1:74
+          Identificador "a" @1:74
+          Identificador "b" @1:82
+  Funcion @1:87
+    Identificador "main" @1:123
+    Tipo "declare_infinite_void" @1:100
+    Parametros @1:128
+    Bloque @1:130
+      Declaracion @1:132
+        Identificador "resultado" @1:132
+        Tipo "declare_int" @1:144
+        Llamada @1:158
+          Identificador "sumar" @1:158
+          Argumentos @1:164
+            Entero "2" @1:164
+            Entero "3" @1:167
+      Asignacion @1:171
+        Identificador "resultado" @1:171
+        Llamada @1:183
+          Identificador "sumar" @1:183
+          Argumentos @1:189
+            Identificador "resultado" @1:189
+            Entero "1" @1:200
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 37/132: llamadas anidadas y aritmetica ---
+Código de entrada:
+create_funk #declare_int# f(a * declare_int) { give a; } create_funk #declare_infinite_void# main() { n * declare_int : f(f(2 gauss 3)) pitagoras f(4); }
+[OK] llamadas anidadas y aritmetica — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "f" @1:27
+    Tipo "declare_int" @1:14
+    Parametros @1:29
+      Parametro @1:29
+        Identificador "a" @1:29
+        Tipo "declare_int" @1:33
+    Bloque @1:46
+      Retorno @1:48
+        Identificador "a" @1:53
+  Funcion @1:58
+    Identificador "main" @1:94
+    Tipo "declare_infinite_void" @1:71
+    Parametros @1:99
+    Bloque @1:101
+      Declaracion @1:103
+        Identificador "n" @1:103
+        Tipo "declare_int" @1:107
+        Binario "pitagoras" @1:121
+          Llamada @1:121
+            Identificador "f" @1:121
+            Argumentos @1:123
+              Llamada @1:123
+                Identificador "f" @1:123
+                Argumentos @1:125
+                  Binario "gauss" @1:125
+                    Entero "2" @1:125
+                    Entero "3" @1:133
+          Llamada @1:147
+            Identificador "f" @1:147
+            Argumentos @1:149
+              Entero "4" @1:149
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 38/132: llamadas en retorno y condiciones ---
+Código de entrada:
+create_funk #declare_int# f(n * declare_int) { whether (f(n) > 0) { give f(n neumann 1); } whale (f(n) <= 2) { f(n); } stop; give 0; }
+[OK] llamadas en retorno y condiciones — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "f" @1:27
+    Tipo "declare_int" @1:14
+    Parametros @1:29
+      Parametro @1:29
+        Identificador "n" @1:29
+        Tipo "declare_int" @1:33
+    Bloque @1:46
+      Si "whether" @1:48
+        Binario ">" @1:57
+          Llamada @1:57
+            Identificador "f" @1:57
+            Argumentos @1:59
+              Identificador "n" @1:59
+          Entero "0" @1:64
+        Bloque @1:67
+          Retorno @1:69
+            Llamada @1:74
+              Identificador "f" @1:74
+              Argumentos @1:76
+                Binario "neumann" @1:76
+                  Identificador "n" @1:76
+                  Entero "1" @1:86
+      Mientras @1:92
+        Binario "<=" @1:99
+          Llamada @1:99
+            Identificador "f" @1:99
+            Argumentos @1:101
+              Identificador "n" @1:101
+          Entero "2" @1:107
+        Bloque @1:110
+          Llamada @1:112
+            Identificador "f" @1:112
+            Argumentos @1:114
+              Identificador "n" @1:114
+      Retorno @1:126
+        Entero "0" @1:131
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 39/132: argumentos de varios tipos ---
+Código de entrada:
+create_funk #declare_infinite_void# f(n * declare_int, t * declare_text, c * declare_char, b * declare_boolean) {} create_funk #declare_infinite_void# main() { f(1, "hola", $ñ$, 2 < 3); }
+[OK] argumentos de varios tipos — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "f" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:39
+      Parametro @1:39
+        Identificador "n" @1:39
+        Tipo "declare_int" @1:43
+      Parametro @1:56
+        Identificador "t" @1:56
+        Tipo "declare_text" @1:60
+      Parametro @1:74
+        Identificador "c" @1:74
+        Tipo "declare_char" @1:78
+      Parametro @1:92
+        Identificador "b" @1:92
+        Tipo "declare_boolean" @1:96
+    Bloque @1:113
+  Funcion @1:116
+    Identificador "main" @1:152
+    Tipo "declare_infinite_void" @1:129
+    Parametros @1:157
+    Bloque @1:159
+      Llamada @1:161
+        Identificador "f" @1:161
+        Argumentos @1:163
+          Entero "1" @1:163
+          Cadena "\"hola\"" @1:166
+          Caracter "$ñ$" @1:174
+          Binario "<" @1:179
+            Entero "2" @1:179
+            Entero "3" @1:183
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 40/132: llamada coma inicial ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { f(,1); }
+[OK] llamada coma inicial — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:48: error del parser: syntax error, unexpected COMMA
+
+
+--- Caso 41/132: llamada coma final ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { f(1,); }
+[OK] llamada coma final — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:50: error del parser: syntax error, unexpected RPAREN
+
+
+--- Caso 42/132: llamada argumento ausente ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { f(1,,2); }
+[OK] llamada argumento ausente — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:50: error del parser: syntax error, unexpected COMMA
+
+
+--- Caso 43/132: llamada falta coma ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { f(1 2); }
+[OK] llamada falta coma — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:50: error del parser: syntax error, unexpected INTEGER
+
+
+--- Caso 44/132: llamada falta parentesis ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { f(1; }
+[OK] llamada falta parentesis — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:49: error del parser: syntax error, unexpected SEMICOLON
+
+
+--- Caso 45/132: llamada falta punto y coma ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { f() }
+[OK] llamada falta punto y coma — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:50: error del parser: syntax error, unexpected RBRACE, expecting SEMICOLON
+
+
+--- Caso 46/132: llamada fuera de funcion ---
+Código de entrada:
+f();
+[OK] llamada fuera de funcion — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:1: error del parser: syntax error, unexpected IDENTIFIER, expecting BRING or DECLARE_CONST or CREATE_FUNK
+
+
+--- Caso 47/132: argumento expresion incompleta ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { f(1 gauss); }
+[OK] argumento expresion incompleta — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:55: error del parser: syntax error, unexpected RPAREN
+
+
+--- Caso 48/132: argumento no es parametro ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { f(a * declare_int); }
+[OK] argumento no es parametro — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:50: error del parser: syntax error, unexpected STAR
+
+
+--- Caso 49/132: alif sin also ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { whether (n < 0) {} alif (n == 0) {} }
+[OK] alif sin also — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Si "whether" @1:46
+        Binario "<" @1:55
+          Identificador "n" @1:55
+          Entero "0" @1:59
+        Bloque @1:62
+        Si "alif" @1:65
+          Binario "==" @1:71
+            Identificador "n" @1:71
+            Entero "0" @1:76
+          Bloque @1:79
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 50/132: alif con also ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { whether (n < 0) { give 1; } alif (n == 0) { give 2; } also { give 3; } }
+[OK] alif con also — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Si "whether" @1:46
+        Binario "<" @1:55
+          Identificador "n" @1:55
+          Entero "0" @1:59
+        Bloque @1:62
+          Retorno @1:64
+            Entero "1" @1:69
+        Si "alif" @1:74
+          Binario "==" @1:80
+            Identificador "n" @1:80
+            Entero "0" @1:85
+          Bloque @1:88
+            Retorno @1:90
+              Entero "2" @1:95
+          Bloque @1:105
+            Retorno @1:107
+              Entero "3" @1:112
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 51/132: varios alif ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { whether (n < 0) {} alif (n == 0) {} alif (n < 10) {} alif (n < 20) {} }
+[OK] varios alif — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Si "whether" @1:46
+        Binario "<" @1:55
+          Identificador "n" @1:55
+          Entero "0" @1:59
+        Bloque @1:62
+        Si "alif" @1:65
+          Binario "==" @1:71
+            Identificador "n" @1:71
+            Entero "0" @1:76
+          Bloque @1:79
+          Si "alif" @1:82
+            Binario "<" @1:88
+              Identificador "n" @1:88
+              Entero "10" @1:92
+            Bloque @1:96
+            Si "alif" @1:99
+              Binario "<" @1:105
+                Identificador "n" @1:105
+                Entero "20" @1:109
+              Bloque @1:113
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 52/132: varios alif con also ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { whether (n < 0) {} alif (n == 0) {} alif (n < 10) {} also {} }
+[OK] varios alif con also — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Si "whether" @1:46
+        Binario "<" @1:55
+          Identificador "n" @1:55
+          Entero "0" @1:59
+        Bloque @1:62
+        Si "alif" @1:65
+          Binario "==" @1:71
+            Identificador "n" @1:71
+            Entero "0" @1:76
+          Bloque @1:79
+          Si "alif" @1:82
+            Binario "<" @1:88
+              Identificador "n" @1:88
+              Entero "10" @1:92
+            Bloque @1:96
+            Bloque @1:104
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 53/132: alif anidado ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { whether (n < 0) { whether (m < 0) {} alif (m == 0) {} also {} } alif (n == 0) { whether (m > 0) {} alif (m == 0) {} } also {} }
+[OK] alif anidado — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Si "whether" @1:46
+        Binario "<" @1:55
+          Identificador "n" @1:55
+          Entero "0" @1:59
+        Bloque @1:62
+          Si "whether" @1:64
+            Binario "<" @1:73
+              Identificador "m" @1:73
+              Entero "0" @1:77
+            Bloque @1:80
+            Si "alif" @1:83
+              Binario "==" @1:89
+                Identificador "m" @1:89
+                Entero "0" @1:94
+              Bloque @1:97
+              Bloque @1:105
+        Si "alif" @1:110
+          Binario "==" @1:116
+            Identificador "n" @1:116
+            Entero "0" @1:121
+          Bloque @1:124
+            Si "whether" @1:126
+              Binario ">" @1:135
+                Identificador "m" @1:135
+                Entero "0" @1:139
+              Bloque @1:142
+              Si "alif" @1:145
+                Binario "==" @1:151
+                  Identificador "m" @1:151
+                  Entero "0" @1:156
+                Bloque @1:159
+          Bloque @1:169
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 54/132: alif dentro de ciclo ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { whale (n > 0) { whether (n == 1) {} alif (n == 2) { n : n neumann 1; } also {} } stop; }
+[OK] alif dentro de ciclo — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Mientras @1:46
+        Binario ">" @1:53
+          Identificador "n" @1:53
+          Entero "0" @1:57
+        Bloque @1:60
+          Si "whether" @1:62
+            Binario "==" @1:71
+              Identificador "n" @1:71
+              Entero "1" @1:76
+            Bloque @1:79
+            Si "alif" @1:82
+              Binario "==" @1:88
+                Identificador "n" @1:88
+                Entero "2" @1:93
+              Bloque @1:96
+                Asignacion @1:98
+                  Identificador "n" @1:98
+                  Binario "neumann" @1:102
+                    Identificador "n" @1:102
+                    Entero "1" @1:112
+              Bloque @1:122
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 55/132: alif con llamada y aritmetica ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { whether (f(n) < 0) {} alif (f(n gauss 1) == 0) { f(n); } also {} }
+[OK] alif con llamada y aritmetica — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Si "whether" @1:46
+        Binario "<" @1:55
+          Llamada @1:55
+            Identificador "f" @1:55
+            Argumentos @1:57
+              Identificador "n" @1:57
+          Entero "0" @1:62
+        Bloque @1:65
+        Si "alif" @1:68
+          Binario "==" @1:74
+            Llamada @1:74
+              Identificador "f" @1:74
+              Argumentos @1:76
+                Binario "gauss" @1:76
+                  Identificador "n" @1:76
+                  Entero "1" @1:84
+            Entero "0" @1:90
+          Bloque @1:93
+            Llamada @1:95
+              Identificador "f" @1:95
+              Argumentos @1:97
+                Identificador "n" @1:97
+          Bloque @1:108
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 56/132: alif suelto ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { alif (n == 0) {} }
+[OK] alif suelto — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:46: error del parser: syntax error, unexpected ALIF
+
+
+--- Caso 57/132: alif despues de also ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { whether (n < 0) {} also {} alif (n == 0) {} }
+[OK] alif despues de also — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:73: error del parser: syntax error, unexpected ALIF
+
+
+--- Caso 58/132: also duplicado ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { whether (n < 0) {} alif (n == 0) {} also {} also {} }
+[OK] also duplicado — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:90: error del parser: syntax error, unexpected ALSO
+
+
+--- Caso 59/132: alif sin condicion ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { whether (n < 0) {} alif () {} }
+[OK] alif sin condicion — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:71: error del parser: syntax error, unexpected RPAREN
+
+
+--- Caso 60/132: alif sin parentesis ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { whether (n < 0) {} alif n == 0 {} }
+[OK] alif sin parentesis — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:70: error del parser: syntax error, unexpected IDENTIFIER, expecting LPAREN
+
+
+--- Caso 61/132: alif sin bloque ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { whether (n < 0) {} alif (n == 0) give; }
+[OK] alif sin bloque — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:79: error del parser: syntax error, unexpected GIVE, expecting LBRACE
+
+
+--- Caso 62/132: alif separado por sentencia ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { whether (n < 0) {} n : 1; alif (n == 0) {} }
+[OK] alif separado por sentencia — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:72: error del parser: syntax error, unexpected ALIF
+
+
+--- Caso 63/132: alif con punto y coma previo ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { whether (n < 0) {}; alif (n == 0) {} }
+[OK] alif con punto y coma previo — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:64: error del parser: syntax error, unexpected SEMICOLON
+
+
+--- Caso 64/132: declaracion sin inicializar ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { n * declare_int; n : 5; }
+[OK] declaracion sin inicializar — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Declaracion @1:46
+        Identificador "n" @1:46
+        Tipo "declare_int" @1:50
+      Asignacion @1:63
+        Identificador "n" @1:63
+        Entero "5" @1:67
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 65/132: declaraciones multiples ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { a * declare_int, b * declare_int : 2; }
+[OK] declaraciones multiples — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Declaraciones @1:46
+        Declaracion @1:46
+          Identificador "a" @1:46
+          Tipo "declare_int" @1:50
+        Declaracion @1:63
+          Identificador "b" @1:63
+          Tipo "declare_int" @1:67
+          Entero "2" @1:81
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 66/132: tipos sin inicializar ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { b * declare_boolean; t * declare_text; c * declare_char; }
+[OK] tipos sin inicializar — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Declaracion @1:46
+        Identificador "b" @1:46
+        Tipo "declare_boolean" @1:50
+      Declaracion @1:67
+        Identificador "t" @1:67
+        Tipo "declare_text" @1:71
+      Declaracion @1:85
+        Identificador "c" @1:85
+        Tipo "declare_char" @1:89
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 67/132: inicializacion incompleta ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { n * declare_int : ; }
+[OK] inicializacion incompleta — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:64: error del parser: syntax error, unexpected SEMICOLON
+
+
+--- Caso 68/132: declaracion sin punto y coma ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { n * declare_int }
+[OK] declaracion sin punto y coma — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:62: error del parser: syntax error, unexpected RBRACE, expecting ASSIGN or SEMICOLON or COMMA or LBRACKET
+
+
+--- Caso 69/132: declaracion coma final ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { a * declare_int,; }
+[OK] declaracion coma final — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:62: error del parser: syntax error, unexpected SEMICOLON, expecting IDENTIFIER
+
+
+--- Caso 70/132: logica completa ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { b * declare_boolean : ~declare_false && declare_true || declare_false ^ declare_true; }
+[OK] logica completa — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Declaracion @1:46
+        Identificador "b" @1:46
+        Tipo "declare_boolean" @1:50
+        Binario "||" @1:68
+          Binario "&&" @1:68
+            Unario "~" @1:68
+              Booleano "declare_false" @1:69
+            Booleano "declare_true" @1:86
+          Binario "^" @1:102
+            Booleano "declare_false" @1:102
+            Booleano "declare_true" @1:118
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 71/132: condicion compuesta ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { whether (edad >= 18 && edad < 65) {} alif (~(edad == 0) || edad > 90) {} }
+[OK] condicion compuesta — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Si "whether" @1:46
+        Binario "&&" @1:55
+          Binario ">=" @1:55
+            Identificador "edad" @1:55
+            Entero "18" @1:63
+          Binario "<" @1:69
+            Identificador "edad" @1:69
+            Entero "65" @1:76
+        Bloque @1:80
+        Si "alif" @1:83
+          Binario "||" @1:89
+            Unario "~" @1:89
+              Binario "==" @1:91
+                Identificador "edad" @1:91
+                Entero "0" @1:99
+            Binario ">" @1:105
+              Identificador "edad" @1:105
+              Entero "90" @1:112
+          Bloque @1:116
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 72/132: residuo y potencia ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { n * declare_int : 2 descartes 3 descartes 2 euler 5; n : neumann 2 descartes 2; }
+[OK] residuo y potencia — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Declaracion @1:46
+        Identificador "n" @1:46
+        Tipo "declare_int" @1:50
+        Binario "euler" @1:64
+          Binario "descartes" @1:64
+            Entero "2" @1:64
+            Binario "descartes" @1:76
+              Entero "3" @1:76
+              Entero "2" @1:88
+          Entero "5" @1:96
+      Asignacion @1:99
+        Identificador "n" @1:99
+        Unario "neumann" @1:103
+          Binario "descartes" @1:111
+            Entero "2" @1:111
+            Entero "2" @1:123
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 73/132: and sin operando ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { b * declare_boolean : declare_true &&; }
+[OK] and sin operando — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:83: error del parser: syntax error, unexpected SEMICOLON
+
+
+--- Caso 74/132: not sin operando ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { b * declare_boolean : ~; }
+[OK] not sin operando — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:69: error del parser: syntax error, unexpected SEMICOLON
+
+
+--- Caso 75/132: potencia sin operando ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { n * declare_int : 2 descartes; }
+[OK] potencia sin operando — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:75: error del parser: syntax error, unexpected SEMICOLON
+
+
+--- Caso 76/132: cycle paso por defecto ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { cycle i let 0 until 5 {} endgame; }
+[OK] cycle paso por defecto — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Recorrido @1:46
+        Identificador "i" @1:52
+        Entero "0" @1:58
+        Entero "5" @1:66
+        Entero "1" @1:67
+        Bloque @1:68
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 77/132: cycle paso explicito ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { cycle i let 0 until 5 step 2 { n : i; } endgame; }
+[OK] cycle paso explicito — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Recorrido @1:46
+        Identificador "i" @1:52
+        Entero "0" @1:58
+        Entero "5" @1:66
+        Entero "2" @1:73
+        Bloque @1:75
+          Asignacion @1:77
+            Identificador "n" @1:77
+            Identificador "i" @1:81
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 78/132: cycle descendente ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { cycle i let 5 until 0 step neumann 1 {} endgame; }
+[OK] cycle descendente — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Recorrido @1:46
+        Identificador "i" @1:52
+        Entero "5" @1:58
+        Entero "0" @1:66
+        Unario "neumann" @1:73
+          Entero "1" @1:81
+        Bloque @1:83
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 79/132: cycle con expresiones ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { cycle i let f(0) until limite gauss 1 step paso {} endgame; }
+[OK] cycle con expresiones — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Recorrido @1:46
+        Identificador "i" @1:52
+        Llamada @1:58
+          Identificador "f" @1:58
+          Argumentos @1:60
+            Entero "0" @1:60
+        Binario "gauss" @1:69
+          Identificador "limite" @1:69
+          Entero "1" @1:82
+        Identificador "paso" @1:89
+        Bloque @1:94
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 80/132: cycle anidado ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { cycle i let 0 until 2 { cycle j let 0 until 3 {} endgame; } endgame; }
+[OK] cycle anidado — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Recorrido @1:46
+        Identificador "i" @1:52
+        Entero "0" @1:58
+        Entero "2" @1:66
+        Entero "1" @1:67
+        Bloque @1:68
+          Recorrido @1:70
+            Identificador "j" @1:76
+            Entero "0" @1:82
+            Entero "3" @1:90
+            Entero "1" @1:91
+            Bloque @1:92
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 81/132: cycle con parentesis rechazado ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { cycle(i let 0 until 5) {} endgame; }
+[OK] cycle con parentesis rechazado — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:51: error del parser: syntax error, unexpected LPAREN, expecting IDENTIFIER
+
+
+--- Caso 82/132: cycle formato anterior rechazado ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { cycle(let i:0; until 5) {} endgame; }
+[OK] cycle formato anterior rechazado — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:51: error del parser: syntax error, unexpected LPAREN, expecting IDENTIFIER
+
+
+--- Caso 83/132: cycle sin endgame ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { cycle i let 0 until 5 {} }
+[OK] cycle sin endgame — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:71: error del parser: syntax error, unexpected RBRACE, expecting ENDGAME
+
+
+--- Caso 84/132: cycle sin punto y coma ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { cycle i let 0 until 5 {} endgame }
+[OK] cycle sin punto y coma — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:79: error del parser: syntax error, unexpected RBRACE, expecting SEMICOLON
+
+
+--- Caso 85/132: cycle step sin valor ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { cycle i let 0 until 5 step {} endgame; }
+[OK] cycle step sin valor — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:73: error del parser: syntax error, unexpected LBRACE
+
+
+--- Caso 86/132: arreglo sin inicializar ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { a * declare_int[5]; a[0] : 2; n * declare_int : a[0]; }
+[OK] arreglo sin inicializar — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Declaracion @1:46
+        Identificador "a" @1:46
+        TipoArreglo @1:50
+          Tipo "declare_int" @1:50
+          Dimensiones @1:61
+            Dimension @1:61
+              Entero "5" @1:62
+      Asignacion @1:66
+        Indice @1:66
+          Identificador "a" @1:66
+          Entero "0" @1:68
+        Entero "2" @1:73
+      Declaracion @1:76
+        Identificador "n" @1:76
+        Tipo "declare_int" @1:80
+        Indice @1:94
+          Identificador "a" @1:94
+          Entero "0" @1:96
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 87/132: matriz inicializada ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { a * declare_int[2][3] : [[1,2,3],[4,5,6]]; a[1][2] : a[0][0] gauss 1; }
+[OK] matriz inicializada — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Declaracion @1:46
+        Identificador "a" @1:46
+        TipoArreglo @1:50
+          Tipo "declare_int" @1:50
+          Dimensiones @1:61
+            Dimension @1:61
+              Entero "2" @1:62
+            Dimension @1:64
+              Entero "3" @1:65
+        LiteralColeccion @1:70
+          LiteralColeccion @1:71
+            Entero "1" @1:72
+            Entero "2" @1:74
+            Entero "3" @1:76
+          LiteralColeccion @1:79
+            Entero "4" @1:80
+            Entero "5" @1:82
+            Entero "6" @1:84
+      Asignacion @1:89
+        Indice @1:89
+          Indice @1:89
+            Identificador "a" @1:89
+            Entero "1" @1:91
+          Entero "2" @1:94
+        Binario "gauss" @1:99
+          Indice @1:99
+            Indice @1:99
+              Identificador "a" @1:99
+              Entero "0" @1:101
+            Entero "0" @1:104
+          Entero "1" @1:113
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 88/132: dimensiones dinamicas ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { a * declare_int[filas][columnas gauss 1]; }
+[OK] dimensiones dinamicas — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Declaracion @1:46
+        Identificador "a" @1:46
+        TipoArreglo @1:50
+          Tipo "declare_int" @1:50
+          Dimensiones @1:61
+            Dimension @1:61
+              Identificador "filas" @1:62
+            Dimension @1:68
+              Binario "gauss" @1:69
+                Identificador "columnas" @1:69
+                Entero "1" @1:84
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 89/132: multiples matrices ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { a * declare_int[1][1] : [[1]], b * declare_int[1][1] : [[2]]; }
+[OK] multiples matrices — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Declaraciones @1:46
+        Declaracion @1:46
+          Identificador "a" @1:46
+          TipoArreglo @1:50
+            Tipo "declare_int" @1:50
+            Dimensiones @1:61
+              Dimension @1:61
+                Entero "1" @1:62
+              Dimension @1:64
+                Entero "1" @1:65
+          LiteralColeccion @1:70
+            LiteralColeccion @1:71
+              Entero "1" @1:72
+        Declaracion @1:77
+          Identificador "b" @1:77
+          TipoArreglo @1:81
+            Tipo "declare_int" @1:81
+            Dimensiones @1:92
+              Dimension @1:92
+                Entero "1" @1:93
+              Dimension @1:95
+                Entero "1" @1:96
+          LiteralColeccion @1:101
+            LiteralColeccion @1:102
+              Entero "2" @1:103
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 90/132: parametro arreglo ---
+Código de entrada:
+create_funk #declare_int# f(a * declare_int[]) { give a[0]; }
+[OK] parametro arreglo — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "f" @1:27
+    Tipo "declare_int" @1:14
+    Parametros @1:29
+      Parametro @1:29
+        Identificador "a" @1:29
+        TipoArreglo @1:33
+          Tipo "declare_int" @1:33
+          Dimensiones @1:44
+            Dimension @1:44
+    Bloque @1:48
+      Retorno @1:50
+        Indice @1:55
+          Identificador "a" @1:55
+          Entero "0" @1:57
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 91/132: parametro matriz ---
+Código de entrada:
+create_funk #declare_int# f(a * declare_int[filas][cols], b * declare_int[][]) { give a[1][2] gauss b[0][0]; }
+[OK] parametro matriz — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "f" @1:27
+    Tipo "declare_int" @1:14
+    Parametros @1:29
+      Parametro @1:29
+        Identificador "a" @1:29
+        TipoArreglo @1:33
+          Tipo "declare_int" @1:33
+          Dimensiones @1:44
+            Dimension @1:44
+              Identificador "filas" @1:45
+            Dimension @1:51
+              Identificador "cols" @1:52
+      Parametro @1:59
+        Identificador "b" @1:59
+        TipoArreglo @1:63
+          Tipo "declare_int" @1:63
+          Dimensiones @1:74
+            Dimension @1:74
+            Dimension @1:76
+    Bloque @1:80
+      Retorno @1:82
+        Binario "gauss" @1:87
+          Indice @1:87
+            Indice @1:87
+              Identificador "a" @1:87
+              Entero "1" @1:89
+            Entero "2" @1:92
+          Indice @1:101
+            Indice @1:101
+              Identificador "b" @1:101
+              Entero "0" @1:103
+            Entero "0" @1:106
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 92/132: parametro lista ---
+Código de entrada:
+create_funk #declare_int# f(a * declare_list declare_int) { give size(a); }
+[OK] parametro lista — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "f" @1:27
+    Tipo "declare_int" @1:14
+    Parametros @1:29
+      Parametro @1:29
+        Identificador "a" @1:29
+        TipoLista @1:33
+          Tipo "declare_int" @1:46
+    Bloque @1:59
+      Retorno @1:61
+        Tamano @1:66
+          Identificador "a" @1:71
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 93/132: dimension vacia en variable ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { a * declare_int[]; }
+[OK] dimension vacia en variable — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:62: error del parser: syntax error, unexpected RBRACKET
+
+
+--- Caso 94/132: indice vacio ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { a[] : 1; }
+[OK] indice vacio — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:48: error del parser: syntax error, unexpected RBRACKET
+
+
+--- Caso 95/132: matriz falta corchete ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { a * declare_int[2][3; }
+[OK] matriz falta corchete — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:66: error del parser: syntax error, unexpected SEMICOLON
+
+
+--- Caso 96/132: literal coma final ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { a * declare_int[2] : [1,]; }
+[OK] literal coma final — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:70: error del parser: syntax error, unexpected RBRACKET
+
+
+--- Caso 97/132: literal falta separador ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { a * declare_int[2] : [1 2]; }
+[OK] literal falta separador — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:70: error del parser: syntax error, unexpected INTEGER
+
+
+--- Caso 98/132: literal no asignable ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { [1,2] : 3; }
+[OK] literal no asignable — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:46: error del parser: syntax error, unexpected LBRACKET
+
+
+--- Caso 99/132: listas y operaciones ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { declare_list a * declare_int : [1,2], b * declare_int : []; add(a,3); remove(a,0); n * declare_int : size(a); }
+[OK] listas y operaciones — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Declaraciones @1:46
+        Lista @1:59
+          Identificador "a" @1:59
+          Tipo "declare_int" @1:63
+          LiteralColeccion @1:77
+            Entero "1" @1:78
+            Entero "2" @1:80
+        Lista @1:84
+          Identificador "b" @1:84
+          Tipo "declare_int" @1:88
+          LiteralColeccion @1:102
+      Agregar @1:106
+        Identificador "a" @1:110
+        Entero "3" @1:112
+      Eliminar @1:116
+        Identificador "a" @1:123
+        Entero "0" @1:125
+      Declaracion @1:129
+        Identificador "n" @1:129
+        Tipo "declare_int" @1:133
+        Tamano @1:147
+          Identificador "a" @1:152
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 100/132: lista sin inicializador ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { declare_list a * declare_text; }
+[OK] lista sin inicializador — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Lista @1:46
+        Identificador "a" @1:59
+        Tipo "declare_text" @1:63
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 101/132: lista y recorrido exclusivo ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { declare_list a * declare_int : [1,2]; cycle i let 0 until size(a) { a[i] : a[i] gauss 1; } endgame; }
+[OK] lista y recorrido exclusivo — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Lista @1:46
+        Identificador "a" @1:59
+        Tipo "declare_int" @1:63
+        LiteralColeccion @1:77
+          Entero "1" @1:78
+          Entero "2" @1:80
+      Recorrido @1:84
+        Identificador "i" @1:90
+        Entero "0" @1:96
+        Tamano @1:104
+          Identificador "a" @1:109
+        Entero "1" @1:111
+        Bloque @1:112
+          Asignacion @1:114
+            Indice @1:114
+              Identificador "a" @1:114
+              Identificador "i" @1:116
+            Binario "gauss" @1:121
+              Indice @1:121
+                Identificador "a" @1:121
+                Identificador "i" @1:123
+              Entero "1" @1:132
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 102/132: add falta argumento ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { add(a); }
+[OK] add falta argumento — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:51: error del parser: syntax error, unexpected RPAREN
+
+
+--- Caso 103/132: remove argumento extra ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { remove(a,1,2); }
+[OK] remove argumento extra — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:56: error del parser: syntax error, unexpected COMMA
+
+
+--- Caso 104/132: size sin argumento ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { size(); }
+[OK] size sin argumento — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:51: error del parser: syntax error, unexpected RPAREN
+
+
+--- Caso 105/132: size varios argumentos ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { size(a,b); }
+[OK] size varios argumentos — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:52: error del parser: syntax error, unexpected COMMA
+
+
+--- Caso 106/132: lista sin tipo ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { declare_list a : []; }
+[OK] lista sin tipo — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:61: error del parser: syntax error, unexpected ASSIGN, expecting STAR
+
+
+--- Caso 107/132: importacion con alias ---
+Código de entrada:
+bring matematicas aka math; create_funk #declare_infinite_void# main() { n * declare_int : math.suma(2,3); math.procesar(n); }
+[OK] importacion con alias — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Importacion @1:1
+    Identificador "matematicas" @1:7
+    Identificador "math" @1:23
+  Funcion @1:29
+    Identificador "main" @1:65
+    Tipo "declare_infinite_void" @1:42
+    Parametros @1:70
+    Bloque @1:72
+      Declaracion @1:74
+        Identificador "n" @1:74
+        Tipo "declare_int" @1:78
+        Llamada @1:92
+          AccesoMiembro @1:92
+            Identificador "math" @1:92
+            Identificador "suma" @1:97
+          Argumentos @1:102
+            Entero "2" @1:102
+            Entero "3" @1:104
+      Llamada @1:108
+        AccesoMiembro @1:108
+          Identificador "math" @1:108
+          Identificador "procesar" @1:113
+        Argumentos @1:122
+          Identificador "n" @1:122
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 108/132: importacion sin alias ---
+Código de entrada:
+bring matematicas; create_funk #declare_int# f() { give matematicas.suma(1,2); }
+[OK] importacion sin alias — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Importacion @1:1
+    Identificador "matematicas" @1:7
+  Funcion @1:20
+    Identificador "f" @1:46
+    Tipo "declare_int" @1:33
+    Parametros @1:48
+    Bloque @1:50
+      Retorno @1:52
+        Llamada @1:57
+          AccesoMiembro @1:57
+            Identificador "matematicas" @1:57
+            Identificador "suma" @1:69
+          Argumentos @1:74
+            Entero "1" @1:74
+            Entero "2" @1:76
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 109/132: acceso modulo y matriz ---
+Código de entrada:
+bring datos aka d; create_funk #declare_infinite_void# main() { d.matriz[0][1] : d.valor; }
+[OK] acceso modulo y matriz — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Importacion @1:1
+    Identificador "datos" @1:7
+    Identificador "d" @1:17
+  Funcion @1:20
+    Identificador "main" @1:56
+    Tipo "declare_infinite_void" @1:33
+    Parametros @1:61
+    Bloque @1:63
+      Asignacion @1:65
+        Indice @1:65
+          Indice @1:65
+            AccesoMiembro @1:65
+              Identificador "d" @1:65
+              Identificador "matriz" @1:67
+            Entero "0" @1:74
+          Entero "1" @1:77
+        AccesoMiembro @1:82
+          Identificador "d" @1:82
+          Identificador "valor" @1:84
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 110/132: alias ausente ---
+Código de entrada:
+bring datos aka; create_funk #declare_infinite_void# main() {}
+[OK] alias ausente — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:16: error del parser: syntax error, unexpected SEMICOLON, expecting IDENTIFIER
+
+
+--- Caso 111/132: importacion sin punto y coma ---
+Código de entrada:
+bring datos create_funk #declare_infinite_void# main() {}
+[OK] importacion sin punto y coma — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:13: error del parser: syntax error, unexpected CREATE_FUNK, expecting SEMICOLON or AKA
+
+
+--- Caso 112/132: importacion dentro de funcion ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { bring datos; }
+[OK] importacion dentro de funcion — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:46: error del parser: syntax error, unexpected BRING
+
+
+--- Caso 113/132: miembro ausente ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { math.(1); }
+[OK] miembro ausente — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:51: error del parser: syntax error, unexpected LPAREN, expecting IDENTIFIER
+
+
+--- Caso 114/132: constante local ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { declare_const limite * declare_int : 5; }
+[OK] constante local — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Constante @1:46
+        Identificador "limite" @1:60
+        Tipo "declare_int" @1:69
+        Entero "5" @1:83
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 115/132: constante global ---
+Código de entrada:
+declare_const limite * declare_int : 5; create_funk #declare_int# f() { give limite; }
+[OK] constante global — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Constante @1:1
+    Identificador "limite" @1:15
+    Tipo "declare_int" @1:24
+    Entero "5" @1:38
+  Funcion @1:41
+    Identificador "f" @1:67
+    Tipo "declare_int" @1:54
+    Parametros @1:69
+    Bloque @1:71
+      Retorno @1:73
+        Identificador "limite" @1:78
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 116/132: constante sin valor ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { declare_const limite * declare_int; }
+[OK] constante sin valor — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:80: error del parser: syntax error, unexpected SEMICOLON, expecting ASSIGN or LBRACKET
+
+
+--- Caso 117/132: constante sin tipo ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { declare_const limite : 5; }
+[OK] constante sin tipo — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:67: error del parser: syntax error, unexpected ASSIGN, expecting STAR
+
+
+--- Caso 118/132: seek seize ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { seek { n : f(); } seize (ErrorType e) { n : 0; } }
+[OK] seek seize — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Intentar @1:46
+        Bloque @1:51
+          Asignacion @1:53
+            Identificador "n" @1:53
+            Llamada @1:57
+              Identificador "f" @1:57
+              Argumentos @1:59
+        Capturas @1:64
+          Captura @1:64
+            Identificador "ErrorType" @1:71
+            Identificador "e" @1:81
+            Bloque @1:84
+              Asignacion @1:86
+                Identificador "n" @1:86
+                Entero "0" @1:90
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 119/132: varias capturas ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { seek {} seize (ErrorNumero e) {} seize (ErrorIndice otro) {} }
+[OK] varias capturas — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Intentar @1:46
+        Bloque @1:51
+        Capturas @1:54
+          Captura @1:54
+            Identificador "ErrorNumero" @1:61
+            Identificador "e" @1:73
+            Bloque @1:76
+          Captura @1:79
+            Identificador "ErrorIndice" @1:86
+            Identificador "otro" @1:98
+            Bloque @1:104
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 120/132: seek anidado ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { seek { seek {} seize (ErrorType interno) {} } seize (ErrorType externo) {} }
+[OK] seek anidado — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @1:1
+  Funcion @1:1
+    Identificador "main" @1:37
+    Tipo "declare_infinite_void" @1:14
+    Parametros @1:42
+    Bloque @1:44
+      Intentar @1:46
+        Bloque @1:51
+          Intentar @1:53
+            Bloque @1:58
+            Capturas @1:61
+              Captura @1:61
+                Identificador "ErrorType" @1:68
+                Identificador "interno" @1:78
+                Bloque @1:87
+        Capturas @1:92
+          Captura @1:92
+            Identificador "ErrorType" @1:99
+            Identificador "externo" @1:109
+            Bloque @1:118
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- Caso 121/132: seek sin captura ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { seek {} }
+[OK] seek sin captura — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:54: error del parser: syntax error, unexpected RBRACE, expecting SEIZE
+
+
+--- Caso 122/132: seize sin seek ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { seize (ErrorType e) {} }
+[OK] seize sin seek — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:46: error del parser: syntax error, unexpected SEIZE
+
+
+--- Caso 123/132: seize sin variable ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { seek {} seize (ErrorType) {} }
+[OK] seize sin variable — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:70: error del parser: syntax error, unexpected RPAREN, expecting IDENTIFIER
+
+
+--- Caso 124/132: seize sin bloque ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { seek {} seize (ErrorType e) give; }
+[OK] seize sin bloque — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:74: error del parser: syntax error, unexpected GIVE, expecting LBRACE
+
+
+--- Caso 125/132: alif sin condicion sigue rechazado ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { whether (declare_true) {} alif {} }
+[OK] alif sin condicion sigue rechazado — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:77: error del parser: syntax error, unexpected LBRACE, expecting LPAREN
+
+
+--- Caso 126/132: declare_float sigue rechazado ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { n * declare_float : 1; }
+[OK] declare_float sigue rechazado — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:50: error del parser: syntax error, unexpected IDENTIFIER, expecting DECLARE_INT or DECLARE_BOOLEAN or DECLARE_TEXT or DECLARE_CHAR
+
+
+--- Caso 127/132: token aun no soportado ---
+Código de entrada:
+create_funk #declare_infinite_void# main() { show(); }
+[OK] token aun no soportado — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: token SHOW aún no admitido
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:46: token SHOW aún no admitido por la gramática
+
+
+--- Caso 128/132: error lexico ---
+Código de entrada:
+create_funk #declare_infinite_void# main() {
+@
+}
+[OK] error lexico — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: :2:1: error léxico
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:2:1: error léxico: carácter no permitido
+
+
+--- Caso 129/132: posicion tras Unicode ---
+Código de entrada:
+create_funk #declare_infinite_void# main() {
+t * declare_text : "ñ"; @
+}
+[OK] posicion tras Unicode — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: :2:25: error léxico
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:2:25: error léxico: carácter no permitido
+
+
+--- Caso 130/132: decimal invalido ---
+Código de entrada:
+create_funk #declare_infinite_void# main() {
+n * declare_int : 1.5;
+}
+[OK] decimal invalido — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error léxico
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:2:19: error léxico: literal numérico inválido (solo enteros)
+
+
+--- Caso 131/132: NUL ---
+Código de entrada:
+create_funk #declare_infinite_void# main() {
+\0
+}
+[OK] NUL — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error léxico
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:2:1: error léxico: carácter no permitido
+
+
+--- Caso 132/132: texto sobrante ---
+Código de entrada:
+create_funk #declare_infinite_void# main() {
+
+}
+n
+[OK] texto sobrante — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnóstico esperado: error del parser
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:4:1: error del parser: syntax error, unexpected IDENTIFIER, expecting end of file or BRING or DECLARE_CONST or CREATE_FUNK
+
+
+--- Comparación entre modo léxico y sintáctico ---
+Código de entrada:
+n * declare_int : ;
+[OK] modo lexico — código esperado: 0; obtenido: 0
+Diagnósticos:
+Análisis léxico correcto. Fases posteriores pendientes; no se generó binario.
+
+[OK] modo sintactico — código esperado: 1; obtenido: 1
+Se esperaba rechazar la entrada: ese rechazo cuenta como prueba correcta.
+Diagnósticos:
+/tmp/test_parser_heuMoo/prueba.bal:1:1: error del parser: syntax error, unexpected IDENTIFIER, expecting BRING or DECLARE_CONST or CREATE_FUNK
+
+
+--- Archivo inexistente ---
+[OK] archivo inexistente — código esperado: 2; obtenido: 2
+Diagnósticos:
+/tmp/test_parser_heuMoo/no_existe.bal: No such file or directory
+
+
+--- examples/factorial.bal (-t) ---
+[OK] factorial — código esperado: 0; obtenido: 0
+Salida:
+[AST]
+Programa @2:1
+  Funcion @2:1
+    Identificador "main" @2:37
+    Tipo "declare_infinite_void" @2:14
+    Parametros @2:42
+    Bloque @2:44
+      Declaracion @3:5
+        Identificador "n" @3:5
+        Tipo "declare_int" @3:9
+        Entero "5" @3:23
+      Declaracion @4:5
+        Identificador "resultado" @4:5
+        Tipo "declare_int" @4:17
+        Entero "1" @4:31
+      Declaracion @5:5
+        Identificador "i" @5:5
+        Tipo "declare_int" @5:9
+        Entero "2" @5:23
+      Si "whether" @7:5
+        Binario "<=" @7:14
+          Identificador "n" @7:14
+          Entero "1" @7:19
+        Bloque @7:22
+          Asignacion @8:9
+            Identificador "resultado" @8:9
+            Entero "1" @8:21
+        Bloque @10:10
+          Mientras @11:9
+            Binario "<=" @11:16
+              Identificador "i" @11:16
+              Identificador "n" @11:21
+            Bloque @11:24
+              Asignacion @12:13
+                Identificador "resultado" @12:13
+                Binario "pitagoras" @12:25
+                  Identificador "resultado" @12:25
+                  Identificador "i" @12:45
+              Asignacion @13:13
+                Identificador "i" @13:13
+                Binario "gauss" @13:17
+                  Identificador "i" @13:17
+                  Entero "1" @13:25
+Análisis sintáctico correcto. Generación de código pendiente.
+
+
+--- examples/factorial.bal (-v -t) ---
+[OK] factorial — código esperado: 0; obtenido: 0
+Salida:
+[léxico] Analizando examples/factorial.bal
+2:1 CREATE_FUNK             "create_funk"
+2:13 HASH                    "#"
+2:14 DECLARE_INFINITE_VOID   "declare_infinite_void"
+2:35 HASH                    "#"
+2:37 MAIN                    "main"
+2:41 LPAREN                  "("
+2:42 RPAREN                  ")"
+2:44 LBRACE                  "{"
+3:5 IDENTIFIER              "n"
+3:7 STAR                    "*"
+3:9 DECLARE_INT             "declare_int"
+3:21 ASSIGN                  ":"
+3:23 INTEGER                 "5"
+3:24 SEMICOLON               ";"
+4:5 IDENTIFIER              "resultado"
+4:15 STAR                    "*"
+4:17 DECLARE_INT             "declare_int"
+4:29 ASSIGN                  ":"
+4:31 INTEGER                 "1"
+4:32 SEMICOLON               ";"
+5:5 IDENTIFIER              "i"
+5:7 STAR                    "*"
+5:9 DECLARE_INT             "declare_int"
+5:21 ASSIGN                  ":"
+5:23 INTEGER                 "2"
+5:24 SEMICOLON               ";"
+7:5 WHETHER                 "whether"
+7:13 LPAREN                  "("
+7:14 IDENTIFIER              "n"
+7:16 LESS_EQUAL              "<="
+7:19 INTEGER                 "1"
+7:20 RPAREN                  ")"
+7:22 LBRACE                  "{"
+8:9 IDENTIFIER              "resultado"
+8:19 ASSIGN                  ":"
+8:21 INTEGER                 "1"
+8:22 SEMICOLON               ";"
+9:5 RBRACE                  "}"
+10:5 ALSO                    "also"
+10:10 LBRACE                  "{"
+11:9 WHALE                   "whale"
+11:15 LPAREN                  "("
+11:16 IDENTIFIER              "i"
+11:18 LESS_EQUAL              "<="
+11:21 IDENTIFIER              "n"
+11:22 RPAREN                  ")"
+11:24 LBRACE                  "{"
+12:13 IDENTIFIER              "resultado"
+12:23 ASSIGN                  ":"
+12:25 IDENTIFIER              "resultado"
+12:35 PITAGORAS               "pitagoras"
+12:45 IDENTIFIER              "i"
+12:46 SEMICOLON               ";"
+13:13 IDENTIFIER              "i"
+13:15 ASSIGN                  ":"
+13:17 IDENTIFIER              "i"
+13:19 GAUSS                   "gauss"
+13:25 INTEGER                 "1"
+13:26 SEMICOLON               ";"
+14:9 RBRACE                  "}"
+14:11 STOP                    "stop"
+14:15 SEMICOLON               ";"
+15:5 RBRACE                  "}"
+16:1 RBRACE                  "}"
+17:1 EOF                     ""
+[léxico] 64 tokens, 0 errores.
+[sintáctico] Construyendo AST
+[AST]
+Programa @2:1
+  Funcion @2:1
+    Identificador "main" @2:37
+    Tipo "declare_infinite_void" @2:14
+    Parametros @2:42
+    Bloque @2:44
+      Declaracion @3:5
+        Identificador "n" @3:5
+        Tipo "declare_int" @3:9
+        Entero "5" @3:23
+      Declaracion @4:5
+        Identificador "resultado" @4:5
+        Tipo "declare_int" @4:17
+        Entero "1" @4:31
+      Declaracion @5:5
+        Identificador "i" @5:5
+        Tipo "declare_int" @5:9
+        Entero "2" @5:23
+      Si "whether" @7:5
+        Binario "<=" @7:14
+          Identificador "n" @7:14
+          Entero "1" @7:19
+        Bloque @7:22
+          Asignacion @8:9
+            Identificador "resultado" @8:9
+            Entero "1" @8:21
+        Bloque @10:10
+          Mientras @11:9
+            Binario "<=" @11:16
+              Identificador "i" @11:16
+              Identificador "n" @11:21
+            Bloque @11:24
+              Asignacion @12:13
+                Identificador "resultado" @12:13
+                Binario "pitagoras" @12:25
+                  Identificador "resultado" @12:25
+                  Identificador "i" @12:45
+              Asignacion @13:13
+                Identificador "i" @13:13
+                Binario "gauss" @13:17
+                  Identificador "i" @13:17
+                  Entero "1" @13:25
+Análisis sintáctico correcto. Generación de código pendiente.
+
+OK: 132 casos del parser, modos de CLI y factorial con/sin -v
+./tests/test_ast
+[OK AST] logica, residuo, potencia y precedencia de negacion
+[OK AST] inicializacion opcional, matrices, parametros, indices y listas
+[OK AST] modulos, constantes, cycle y capturas ordenadas
+[OK AST] precedencia, parentesis, asociatividad y negacion
+[OK AST] funciones, parametros, argumentos, llamadas anidadas y retornos
+[OK AST] condiciones, cadena alif/also, anidamiento y ciclo
+[OK AST] lexemas propios, literales, posiciones UTF-8/CRLF e impresion
+[OK AST] errores limpian el arbol parcial y permiten un nuevo analisis
+OK: 8 grupos de pruebas estructurales del AST
+./tests/test_cli
+[OK CLI] ayuda
+[OK CLI] sin fuente
+[OK CLI] opcion desconocida
+[OK CLI] dos fuentes
+[OK CLI] salida sin argumento
+[OK CLI] salida pendiente
+[OK CLI] ensamblador pendiente
+[OK CLI] simbolos habilitados
+[OK CLI] ensamblado pendiente
+[OK CLI] paquetes pendientes
+[OK CLI] lexico
+[OK CLI] tokens
+[OK CLI] AST
+[OK CLI] ambas fases
+[OK CLI] opciones despues
+[OK CLI] fin de opciones
+[OK CLI] expresiones
+OK: 17 casos de CLI
+./tests/test_generacion
+OK: 29 casos de traducción y resultado
+OK: 22 rechazos con diagnóstico y sin salida parcial
+OK: cargas y almacenamiento relativos a sp
+Modelo secuencial validado; no prueba bundles, binario ni procesador.
+./tests/test_symbol_table
+Prueba exitosa
+./tests/test_semantic
+OK: semantic AST, variable no declarada, tipos y duplicados
+./tests/test_semantic_functions
+CASO 0: esperado=0, obtenido=0
+funciones.bal:1:1: error semantico: argumento 1 de 'identidad': se esperaba declare_int, se obtuvo declare_boolean
+CASO 1: esperado=1, obtenido=1
+funciones.bal:1:1: error semantico: funcion 'identidad' esperaba 1 argumentos, pero recibio 0
+CASO 2: esperado=1, obtenido=1
+funciones.bal:1:1: error semantico: retorno incompatible: se esperaba declare_int, se obtuvo declare_boolean
+CASO 3: esperado=1, obtenido=1
+funciones.bal:1:1: error semantico: main debe retornar declare_infinite_void
+funciones.bal:1:1: error semantico: la funcion 'main' debe retornar un valor de tipo declare_int en todos los caminos
+CASO 4: esperado=1, obtenido=1
+funciones.bal:1:1: error semantico: no se encontro la funcion main
+CASO 5: esperado=1, obtenido=1
+OK: funciones, argumentos, retornos y main
+./tests/test_semantic_arrays
+CASO 0: esperado=0, obtenido=0
+arreglos.bal:1:1: error semantico: indice 8 fuera de rango en dimension 1 de 'numeros' (longitud 5)
+CASO 1: esperado=1, obtenido=1
+arreglos.bal:1:1: error semantico: el indice de una coleccion debe ser declare_int
+CASO 2: esperado=1, obtenido=1
+arreglos.bal:1:1: error semantico: la dimension 1 debe ser mayor que cero
+CASO 3: esperado=1, obtenido=1
+OK: dimensiones, indices y limites de arreglos
+./tests/test_semantic_matrix_cycle
+CASO 0: esperado=0, obtenido=0
+matrix_cycle.bal:1:1: error semantico: indice 2 fuera de rango en dimension 1 de 'matriz' (longitud 2)
+CASO 1: esperado=1, obtenido=1
+matrix_cycle.bal:1:1: error semantico: indice 3 fuera de rango en dimension 2 de 'matriz' (longitud 3)
+CASO 2: esperado=1, obtenido=1
+matrix_cycle.bal:1:1: error semantico: coleccion 'matriz': se esperaban 2 indices, se recibieron 1
+CASO 3: esperado=1, obtenido=1
+matrix_cycle.bal:1:1: error semantico: coleccion 'matriz': se esperaban 2 indices, se recibieron 3
+CASO 4: esperado=1, obtenido=1
+CASO 5: esperado=0, obtenido=0
+matrix_cycle.bal:1:1: error semantico: el paso de cycle no puede ser cero
+CASO 6: esperado=1, obtenido=1
+CASO 7: esperado=0, obtenido=0
+matrix_cycle.bal:1:1: error semantico: identificador 'i' no declarado
+CASO 8: esperado=1, obtenido=1
+OK: matrices bidimensionales, cycle y ambitos
+./tests/test_semantic_returns
+CASO 0: esperado=0, obtenido=0
+retornos.bal:1:1: error semantico: la funcion 'calcular' debe retornar un valor de tipo declare_int en todos los caminos
+CASO 1: esperado=1, obtenido=1
+retornos.bal:1:1: error semantico: la funcion 'calcular' debe retornar un valor de tipo declare_int en todos los caminos
+CASO 2: esperado=1, obtenido=1
+CASO 3: esperado=0, obtenido=0
+retornos.bal:1:1: error semantico: la funcion 'calcular' debe retornar un valor de tipo declare_int en todos los caminos
+CASO 4: esperado=1, obtenido=1
+CASO 5: esperado=0, obtenido=0
+retornos.bal:1:1: error semantico: la funcion 'calcular' debe retornar un valor de tipo declare_int en todos los caminos
+CASO 6: esperado=1, obtenido=1
+CASO 7: esperado=0, obtenido=0
+OK: retornos obligatorios y rutas de ejecucion
+./tests/test_semantic_initializers
+CASO 0: esperado=0, obtenido=0
+inicializadores.bal:1:1: error semantico: dimension 1: se esperaban 2 elementos, se encontraron 1
+CASO 1: esperado=1, obtenido=1
+inicializadores.bal:1:1: error semantico: dimension 2: se esperaban 3 elementos, se encontraron 2
+CASO 2: esperado=1, obtenido=1
+inicializadores.bal:1:1: error semantico: elemento de arreglo incompatible: se esperaba declare_int, se obtuvo declare_boolean
+CASO 3: esperado=1, obtenido=1
+OK: inicializadores de matrices y tipos de elementos
+./tests/test_semantic_dynamic_arrays
+CASO 0: esperado=0, obtenido=0
+CASO 1: esperado=0, obtenido=0
+CASO 2: esperado=0, obtenido=0
+CASO 3: esperado=0, obtenido=0
+dimensiones_dinamicas.bal:1:1: error semantico: la dimension 1 debe ser de tipo declare_int
+CASO 4: esperado=1, obtenido=1
+dimensiones_dinamicas.bal:1:1: error semantico: identificador 'desconocida' no declarado
+CASO 5: esperado=1, obtenido=1
+dimensiones_dinamicas.bal:1:1: error semantico: la dimension 1 debe ser mayor que cero
+CASO 6: esperado=1, obtenido=1
+dimensiones_dinamicas.bal:1:1: error semantico: la dimension 1 debe ser mayor que cero
+CASO 7: esperado=1, obtenido=1
+dimensiones_dinamicas.bal:1:1: error semantico: la dimension 1 debe ser de tipo declare_int
+CASO 8: esperado=1, obtenido=1
+OK: dimensiones estaticas y dinamicas
+./tests/test_semantic_lists
+CASO 0: esperado=0, obtenido=0
+listas.bal:1:1: error semantico: elemento de lista incompatible: se esperaba declare_int, se obtuvo declare_boolean
+CASO 1: esperado=1, obtenido=1
+listas.bal:1:1: error semantico: una lista debe inicializarse con un literal de coleccion
+CASO 2: esperado=1, obtenido=1
+CASO 3: esperado=0, obtenido=0
+listas.bal:1:1: error semantico: add: la lista 'numeros' requiere elementos de tipo declare_int, pero se obtuvo declare_boolean
+CASO 4: esperado=1, obtenido=1
+CASO 5: esperado=0, obtenido=0
+listas.bal:1:1: error semantico: remove: el indice debe ser de tipo declare_int
+CASO 6: esperado=1, obtenido=1
+CASO 7: esperado=0, obtenido=0
+listas.bal:1:1: error semantico: 'numero' no es una coleccion
+CASO 8: esperado=1, obtenido=1
+listas.bal:1:1: error semantico: identificador 'inexistente' no declarado
+CASO 9: esperado=1, obtenido=1
+OK: listas, inicializadores, add, remove y size
+./tests/test_semantic_list_indices
+CASO 0: esperado=0, obtenido=0
+CASO 1: esperado=0, obtenido=0
+indices_listas.bal:1:1: error semantico: el indice de una coleccion debe ser declare_int
+CASO 2: esperado=1, obtenido=1
+indices_listas.bal:1:1: error semantico: coleccion 'numeros': se esperaban 1 indices, se recibieron 2
+CASO 3: esperado=1, obtenido=1
+indices_listas.bal:1:1: error semantico: asignacion incompatible (declare_int y declare_boolean)
+CASO 4: esperado=1, obtenido=1
+indices_listas.bal:1:1: error semantico: identificador 'desconocida' no declarado
+CASO 5: esperado=1, obtenido=1
+OK: indices de listas y tipos de elementos
+./tests/test_semantic_composite_params
+CASO 0: esperado=0, obtenido=0
+parametros_compuestos.bal:1:1: error semantico: argumento 1 de 'procesar': tipo de elemento incompatible (se esperaba declare_int, se obtuvo declare_boolean)
+CASO 1: esperado=1, obtenido=1
+parametros_compuestos.bal:1:1: error semantico: argumento 1 de 'procesar': se esperaba un arreglo de 1 dimensiones, se obtuvo uno de 2
+CASO 2: esperado=1, obtenido=1
+CASO 3: esperado=0, obtenido=0
+parametros_compuestos.bal:1:1: error semantico: argumento 1 de 'procesar': se esperaba una lista
+CASO 4: esperado=1, obtenido=1
+parametros_compuestos.bal:1:1: error semantico: argumento 1 de 'procesar': se esperaba una coleccion
+CASO 5: esperado=1, obtenido=1
+CASO 6: esperado=0, obtenido=0
+CASO 7: esperado=0, obtenido=0
+OK: parametros de arreglos, matrices y listas
+Pipeline compilado correctamente.
+Ejecuta el programa con un archivo BAL y su resultado esperado.
+./tests/test_semantic_modules tests/modulos/principal_valido.bal 0
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+MODULOS: esperado=0 obtenido=0
+./tests/test_semantic_modules tests/modulos/principal_inexistente.bal 1
+tests/modulos/principal_inexistente.bal:1:1: error semantico: no se pudo abrir modulo 'tests/modulos/no_existe.bal'
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/principal_ciclo.bal 1
+tests/modulos/b.bal:1:1: error semantico: importacion circular detectada hacia 'tests/modulos/a.bal'
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/principal_modulo_invalido.bal 1
+tests/modulos/modulo_con_main.bal:1:37: error semantico: un modulo importado no puede declarar la funcion main
+[OK] Integridad de tabla: 1 simbolos, sin offsets
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/principal_llamada.bal 0
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+MODULOS: esperado=0 obtenido=0
+./tests/test_semantic_modules tests/modulos/principal_funcion_inexistente.bal 1
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+tests/modulos/principal_funcion_inexistente.bal:4:36: error semantico: el modulo 'math' no exporta 'no_existe'
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/principal_argumentos_error.bal 1
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+tests/modulos/principal_argumentos_error.bal:4:31: error semantico: funcion 'sumar' esperaba 2 argumentos, pero recibio 1
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/principal_tipo_error.bal 1
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+tests/modulos/principal_tipo_error.bal:4:45: error semantico: argumento 2 de 'sumar': se esperaba declare_int, se obtuvo declare_boolean
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/principal_doble_importacion.bal 0
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+[OK] Integridad de tabla: 5 simbolos, sin offsets
+MODULOS: esperado=0 obtenido=0
+./tests/test_semantic_modules tests/modulos/principal_alias_duplicado.bal 1
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+tests/modulos/principal_alias_duplicado.bal:2:23: error semantico: 'math' ya fue declarado en este ambito
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/principal_constante.bal 0
+[OK] Integridad de tabla: 1 simbolos, sin offsets
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+MODULOS: esperado=0 obtenido=0
+./tests/test_semantic_modules tests/modulos/principal_alias_inexistente.bal 1
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+tests/modulos/principal_alias_inexistente.bal:4:28: error semantico: modulo 'otro' no declarado
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/principal_anidado.bal 0
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+MODULOS: esperado=0 obtenido=0
+./tests/test_semantic_modules tests/modulos/principal_compartido.bal 0
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+[OK] Integridad de tabla: 5 simbolos, sin offsets
+MODULOS: esperado=0 obtenido=0
+./tests/test_semantic_modules tests/modulos/principal_dependencia_error.bal 1
+tests/modulos/operaciones_error.bal:2:10: error semantico: retorno incompatible: se esperaba declare_int, se obtuvo declare_boolean
+[OK] Integridad de tabla: 1 simbolos, sin offsets
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/principal_privacidad.bal 1
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+tests/modulos/principal_privacidad.bal:4:36: error semantico: el modulo 'priv' no exporta 'secreto'
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/principal_arreglo_importado.bal 0
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+[OK] Integridad de tabla: 4 simbolos, sin offsets
+MODULOS: esperado=0 obtenido=0
+./tests/test_semantic_modules tests/modulos/principal_arreglo_error.bal 1
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+tests/modulos/principal_arreglo_error.bal:5:43: error semantico: argumento 1 de 'primero': tipo de elemento incompatible (se esperaba declare_int, se obtuvo declare_boolean)
+[OK] Integridad de tabla: 4 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+./tests/test_semantic_modules tests/modulos/./principal_llamada.bal 0
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+[OK] Integridad de tabla: 3 simbolos, sin offsets
+MODULOS: esperado=0 obtenido=0
+./tests/test_semantic_modules tests/modulos/./principal_ciclo.bal 1
+tests/modulos/b.bal:1:1: error semantico: importacion circular detectada hacia 'tests/modulos/a.bal'
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+MODULOS: esperado=1 obtenido=1
+OK: 20 escenarios de modulos BAL (sin offsets)
+[OK] proyecto valido (codigo 0)
+[OK] error de tipos (codigo 1)
+[OK] modulo inexistente (codigo 1)
+[OK] principal inexistente (codigo 1)
+[OK] sin archivo (codigo 2)
+[OK] argumentos sobrantes (codigo 2)
+OK: 6 escenarios del modo --semantico (codigos y diagnosticos)
+./tests/test_funciones_marco
+OK: 3B-A prologos, epilogos, registros, quinto argumento y limites
+./tests/test_funciones_llamada
+OK: 3B-B llamada escalar, permutacion, argumentos por pila y limites
+./tests/test_funciones_integracion
+OK: 3B-C pila, quinto argumento, retornos y anidamiento recursivo (modelo secuencial)
+./tests/test_generacion_funciones
+OK: 3B-D2 AST llamadas anidadas, temporales en pila y rollback
+./tests/test_semantic_visitante
+[OK] Integridad de tabla: 4 simbolos, sin offsets
+[OK] Integridad de tabla: 4 simbolos, sin offsets
+tests/modulos/principal_inexistente.bal:1:1: error semantico: no se pudo abrir modulo 'tests/modulos/no_existe.bal'
+[OK] Integridad de tabla: 2 simbolos, sin offsets
+[OK] Integridad de tabla: 4 simbolos, sin offsets
+OK: 3B-D3B callback, vida del AST, memoria y errores
+./tests/test_generacion_adaptador
+OK: 3B-D3C referencias por ambito, offsets reales y rechazo
+./tests/test_resolucion_referencias
+OK: 3B-D3D etiquetas, referencias, sye y condicionales (PC de bundle)
+./tests/test_referencias_integracion
+OK: 3B-D3E destinos registrados, llamada recursiva y rechazo sin layout
+sh tests/test_m_simbolos.sh
+OK: 3B-D3F -m simbolos, memoria y errores
+sh tests/test_auditoria_semantica.sh
+[OK auditoria] captura_valida
+[OK auditoria] capturas_distintas
+[OK auditoria] captura_duplicada rechazado
+[OK auditoria] fuga_variable_captura rechazado
+[OK auditoria] identificador_no_declarado rechazado
+[OK auditoria] tipo_retorno rechazado
+OK: auditoria semantica adicional (6 escenarios)
+sh tests/test_ejercicio2_matriz.sh
+OK: Ejercicio 2 - sintaxis, semantica, -m y rechazo de indices (sin ejecucion VLIW)
+./tests/test_lexer
+OK: 18 casos del lexer, incluido factorial.bal
+./balc -v examples/factorial.bal
+[léxico] Analizando examples/factorial.bal
+2:1 CREATE_FUNK             "create_funk"
+2:13 HASH                    "#"
+2:14 DECLARE_INFINITE_VOID   "declare_infinite_void"
+2:35 HASH                    "#"
+2:37 MAIN                    "main"
+2:41 LPAREN                  "("
+2:42 RPAREN                  ")"
+2:44 LBRACE                  "{"
+3:5 IDENTIFIER              "n"
+3:7 STAR                    "*"
+3:9 DECLARE_INT             "declare_int"
+3:21 ASSIGN                  ":"
+3:23 INTEGER                 "5"
+3:24 SEMICOLON               ";"
+4:5 IDENTIFIER              "resultado"
+4:15 STAR                    "*"
+4:17 DECLARE_INT             "declare_int"
+4:29 ASSIGN                  ":"
+4:31 INTEGER                 "1"
+4:32 SEMICOLON               ";"
+5:5 IDENTIFIER              "i"
+5:7 STAR                    "*"
+5:9 DECLARE_INT             "declare_int"
+5:21 ASSIGN                  ":"
+5:23 INTEGER                 "2"
+5:24 SEMICOLON               ";"
+7:5 WHETHER                 "whether"
+7:13 LPAREN                  "("
+7:14 IDENTIFIER              "n"
+7:16 LESS_EQUAL              "<="
+7:19 INTEGER                 "1"
+7:20 RPAREN                  ")"
+7:22 LBRACE                  "{"
+8:9 IDENTIFIER              "resultado"
+8:19 ASSIGN                  ":"
+8:21 INTEGER                 "1"
+8:22 SEMICOLON               ";"
+9:5 RBRACE                  "}"
+10:5 ALSO                    "also"
+10:10 LBRACE                  "{"
+11:9 WHALE                   "whale"
+11:15 LPAREN                  "("
+11:16 IDENTIFIER              "i"
+11:18 LESS_EQUAL              "<="
+11:21 IDENTIFIER              "n"
+11:22 RPAREN                  ")"
+11:24 LBRACE                  "{"
+12:13 IDENTIFIER              "resultado"
+12:23 ASSIGN                  ":"
+12:25 IDENTIFIER              "resultado"
+12:35 PITAGORAS               "pitagoras"
+12:45 IDENTIFIER              "i"
+12:46 SEMICOLON               ";"
+13:13 IDENTIFIER              "i"
+13:15 ASSIGN                  ":"
+13:17 IDENTIFIER              "i"
+13:19 GAUSS                   "gauss"
+13:25 INTEGER                 "1"
+13:26 SEMICOLON               ";"
+14:9 RBRACE                  "}"
+14:11 STOP                    "stop"
+14:15 SEMICOLON               ";"
+15:5 RBRACE                  "}"
+16:1 RBRACE                  "}"
+17:1 EOF                     ""
+[léxico] 64 tokens, 0 errores.
+[estado] Solo análisis léxico; no se generó ensamblador ni binario.
