@@ -1,0 +1,72 @@
+\babel@toc {spanish}{}\relax 
+\contentsline {section}{\numberline {1}Resumen ejecutivo}{3}{section.1}%
+\contentsline {section}{\numberline {2}Arquitectura del compilador y herramientas}{3}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Fases}{3}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Organización del repositorio}{4}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Interfaz de línea de comandos}{5}{subsection.2.3}%
+\contentsline {section}{\numberline {3}Especificación de la arquitectura destino}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Green card de la ISA del proyecto VLIW}{5}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}Instrucciones tipo almacenar}{6}{subsubsection.3.1.1}%
+\contentsline {subsubsection}{\numberline {3.1.2}Instrucciones tipo inmediato}{6}{subsubsection.3.1.2}%
+\contentsline {subsubsection}{\numberline {3.1.3}Instrucciones tipo salto}{7}{subsubsection.3.1.3}%
+\contentsline {subsubsection}{\numberline {3.1.4}Instrucciones tipo control}{7}{subsubsection.3.1.4}%
+\contentsline {subsubsection}{\numberline {3.1.5}Instrucciones tipo registro}{7}{subsubsection.3.1.5}%
+\contentsline {subsubsection}{\numberline {3.1.6}Instrucciones tipo cripto}{8}{subsubsection.3.1.6}%
+\contentsline {subsubsection}{\numberline {3.1.7}Pseudoinstrucciones}{9}{subsubsection.3.1.7}%
+\contentsline {subsubsection}{\numberline {3.1.8}Codificación por tipo}{9}{subsubsection.3.1.8}%
+\contentsline {subsubsection}{\numberline {3.1.9}Registros}{11}{subsubsection.3.1.9}%
+\contentsline {section}{\numberline {4}Especificación del lenguaje}{11}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Elementos léxicos}{11}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Declaraciones y asignación}{13}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Arreglos y matrices}{13}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Funciones, ámbito y comentarios}{13}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}4.5. Precedencia y límites}{14}{subsection.4.5}%
+\contentsline {section}{\numberline {5}Algoritmos clave}{14}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Reconocimiento léxico}{14}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Parser y construcción del AST}{14}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Análisis semántico por dos pasadas}{15}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Tabla de símbolos}{15}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Memoria y direcciones}{15}{subsection.5.5}%
+\contentsline {subsection}{\numberline {5.6}Referencias y enlaces}{16}{subsection.5.6}%
+\contentsline {subsection}{\numberline {5.7}Cálculo de saltos y corrección por alcance}{16}{subsection.5.7}%
+\contentsline {subsection}{\numberline {5.8}Bundles, dependencias y codificación}{16}{subsection.5.8}%
+\contentsline {section}{\numberline {6}Organización de memoria y convención de llamadas}{17}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Mapa general}{17}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Funciones}{18}{subsection.6.2}%
+\contentsline {section}{\numberline {7}Resolución de referencias, saltos y llamadas}{18}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Caso real: control anidado de la matriz}{18}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Caso real: factorial}{18}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Diferencia entre dirección y offset}{18}{subsection.7.3}%
+\contentsline {section}{\numberline {8}Ejercicios de demostración}{18}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Validación de integración con la arquitectura}{19}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Ejercicio 1: factorial}{19}{subsection.8.2}%
+\contentsline {subsubsection}{\numberline {8.2.1}Objetivo:}{19}{subsubsection.8.2.1}%
+\contentsline {subsubsection}{\numberline {8.2.2}Resultado esperado:}{19}{subsubsection.8.2.2}%
+\contentsline {subsubsection}{\numberline {8.2.3}Evidencia de compilación aportada:}{19}{subsubsection.8.2.3}%
+\contentsline {subsubsection}{\numberline {8.2.4}Evolución matemática esperada, NO ejecución observada:}{19}{subsubsection.8.2.4}%
+\contentsline {subsubsection}{\numberline {8.2.5}Validación de ejecución en la arquitectura VLIW}{20}{subsubsection.8.2.5}%
+\contentsline {subsubsection}{\numberline {8.2.6}Traza dinámica de ejecución}{21}{subsubsection.8.2.6}%
+\contentsline {subsection}{\numberline {8.3}Ejercicio 2: búsqueda en matriz}{22}{subsection.8.3}%
+\contentsline {subsubsection}{\numberline {8.3.1}Objetivo:}{22}{subsubsection.8.3.1}%
+\contentsline {subsubsection}{\numberline {8.3.2}Resultado esperado:}{22}{subsubsection.8.3.2}%
+\contentsline {subsubsection}{\numberline {8.3.3}Evidencia de compilación aportada:}{22}{subsubsection.8.3.3}%
+\contentsline {subsubsection}{\numberline {8.3.4}Evolución conceptual esperada, NO ejecución observada:}{22}{subsubsection.8.3.4}%
+\contentsline {subsubsection}{\numberline {8.3.5}Validación de ejecución en la arquitectura VLIW}{23}{subsubsection.8.3.5}%
+\contentsline {subsubsection}{\numberline {8.3.6}Traza dinámica de ejecución}{24}{subsubsection.8.3.6}%
+\contentsline {subsection}{\numberline {8.4}Ejercicio 3: funciones y puntajes}{25}{subsection.8.4}%
+\contentsline {subsubsection}{\numberline {8.4.1}Objetivo:}{25}{subsubsection.8.4.1}%
+\contentsline {subsubsection}{\numberline {8.4.2}Resultado esperado:}{25}{subsubsection.8.4.2}%
+\contentsline {subsubsection}{\numberline {8.4.3}Evidencia de compilación aportada:}{26}{subsubsection.8.4.3}%
+\contentsline {subsubsection}{\numberline {8.4.4}Evolución conceptual esperada, NO ejecución observada:}{26}{subsubsection.8.4.4}%
+\contentsline {subsubsection}{\numberline {8.4.5}Validación de ejecución en la arquitectura VLIW}{26}{subsubsection.8.4.5}%
+\contentsline {subsubsection}{\numberline {8.4.6}Traza dinámica de ejecución}{27}{subsubsection.8.4.6}%
+\contentsline {section}{\numberline {9}Manejo de casos especiales}{28}{section.9}%
+\contentsline {section}{\numberline {10}Pruebas y evidencias reproducibles}{29}{section.10}%
+\contentsline {subsection}{\numberline {10.1}Pruebas automatizadas aportadas por el equipo}{29}{subsection.10.1}%
+\contentsline {subsection}{\numberline {10.2}Compilación detallada del Ejercicio 2}{30}{subsection.10.2}%
+\contentsline {subsection}{\numberline {10.3}Evidencia mínima de código máquina}{30}{subsection.10.3}%
+\contentsline {section}{\numberline {11}Uso, reproducción y entrega}{30}{section.11}%
+\contentsline {section}{\numberline {12}Anexos técnicos de los tres programas}{31}{section.12}%
+\contentsline {subsection}{\numberline {12.1}Ejercicio 1}{32}{subsection.12.1}%
+\contentsline {subsection}{\numberline {12.2}Ejercicio 2}{32}{subsection.12.2}%
+\contentsline {subsection}{\numberline {12.3}Ejercicio 3}{33}{subsection.12.3}%

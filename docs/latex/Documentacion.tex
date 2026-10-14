@@ -1,0 +1,84 @@
+\documentclass[12pt,letterpaper]{article}
+% Paquetes del preambulo original, corregidos y ampliados
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage{lmodern}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{xltabular}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage[backend=biber,style=ieee]{biblatex}
+\addbibresource{referencias.bib}
+\geometry{top=2.5cm,bottom=2.5cm,left=2.5cm,right=2.5cm}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\renewcommand{\baselinestretch}{1.28}
+\setlength{\headheight}{16pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{CE1108 -- Compiladores e Intérpretes}
+\fancyhead[R]{Proyecto 1}
+\fancyfoot[C]{\thepage}
+\hypersetup{colorlinks=true,linkcolor=blue!45!black,urlcolor=blue!45!black,citecolor=blue!45!black,pdftitle={Documentacion general BALC},pdfauthor={Equipo BALC}}
+\definecolor{codigoFondo}{RGB}{248,249,251}
+\definecolor{codigoBorde}{RGB}{187,193,200}
+\lstdefinestyle{codigoBALC}{
+ basicstyle=\ttfamily\scriptsize,
+ keywordstyle=\color{blue!60!black}\bfseries,
+ stringstyle=\color{red!55!black},
+ commentstyle=\color{green!40!black}\itshape,
+ numbers=left,numberstyle=\tiny\color{gray},numbersep=7pt,
+ frame=single,rulecolor=\color{codigoBorde},backgroundcolor=\color{codigoFondo},
+ breaklines=true,breakatwhitespace=false,showstringspaces=false,
+ tabsize=4,captionpos=b,columns=fullflexible,keepspaces=true
+}
+\lstset{style=codigoBALC}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\providecommand{\passthrough}[1]{#1}
+\providecommand{\pandocbounded}[1]{#1}
+\setcounter{tocdepth}{2}
+\begin{document}
+\begin{titlepage}
+\centering
+{\Large Instituto Tecnológico de Costa Rica\par}
+\vspace{0.25cm}
+{\large Escuela de Ingeniería en Computadores\par}
+\vfill
+%\IfFileExists{fig_logo.png}{\includegraphics[width=0.55\textwidth]{fig_logo.png}}{\fbox{\parbox[c][2.6cm][c]{0.52\textwidth}{\centering Logotipo institucional\\[3pt]\footnotesize Agregar \\texttt{fig\_logo.png}}}}
+\vfill
+{\bfseries\LARGE Compiladores e Intérpretes\par}
+\vspace{0.45cm}
+{\bfseries\Large Proyecto I - Compilador para código binario \par}
+\vspace{0.2cm}
+{\large Compilador para una arquitectura VLIW\par}
+\vfill
+\begin{flushleft}
+\textbf{Integrantes:}\\[0.20cm]
+\begin{tabular}{@{}p{0.69\textwidth}l@{}}
+Meibel Elena Mora Brenes & 2021128644\\
+Dylan Maximiliano Guerrero Gonzaléz & 2022016016\\
+José García Izaguirre & 2022437991\\
+Javier Hernández Castillo & 2022321746\\
+\end{tabular}\\[0.45cm]
+\textbf{Profesor:} Jason Leitón Jiménez\\[0.15cm]
+\textbf{Grupo:} 1\\[0.15cm]
+\textbf{Semestre:} II Semestre 2026
+\end{flushleft}
+\vfill
+\end{titlepage}
+\tableofcontents
+\clearpage
+\input{contenido.tex}
+\end{document}
